@@ -103,7 +103,13 @@ function authorizeUrl(redirectUriValue: string, state: string): string {
  */
 export async function startGoogleSignIn(returnTo?: string): Promise<Response> {
   if (!isGoogleSignInConfigured()) {
-    return new Response("Google sign-in is not configured.", { status: 503 });
+    const origin = await resolveOrigin();
+    const fallback = new URL("/login", origin);
+    fallback.searchParams.set(
+      "error",
+      "Google Sign-In requires GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables in this environment. Please use email and password or sign in on the live production domain.",
+    );
+    return Response.redirect(fallback.toString(), 302);
   }
   const state = base64Url(randomBytes(32));
   const options = await sessionCookieOptions(STATE_MAX_AGE);

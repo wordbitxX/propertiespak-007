@@ -37,6 +37,7 @@ const COLUMNS = [
       { label: "Commercial", href: "/commercial" },
       { label: "All properties", href: "/properties" },
       { label: "Towns & societies", href: "/towns" },
+      { label: "Society PDF Maps", href: "/maps" },
       { label: "Verified dealers", href: "/dealers" },
       { label: "Compare properties", href: "/compare" },
     ],
@@ -83,8 +84,25 @@ const COLUMNS = [
 export function SiteFooter() {
   const { t } = useLanguage();
   return (
-    <footer className="border-t border-white/10 bg-navy-950 text-white/65" aria-label={t("Properties Pak footer")}>
-      <div className="ui-container py-12 sm:py-16">
+    <footer
+      className="relative isolate overflow-hidden border-t border-[#DFB872]/20 bg-[#061912] text-white/70"
+      aria-label={t("Properties Pak footer")}
+    >
+      {/* Subtle Pakistan Landmarks Skyline Backdrop (Minar-e-Pakistan, Badshahi Mosque, Faisal Mosque) */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/images/footer-landmarks-hd.webp"
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        decoding="async"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-[0.18] mix-blend-luminosity"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#061912]/90 via-[#071E16]/82 to-[#05150F]/94"
+      />
+      <div className="ui-container relative z-10 py-12 sm:py-16">
         <div className="grid min-w-0 gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,2fr)] lg:gap-14">
           <div className="min-w-0">
             <Link href="/" aria-label={`${SITE.name} — ${SITE.tagline}`} className="inline-block">

@@ -12,6 +12,7 @@ const CORE_PAGES = [
   "/properties/new-projects",
   "/commercial",
   "/projects",
+  "/maps",
   "/blog",
   "/tools",
   "/tools/mortgage-calculator",

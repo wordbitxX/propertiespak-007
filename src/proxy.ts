@@ -25,6 +25,8 @@ const STATIC_TOP_LEVEL = new Set([
   "account",
   "compare",
   "admin",
+  "sample",
+  "maps",
   "sitemap",
   "sitemap.xml",
   "sitemap-index.xml",
@@ -52,6 +54,7 @@ const KNOWN_PREFIXES = [
   "/sitemaps",
   "/dealers",
   "/towns",
+  "/maps",
 ];
 
 const LANDING_SLUGS = new Set([

@@ -26,7 +26,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cit
     { path: `/property-for-sale-in-${slug}`, changeFrequency: "weekly", priority: 0.9 },
     { path: `/property-for-rent-in-${slug}`, changeFrequency: "weekly", priority: 0.85 },
     ...getAllKeywordLandingSlugs()
-      .filter((item) => item.endsWith(`-in-${slug}`))
+      .filter((item) => item.endsWith(`-in-${slug}`) || item.includes(`-${slug}`) || item.startsWith(`${slug}-`))
       .map((item) => ({ path: `/${item}`, changeFrequency: "weekly" as const, priority: 0.85 })),
     ...SOCIETIES.filter((society) => society.citySlug === slug).map((society) => ({
       path: `/property-for-sale/${society.slug}`,

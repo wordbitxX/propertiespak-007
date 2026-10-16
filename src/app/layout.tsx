@@ -42,6 +42,16 @@ const inter = localFont({
   fallback: ["ui-sans-serif", "system-ui", "Segoe UI", "sans-serif"],
 });
 
+const playfair = localFont({
+  src: [
+    { path: "./fonts/playfair-latin-normal.woff2", weight: "400 900", style: "normal" },
+    { path: "./fonts/playfair-latin-italic.woff2", weight: "400 900", style: "italic" },
+  ],
+  display: "swap",
+  variable: "--font-serif",
+  fallback: ["Georgia", "Cambria", "Times New Roman", "serif"],
+});
+
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -132,7 +142,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#082B4C",
+  themeColor: "#0B2A20",
   width: "device-width",
   initialScale: 1,
 };
@@ -157,7 +167,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
      */
     <html
       lang="en"
-      className={`${jakarta.variable} ${inter.variable}`}
+      className={`${jakarta.variable} ${inter.variable} ${playfair.variable}`}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
