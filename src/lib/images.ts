@@ -61,13 +61,13 @@ export const HERO_PHOTO_ID = 31817157;
  */
 export const heroImage = {
   origin: "",
-  /** Premium villa at dusk, shipped locally so the hero no longer depends on a remote photo CDN. */
+  /** Luxury villa overlooking Islamabad, Faisal Mosque, and Margalla Hills at sunset. */
   desktop: "/images/hero-premium.jpg",
-  desktopSrcSet: "/images/hero-premium.jpg 1376w",
-  mobileSrcSet: "/images/hero-premium.jpg 1376w",
+  desktopSrcSet: "/images/hero-premium.jpg 1672w",
+  mobileSrcSet: "/images/hero-premium.jpg 1672w",
   /** Local, real-JPEG social card (WhatsApp / Facebook / X previews). */
   og: "/images/residence-social.jpg",
-  alt: "Contemporary luxury villa with floor-to-ceiling glass and an infinity pool at sunset",
+  alt: "Modern luxury villa with warm interior lighting overlooking Faisal Mosque and the Margalla Hills in Islamabad at sunset",
 };
 
 export const investmentImage = {

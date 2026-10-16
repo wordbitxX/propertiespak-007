@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { useLanguage } from "@/components/language-provider";
-import { IconSearch, IconSliders } from "@/components/icons";
+import { IconChevronDown, IconSearch, IconSliders } from "@/components/icons";
 import { beginRecentSearch } from "@/lib/recent-properties";
 import { NavigationDialog } from "@/components/navigation-dialog";
 import { PropertySearchFilters } from "@/components/property-search-filters";
@@ -21,11 +20,15 @@ import {
   type SearchGroup,
 } from "@/lib/property-search";
 
-const CATEGORY_GROUPS: { value: SearchGroup; label: string }[] = [
-  { value: "all", label: "All properties" },
-  { value: "homes", label: "Homes" },
-  { value: "plot", label: "Plots" },
-  { value: "commercial", label: "Commercial" },
+type HeroTab = "buy" | "rent" | "new-projects" | "commercial" | "towns" | "plots";
+
+const HERO_TABS: { id: HeroTab; label: string }[] = [
+  { id: "buy", label: "Buy" },
+  { id: "rent", label: "Rent" },
+  { id: "new-projects", label: "New Projects" },
+  { id: "commercial", label: "Commercial" },
+  { id: "towns", label: "Towns" },
+  { id: "plots", label: "Plots" },
 ];
 
 const GROUP_TYPES: Record<SearchGroup, readonly string[]> = {
@@ -35,18 +38,11 @@ const GROUP_TYPES: Record<SearchGroup, readonly string[]> = {
   commercial: COMMERCIAL_SEARCH_TYPES,
 };
 
-const ALL_TYPE_LABEL: Record<SearchGroup, string> = {
-  all: "All types",
-  homes: "All Homes",
-  plot: "All Plots",
-  commercial: "All Commercial",
-};
-
 function heroTypeLabel(type: string) {
-  if (type === "Apartment") return "Flat";
+  if (type === "Apartment") return "Apartment";
   if (type === "Farmhouse") return "Farm House";
   if (type === "Plot") return "Residential Plot";
-  if (type === "Commercial Building") return "Building";
+  if (type === "Commercial Building") return "Commercial Plaza";
   return searchTypeLabel(type);
 }
 
@@ -54,27 +50,77 @@ export function SearchPanel() {
   const { t } = useLanguage();
   const router = useRouter();
   const [state, setState] = useState<PropertySearchState>(() => defaultPropertySearch());
+  const [activeTab, setActiveTab] = useState<HeroTab>("buy");
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const budgets = state.purpose === "rent" ? BUDGETS_RENT : BUDGETS_BUY;
   const budget = state.minPrice || state.maxPrice ? `${state.minPrice}-${state.maxPrice}` : "";
 
-  function changePurpose(purpose: "buy" | "rent") {
-    setState((current) => ({ ...current, purpose, group: "all", type: "", minPrice: "", maxPrice: "" }));
-  }
-
-  function changeGroup(group: SearchGroup) {
-    setState((current) => ({
-      ...current,
-      group,
-      type: "",
-      beds: group === "homes" || group === "all" ? current.beds : "",
-    }));
+  function selectTab(tab: HeroTab) {
+    setActiveTab(tab);
+    if (tab === "buy") {
+      setState((current) => ({
+        ...current,
+        purpose: "buy",
+        group: "all",
+        type: "",
+        newProjects: false,
+        minPrice: "",
+        maxPrice: "",
+      }));
+    } else if (tab === "rent") {
+      setState((current) => ({
+        ...current,
+        purpose: "rent",
+        group: "all",
+        type: "",
+        newProjects: false,
+        minPrice: "",
+        maxPrice: "",
+      }));
+    } else if (tab === "new-projects") {
+      setState((current) => ({
+        ...current,
+        purpose: "buy",
+        group: "all",
+        type: "",
+        newProjects: true,
+      }));
+    } else if (tab === "commercial") {
+      setState((current) => ({
+        ...current,
+        purpose: "buy",
+        group: "commercial",
+        type: "",
+        newProjects: false,
+      }));
+    } else if (tab === "plots") {
+      setState((current) => ({
+        ...current,
+        purpose: "buy",
+        group: "plot",
+        type: "",
+        newProjects: false,
+      }));
+    } else if (tab === "towns") {
+      setState((current) => ({
+        ...current,
+        purpose: "buy",
+        group: "all",
+        type: "",
+        newProjects: false,
+      }));
+    }
   }
 
   function search(next: PropertySearchState) {
     setState(next);
     setOpen(false);
+    if (activeTab === "towns" && !next.type && !next.minPrice && !next.maxPrice) {
+      const townUrl = next.city ? `/towns/${next.city}` : "/towns";
+      router.push(townUrl);
+      return;
+    }
     const href = propertySearchHref(next);
     beginRecentSearch(href);
     router.push(href);
@@ -83,81 +129,126 @@ export function SearchPanel() {
   return (
     <div className="property-search-panel">
       <div className="property-search-modes">
-        <div className="property-search-tabs" role="group" aria-label={t("Search purpose")}>
-          <button type="button" aria-pressed={state.purpose === "buy"} onClick={() => changePurpose("buy")}>{t("Buy")}</button>
-          <button type="button" aria-pressed={state.purpose === "rent"} onClick={() => changePurpose("rent")}>{t("Rent")}</button>
+        <div className="property-search-tabs" role="tablist" aria-label={t("Search purpose")}>
+          {HERO_TABS.map((tab) => {
+            const isSelected = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={isSelected}
+                onClick={() => selectTab(tab.id)}
+                className={`property-search-tab-pill ${isSelected ? "is-active" : ""}`}
+              >
+                {t(tab.label)}
+              </button>
+            );
+          })}
         </div>
-        <Link href="/list-property" className="property-search-sell">{t("Sell a property")}</Link>
-        <Link href="/projects" className="property-search-projects">
-          <span className="property-search-new-badge" aria-hidden="true">NEW</span>
-          <span>{t("New projects")}</span>
-        </Link>
-      </div>
 
-      <div className="property-search-quick-types" role="group" aria-label={t("Quick property category")}>
-        {CATEGORY_GROUPS.map((group) => (
-          <button
-            key={group.value}
-            type="button"
-            aria-pressed={state.group === group.value}
-            onClick={() => changeGroup(group.value)}
-          >
-            {t(group.label)}
-          </button>
-        ))}
-      </div>
-
-      <div className="property-search-mobile">
-        <button type="button" aria-label={t("Search Properties")} aria-haspopup="dialog" aria-describedby="hero-search-hint" onClick={(event) => { triggerRef.current = event.currentTarget; setOpen(true); }} className="property-search-input-like">
-          <IconSearch className="h-5 w-5 shrink-0" />
-          <span><span className="property-search-input-title">{t("Search Properties")}</span><span id="hero-search-hint" className="property-search-input-hint">{t("Tap to enter a city, area or keyword")}</span></span>
-          <IconSliders className="ml-auto h-4 w-4 shrink-0" />
+        <button
+          type="button"
+          onClick={(event) => {
+            triggerRef.current = event.currentTarget;
+            setOpen(true);
+          }}
+          className="property-search-advanced-top"
+        >
+          <IconSliders className="h-3.5 w-3.5" />
+          <span>{t("All filters")}</span>
         </button>
       </div>
 
-      <form className="property-search-form" aria-label={t("Search properties")} onSubmit={(event) => { event.preventDefault(); search(state); }}>
+      <form
+        className="property-search-form"
+        aria-label={t("Search properties")}
+        onSubmit={(event) => {
+          event.preventDefault();
+          search(state);
+        }}
+      >
         <div className="property-search-field property-search-field--location">
           <label htmlFor="hero-city">{t("City")}</label>
-          <select id="hero-city" value={state.city} onChange={(event) => setState((current) => ({ ...current, city: event.target.value, town: "" }))}>
-            <option value="">{t("All cities")}</option>
-            {SEARCH_CITIES.map((city) => <option key={city.slug} value={city.slug}>{city.name}</option>)}
-          </select>
+          <div className="property-search-select-wrap">
+            <select
+              id="hero-city"
+              value={state.city}
+              onChange={(event) => setState((current) => ({ ...current, city: event.target.value, town: "" }))}
+            >
+              <option value="">{t("Select City")}</option>
+              {SEARCH_CITIES.map((city) => (
+                <option key={city.slug} value={city.slug}>
+                  {city.name}
+                </option>
+              ))}
+            </select>
+            <IconChevronDown className="property-search-select-chevron h-4 w-4" />
+          </div>
         </div>
+
         <div className="property-search-field property-search-field--type">
-          <label htmlFor="hero-type">{t("Property type")}</label>
-          <select id="hero-type" value={state.type} onChange={(event) => setState((current) => ({ ...current, type: event.target.value }))}>
-            <option value="">{t(ALL_TYPE_LABEL[state.group])}</option>
-            {GROUP_TYPES[state.group].map((type) => <option key={type} value={type}>{t(heroTypeLabel(type))}</option>)}
-          </select>
+          <label htmlFor="hero-type">{t("Property Type") || "Property Type"}</label>
+          <div className="property-search-select-wrap">
+            <select
+              id="hero-type"
+              value={state.type}
+              onChange={(event) => setState((current) => ({ ...current, type: event.target.value }))}
+            >
+              <option value="">{t("All Types")}</option>
+              {GROUP_TYPES[state.group].map((type) => (
+                <option key={type} value={type}>
+                  {t(heroTypeLabel(type))}
+                </option>
+              ))}
+            </select>
+            <IconChevronDown className="property-search-select-chevron h-4 w-4" />
+          </div>
         </div>
+
         <div className="property-search-field property-search-field--budget">
-          <label htmlFor="hero-budget">{t("Budget")} (PKR{state.purpose === "rent" ? ` / ${t("month")}` : ""})</label>
-          <select id="hero-budget" value={budget} onChange={(event) => {
-            const [min = "", max = ""] = event.target.value ? event.target.value.split("-") : ["", ""];
-            setState((current) => ({ ...current, minPrice: min, maxPrice: max }));
-          }}>
-            <option value="">{t("Any budget")}</option>
-            {budgets.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-          </select>
+          <label htmlFor="hero-budget">
+            {t("Budget")} (PKR{state.purpose === "rent" ? ` / ${t("month")}` : ""})
+          </label>
+          <div className="property-search-select-wrap">
+            <select
+              id="hero-budget"
+              value={budget}
+              onChange={(event) => {
+                const [min = "", max = ""] = event.target.value ? event.target.value.split("-") : ["", ""];
+                setState((current) => ({ ...current, minPrice: min, maxPrice: max }));
+              }}
+            >
+              <option value="">{t("Any Budget")}</option>
+              {budgets.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+            <IconChevronDown className="property-search-select-chevron h-4 w-4" />
+          </div>
         </div>
-        <div className="property-search-field property-search-field--beds">
-          <label htmlFor="hero-beds">{t("Beds")}</label>
-          <select id="hero-beds" value={state.beds} onChange={(event) => setState((current) => ({ ...current, beds: event.target.value }))}>
-            <option value="">{t("Any")}</option>
-            <option value="0">{t("Studio")}</option>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((beds) => <option key={beds} value={beds}>{beds}+</option>)}
-          </select>
-        </div>
+
         <div className="property-search-buttons">
-          <button type="submit" className="btn btn-green"><IconSearch className="h-4 w-4" />{t("Search")}</button>
-          <button type="button" onClick={(event) => { triggerRef.current = event.currentTarget; setOpen(true); }} className="property-search-advanced"><IconSliders className="h-3.5 w-3.5" />{t("All filters")}</button>
+          <button type="submit" className="btn hero-search-submit">
+            <IconSearch className="h-4 w-4" />
+            <span>{t("Search")}</span>
+          </button>
           <span className="sr-only">{t("Search by city, society, property type or budget.")}</span>
         </div>
       </form>
 
-      {open && <NavigationDialog label={t("Search properties")} className="property-filter-dialog" onDismiss={() => setOpen(false)} triggerRef={triggerRef}>
-        <PropertySearchFilters initialState={state} onClose={() => setOpen(false)} onSearch={search} />
-      </NavigationDialog>}
+      {open && (
+        <NavigationDialog
+          label={t("Search properties")}
+          className="property-filter-dialog"
+          onDismiss={() => setOpen(false)}
+          triggerRef={triggerRef}
+        >
+          <PropertySearchFilters initialState={state} onClose={() => setOpen(false)} onSearch={search} />
+        </NavigationDialog>
+      )}
     </div>
   );
 }

@@ -250,6 +250,15 @@ const RENT_TYPES = [
 ] as const;
 
 const HOUSE_SIZES = [
+  { slug: "3-marla", label: "3 Marla" },
+  { slug: "5-marla", label: "5 Marla" },
+  { slug: "10-marla", label: "10 Marla" },
+  { slug: "1-kanal", label: "1 Kanal" },
+  { slug: "2-kanal", label: "2 Kanal" },
+] as const;
+
+const PLOT_SIZES = [
+  { slug: "3-marla", label: "3 Marla" },
   { slug: "5-marla", label: "5 Marla" },
   { slug: "10-marla", label: "10 Marla" },
   { slug: "1-kanal", label: "1 Kanal" },
@@ -364,6 +373,7 @@ function buildMatrixLanding(input: {
       { label: `Property investment in ${city.name}`, href: `/property-investment-in-${city.slug}` },
       { label: `Property dealers in ${city.name}`, href: `/dealers?city=${city.slug}` },
       ...societyLinks.slice(0, 4).map((society) => ({ label: society.name, href: society.href })),
+      { label: "Download society PDF maps", href: "/maps" },
       { label: "Mortgage calculator", href: "/tools/mortgage-calculator" },
       { label: "Rental yield calculator", href: "/tools/rental-yield-calculator" },
     ],
@@ -502,6 +512,107 @@ function buildTypeMatrix(): Map<string, LandingContent> {
       );
     }
 
+    for (const size of PLOT_SIZES) {
+      const slug = `${size.slug}-plot-for-sale-in-${city.slug}`;
+      register(
+        matrix,
+        buildMatrixLanding({
+          slug,
+          h1: `${size.label} Plot for Sale in ${city.name}`,
+          metaTitle: `${size.label} Plot for Sale in ${city.name} | Possession & Society Rates | Properties Pak`,
+          metaDescription: `Explore ${size.label} plots for sale in ${city.name} across ${city.keyAreas.slice(0, 3).join(", ")}. Compare possession plots, balloted numbers, society maps and asking prices on Properties Pak.`,
+          keywords: [
+            `${size.label.toLowerCase()} plot for sale in ${city.name}`,
+            `${size.slug.replace("-", " ")} plot ${city.name}`,
+            `${size.label.toLowerCase()} residential plot in ${city.name}`,
+            `${size.label.toLowerCase()} plot price in ${city.name}`,
+            `buy ${size.label.toLowerCase()} plot in ${city.name}`,
+          ],
+          citySlug: city.slug,
+          isRent: false,
+          filters: { purpose: "buy", city: city.slug, category: "plot" },
+          introSecond: `${city.saleSupply} ${size.label} residential plots are among the most actively traded plot sizes in ${city.name}. Always verify the plot number on the official society PDF map and confirm possession status before paying a token.`,
+          bullets: TYPE_MATRIX.plots.bullets,
+          verification: TYPE_MATRIX.plots.verification,
+          pitfalls: TYPE_MATRIX.plots.pitfalls,
+          unitLabel: `${size.label} plots`,
+        }),
+      );
+    }
+
+    register(
+      matrix,
+      buildMatrixLanding({
+        slug: `plots-on-installments-in-${city.slug}`,
+        h1: `Plots on Installments in ${city.name}`,
+        metaTitle: `Plots on Installments in ${city.name} | 3 to 5 Year Payment Plans | Properties Pak`,
+        metaDescription: `Find residential and commercial plots on installments in ${city.name} across ${city.keyAreas.slice(0, 3).join(", ")}. Compare down payment, monthly instalments, NOC status and balloting timelines.`,
+        keywords: [
+          `plots on installments in ${city.name}`,
+          `plot on easy installments ${city.name}`,
+          `5 marla plot on installments in ${city.name}`,
+          `3 marla plot on installments in ${city.name}`,
+          `installment plots ${city.name}`,
+        ],
+        citySlug: city.slug,
+        isRent: false,
+        filters: { purpose: "buy", city: city.slug, category: "plot" },
+        introSecond: `Installment plot plans in ${city.name} allow buyers to enter developing sectors with a 15–30% down payment and quarterly or monthly schedules. Verify the developer's NOC, land ownership and development charges before booking.`,
+        bullets: TYPE_MATRIX.plots.bullets,
+        verification: TYPE_MATRIX.plots.verification,
+        pitfalls: TYPE_MATRIX.plots.pitfalls,
+        unitLabel: "installment plots",
+      }),
+    );
+
+    register(
+      matrix,
+      buildMatrixLanding({
+        slug: `houses-on-installments-in-${city.slug}`,
+        h1: `Houses on Installments in ${city.name}`,
+        metaTitle: `Houses on Installments in ${city.name} | Easy Payment Plan Homes | Properties Pak`,
+        metaDescription: `Compare houses and villas on installments in ${city.name} across ${city.keyAreas.slice(0, 3).join(", ")}. Check booking amount, possession timeline and developer track record on Properties Pak.`,
+        keywords: [
+          `houses on installments in ${city.name}`,
+          `house on installment in ${city.name}`,
+          `5 marla house on installments in ${city.name}`,
+          `easy installment homes ${city.name}`,
+        ],
+        citySlug: city.slug,
+        isRent: false,
+        filters: { purpose: "buy", city: city.slug, category: "house" },
+        introSecond: `Houses on installments in ${city.name} are offered in gated communities and developer-built villa enclaves. Confirm when physical possession is handed over during the payment schedule and review the construction specification sheet.`,
+        bullets: TYPE_MATRIX.houses.bullets,
+        verification: TYPE_MATRIX.houses.verification,
+        pitfalls: TYPE_MATRIX.houses.pitfalls,
+        unitLabel: "installment houses",
+      }),
+    );
+
+    register(
+      matrix,
+      buildMatrixLanding({
+        slug: `apartments-on-installments-in-${city.slug}`,
+        h1: `Apartments on Installments in ${city.name}`,
+        metaTitle: `Apartments & Flats on Installments in ${city.name} | Payment Plans | Properties Pak`,
+        metaDescription: `Browse apartments and flats on installments in ${city.name}. Compare down payments, construction progress, rental yield potential and developer approvals on Properties Pak.`,
+        keywords: [
+          `apartments on installments in ${city.name}`,
+          `flats on installments in ${city.name}`,
+          `luxury apartments payment plan ${city.name}`,
+          `studio apartment on installments ${city.name}`,
+        ],
+        citySlug: city.slug,
+        isRent: false,
+        filters: { purpose: "buy", city: city.slug, category: "apartment" },
+        introSecond: `Vertical residential projects in ${city.name} frequently offer 2 to 4 year construction-linked installment plans. Always check the approved building plan, escrow or milestone schedule, and handover date in writing.`,
+        bullets: TYPE_MATRIX.apartments.bullets,
+        verification: TYPE_MATRIX.apartments.verification,
+        pitfalls: TYPE_MATRIX.apartments.pitfalls,
+        unitLabel: "installment apartments",
+      }),
+    );
+
     register(
       matrix,
       buildMatrixLanding({
@@ -583,6 +694,120 @@ function buildTypeMatrix(): Map<string, LandingContent> {
         pitfalls:
           "Investing in an illiquid block, or in a scheme with incomplete infrastructure, is the most common reason returns stall.",
         unitLabel: "investment property",
+      }),
+    );
+  }
+
+  const SOCIETY_POWER_PAGES = [
+    {
+      slug: "dha-lahore-map-pdf",
+      h1: "DHA Lahore Map PDF Download & Verified Properties (Phases 1 to 9 Prism)",
+      metaTitle: "DHA Lahore Map PDF (Phase 1 to 9 Prism) & Plots/Houses for Sale | Properties Pak",
+      metaDescription: "Download official high-resolution DHA Lahore Phase 1 to 9 Prism PDF maps with plot numbers, and browse verified houses and plots for sale in DHA Lahore.",
+      keywords: ["dha lahore map pdf", "dha phase 9 prism map pdf", "dha lahore phase 6 7 8 map", "dha lahore houses for sale"],
+      citySlug: "lahore",
+      filters: { purpose: "buy" as const, city: "lahore" },
+      unitLabel: "DHA Lahore properties",
+    },
+    {
+      slug: "dha-phase-9-prism-lahore",
+      h1: "DHA Phase 9 Prism Lahore — Plots, Houses & High-Resolution Sector Map",
+      metaTitle: "DHA Phase 9 Prism Lahore Plots for Sale & Official Map PDF | Properties Pak",
+      metaDescription: "Explore 5 Marla, 10 Marla and 1 Kanal residential & commercial plots for sale in DHA Phase 9 Prism Lahore, plus downloadable sector maps with plot numbers.",
+      keywords: ["dha phase 9 prism lahore", "dha 9 prism plots for sale", "dha phase 9 prism map pdf", "1 kanal plot dha 9 prism"],
+      citySlug: "lahore",
+      filters: { purpose: "buy" as const, city: "lahore", category: "plot" },
+      unitLabel: "DHA Phase 9 Prism plots",
+    },
+    {
+      slug: "bahria-town-lahore-for-sale",
+      h1: "Bahria Town Lahore — Houses, Plots & Official Sector Maps",
+      metaTitle: "Bahria Town Lahore Houses & Plots for Sale | Sector Maps | Properties Pak",
+      metaDescription: "Find verified 5 Marla, 10 Marla and 1 Kanal houses and plots for sale in Bahria Town Lahore (Sectors A to G & Bahria Orchard) with official PDF maps.",
+      keywords: ["bahria town lahore houses for sale", "bahria town lahore plots", "bahria town lahore map pdf", "bahria orchard lahore"],
+      citySlug: "lahore",
+      filters: { purpose: "buy" as const, city: "lahore" },
+      unitLabel: "Bahria Town Lahore properties",
+    },
+    {
+      slug: "capital-smart-city-islamabad-for-sale",
+      h1: "Capital Smart City Islamabad — Plots, Villas & Master Plan PDF Map",
+      metaTitle: "Capital Smart City Islamabad Plots for Sale & Master Plan PDF | Properties Pak",
+      metaDescription: "Explore residential and commercial plots, files, and villas in Capital Smart City Islamabad (Overseas, Executive & Harmony Park) with downloadable master plan maps.",
+      keywords: ["capital smart city islamabad", "capital smart city plots for sale", "capital smart city master plan pdf"],
+      citySlug: "islamabad",
+      filters: { purpose: "buy" as const, city: "islamabad", category: "plot" },
+      unitLabel: "Capital Smart City plots",
+    },
+    {
+      slug: "lahore-smart-city-for-sale",
+      h1: "Lahore Smart City — Residential & Commercial Plots & Official Map PDF",
+      metaTitle: "Lahore Smart City Plots for Sale, Payment Plan & Map PDF | Properties Pak",
+      metaDescription: "Compare Overseas Prime, Executive Block and Harmony Park plots in Lahore Smart City with downloadable high-resolution master plan PDF maps.",
+      keywords: ["lahore smart city plots for sale", "lahore smart city map pdf", "lahore smart city payment plan"],
+      citySlug: "lahore",
+      filters: { purpose: "buy" as const, city: "lahore", category: "plot" },
+      unitLabel: "Lahore Smart City plots",
+    },
+    {
+      slug: "lda-city-lahore-for-sale",
+      h1: "LDA City Lahore (Jinnah & Iqbal Sectors) — Plots for Sale & Official Map PDF",
+      metaTitle: "LDA City Lahore Plots for Sale & Jinnah/Iqbal Sector Map PDF | Properties Pak",
+      metaDescription: "Browse 5 Marla, 10 Marla and 1 Kanal plots for sale in LDA City Lahore (Jinnah Sector & Iqbal Sector) and download the official LDA map PDF.",
+      keywords: ["lda city lahore plots for sale", "lda city jinnah sector map pdf", "lda city lahore map download"],
+      citySlug: "lahore",
+      filters: { purpose: "buy" as const, city: "lahore", category: "plot" },
+      unitLabel: "LDA City Lahore plots",
+    },
+    {
+      slug: "lake-city-lahore-for-sale",
+      h1: "Lake City Lahore (M1 to M8) — Houses, Plots & Official Master Plan Map",
+      metaTitle: "Lake City Lahore Houses & Plots for Sale (M1–M8) | Properties Pak",
+      metaDescription: "Discover designer houses, golf-estate villas and plots for sale in Lake City Lahore Ring Road corridor (Sectors M1 to M8) with official PDF maps.",
+      keywords: ["lake city lahore houses for sale", "lake city lahore plots", "lake city lahore map pdf"],
+      citySlug: "lahore",
+      filters: { purpose: "buy" as const, city: "lahore" },
+      unitLabel: "Lake City Lahore properties",
+    },
+    {
+      slug: "park-view-city-lahore-for-sale",
+      h1: "Park View City Lahore & Islamabad — Houses, Plots & Block Maps",
+      metaTitle: "Park View City Lahore Houses & Plots for Sale | Official Map PDF | Properties Pak",
+      metaDescription: "Browse 5 Marla, 10 Marla and 1 Kanal houses and plots for sale in Park View City Lahore & Islamabad with official block-wise PDF maps.",
+      keywords: ["park view city lahore houses for sale", "park view city plots", "park view city lahore map pdf"],
+      citySlug: "lahore",
+      filters: { purpose: "buy" as const, city: "lahore" },
+      unitLabel: "Park View City properties",
+    },
+    {
+      slug: "etihad-town-lahore-for-sale",
+      h1: "Etihad Town Lahore (Phase 1, 2 & 3) — Plots, Houses & Official Maps",
+      metaTitle: "Etihad Town Lahore Phase 1, 2 & 3 Plots & Houses for Sale | Properties Pak",
+      metaDescription: "Explore residential and commercial plots and houses for sale in Etihad Town Lahore Phases 1, 2 & 3 on Raiwind Road with official PDF maps.",
+      keywords: ["etihad town lahore plots for sale", "etihad town phase 2 map pdf", "etihad town lahore houses"],
+      citySlug: "lahore",
+      filters: { purpose: "buy" as const, city: "lahore" },
+      unitLabel: "Etihad Town Lahore properties",
+    },
+  ];
+
+  for (const item of SOCIETY_POWER_PAGES) {
+    register(
+      matrix,
+      buildMatrixLanding({
+        slug: item.slug,
+        h1: item.h1,
+        metaTitle: item.metaTitle,
+        metaDescription: item.metaDescription,
+        keywords: item.keywords,
+        citySlug: item.citySlug,
+        isRent: false,
+        filters: item.filters,
+        introSecond: `You can also inspect and download the official high-resolution plot-number PDF map and interactive satellite plot-grid overlay on our dedicated Society Maps page (/maps).`,
+        bullets: TYPE_MATRIX.plots.bullets,
+        verification: TYPE_MATRIX.plots.verification,
+        pitfalls: TYPE_MATRIX.plots.pitfalls,
+        unitLabel: item.unitLabel,
       }),
     );
   }

@@ -61,9 +61,18 @@ export default async function HtmlSitemapPage() {
             <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
               <div className="rounded-xl border border-soft bg-white p-4">
                 <h3 className="font-sans text-[0.875rem] font-bold text-navy-900">SEO Resources</h3>
-                <Link href="/keywords-for-pakistan" className="mt-3 inline-flex items-center gap-1.5 text-[0.875rem] font-semibold text-forest-700 hover:underline">
-                  Pakistan Real Estate Keywords <IconArrowRight className="h-4 w-4" />
-                </Link>
+                <ul className="mt-3 space-y-2 text-[0.8125rem]">
+                  <li>
+                    <Link href="/keywords-for-pakistan" className="inline-flex items-center gap-1.5 font-semibold text-forest-700 hover:underline">
+                      Pakistan Real Estate Keywords <IconArrowRight className="h-4 w-4" />
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/maps" className="inline-flex items-center gap-1.5 font-semibold text-forest-700 hover:underline">
+                      Pakistan Society PDF Maps (DHA, Bahria, LDA) <IconArrowRight className="h-4 w-4" />
+                    </Link>
+                  </li>
+                </ul>
               </div>
               <div className="rounded-xl border border-soft bg-white p-4">
                 <h3 className="font-sans text-[0.875rem] font-bold text-navy-900">Pakistan Property</h3>

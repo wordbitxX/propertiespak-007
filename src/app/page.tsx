@@ -12,7 +12,6 @@ import {
   NewProjectsSection,
   RecentlyAddedProperties,
 } from "@/components/sections-discovery";
-
 import { CtaSection, InvestmentSection, WhyEstateWx } from "@/components/sections-editorial";
 import { DealersSlider } from "@/components/dealers-slider";
 import { PopularSearches } from "@/components/popular-searches";
@@ -87,53 +86,63 @@ export default async function HomePage() {
     getPopularSearches(),
   ]);
 
+  const featuredItems = featured.items.length > 0 ? featured.items : discovery.items.slice(0, 8);
+  const featuredTotal = featured.total > 0 ? featured.total : discovery.total;
+
   return (
     <div className="home-page">
       <Hero />
 
-      {/* Keep the dealer showcase and Properties Pak tools near the hero, as in the original layout. */}
+      {/* 1. Featured Properties ("Premium Properties For You") */}
+      <FeaturedProperties properties={featuredItems} total={featuredTotal} />
+
+      {/* 2. Top Verified Agents ("Work With Trusted Real Estate Experts") */}
       <DealersSlider dealers={showcaseDealers} />
-      <ExploreMoreSection />
 
+      {/* 3. Browse By Category ("Explore Properties by Category") */}
       <CategoryGrid counts={categoryCounts} />
-      <RecentlyAddedProperties properties={discovery.items} />
 
-      {/* Keep featured inventory after the new listings and preserve the separate, locally viewed list. */}
-      <FeaturedProperties properties={featured.items} total={featured.total} />
+      {/* 4. Explore Popular Cities */}
+      <CityDiscovery cities={cities} counts={cityCounts} />
+
+      {/* 5. Recently Added & Locally Viewed Properties */}
+      <RecentlyAddedProperties properties={discovery.items} />
       <RecentProperties />
 
-      {/* Property discovery */}
+      {/* 6. Property Discovery */}
       <Section tone="mist" id="explore">
         <div className="ui-container">
-          <SectionHeading
-            eyebrow="Property discovery"
-            title="Explore Properties"
-            description="Find spaces that match the way you live, work and invest."
-            action={{ label: "Advanced search", href: "/properties" }}
-          />
-          <div className="mt-6 flex flex-wrap gap-2">
-            {QUICK_CHIPS.map((chip) => (
-              <Link key={chip.href} href={chip.href} className="chip">
-                {chip.label}
+          <div className="section-card-surface">
+            <SectionHeading
+              eyebrow="Property discovery"
+              title="Explore Properties"
+              description="Find spaces that match the way you live, work and invest."
+              action={{ label: "Advanced search", href: "/properties" }}
+            />
+            <div className="mt-5 flex flex-wrap gap-2">
+              {QUICK_CHIPS.map((chip) => (
+                <Link key={chip.href} href={chip.href} className="chip">
+                  {chip.label}
+                </Link>
+              ))}
+            </div>
+            <HomeExploreProperties properties={discovery.items} total={discovery.total} />
+            <div className="mt-8 flex justify-center">
+              <Link href="/properties" className="btn btn-primary">
+                View all {stats.listings} properties
               </Link>
-            ))}
-          </div>
-          <HomeExploreProperties properties={discovery.items} total={discovery.total} />
-          <div className="mt-10 flex justify-center">
-            <Link href="/properties" className="btn btn-primary">
-              View all {stats.listings} properties
-            </Link>
+            </div>
           </div>
         </div>
       </Section>
 
-      {/* Manually scroll every commercial listing, not just the first server page. */}
+      {/* 7. Commercial, New Projects, Popular Searches & Tools */}
       <CommercialSection properties={commercialListings.items} total={commercialListings.total} />
-      {/* Map access lives exclusively in the header, on desktop and mobile. */}
-      <PopularSearches groups={popularSearches} />
       <NewProjectsSection projects={projects} />
-      <CityDiscovery cities={cities} counts={cityCounts} />
+      <PopularSearches groups={popularSearches} />
+      <ExploreMoreSection />
 
+      {/* 8. Editorial, Investment Snapshot, Guides & Closing CTA */}
       <WhyEstateWx listings={stats.listings} cities={stats.cities} />
 
       <InvestmentSection

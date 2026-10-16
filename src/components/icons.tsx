@@ -486,3 +486,51 @@ export function IconLogoMark({ className }: { className?: string }) {
     </svg>
   );
 }
+
+export function IconVerifiedShield(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...base} {...props}>
+      <path d="M12 3 4.5 6.2v5.3c0 5 3.2 8.6 7.5 9.5 4.3-.9 7.5-4.5 7.5-9.5V6.2L12 3Z" />
+      <path d="m9 12.2 2.1 2.1 4.2-4.3" />
+    </svg>
+  );
+}
+
+export function IconTrustedAgent(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...base} {...props}>
+      <circle cx="10" cy="8" r="3.5" />
+      <path d="M4 19.5c0-3.1 2.7-5.5 6-5.5s6 2.4 6 5.5" />
+      <circle cx="18" cy="11" r="2.5" />
+      <path d="m16.8 11 0.9 0.9 1.7-1.8" />
+    </svg>
+  );
+}
+
+export function IconSecureTransaction(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...base} {...props}>
+      <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" />
+      <path d="M12 8.5 8.5 10v2.6c0 2.2 1.5 3.8 3.5 4.4 2-.6 3.5-2.2 3.5-4.4V10L12 8.5Z" />
+      <path d="m10.7 12.4 1 1 1.8-1.9" />
+    </svg>
+  );
+}
+
+export function IconSupport247(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...base} {...props}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M9.5 10.2a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.1.9-1.1 1.6" />
+      <circle cx="12" cy="16.8" r="0.6" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function IconStarFilled(props: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" fill="currentColor" {...props}>
+      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 0 0 .95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.368 2.448a1 1 0 0 0-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.368-2.448a1 1 0 0 0-1.176 0l-3.368 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 0 0-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 0 0 .95-.69l1.286-3.957Z" />
+    </svg>
+  );
+}

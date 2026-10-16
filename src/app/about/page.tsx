@@ -8,8 +8,7 @@ import { Section, SectionHeading } from "@/components/section";
 import { SITE } from "@/lib/constants";
 import { getCities, getPlatformStats } from "@/lib/queries";
 import { buildMetadata, faqJsonLd } from "@/lib/seo";
-import { SitePicture } from "@/components/site-picture";
-import { siteImages } from "@/lib/site-images";
+import { ResilientImage } from "@/components/resilient-image";
 
 export const metadata: Metadata = buildMetadata({
   title: "About Properties Pak | Pakistan Property Marketplace",
@@ -166,13 +165,18 @@ export default async function AboutPage() {
             </ul>
           </div>
           <div className="relative">
-            <div className="relative overflow-hidden rounded-panel bg-navy-950 shadow-card ring-1 ring-navy-900/10">
-              <SitePicture
-                image={siteImages.aboutVilla}
-                sizes="(min-width: 1024px) 560px, 100vw"
-                className="h-[340px] w-full object-cover object-[50%_48%] lg:h-[520px]"
+            <div className="relative overflow-hidden rounded-2xl border border-[#DFB872]/35 bg-[#071F17] shadow-[0_22px_50px_-22px_rgba(7,31,23,0.45)]">
+              <ResilientImage
+                src="/images/about-villa-hd.webp"
+                fallbackSrc="/images/about-villa-new.jpg"
+                alt="Contemporary 2-kanal luxury designer mansion in Pakistan at golden hour sunset"
+                width={1408}
+                height={768}
+                loading="eager"
+                decoding="async"
+                className="h-[340px] w-full object-cover object-center lg:h-[520px]"
               />
-              <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-navy-950/40 via-transparent to-transparent" />
+              <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#061A13]/45 via-transparent to-transparent" />
             </div>
             <div className="absolute -bottom-6 right-6 rounded-panel border border-soft bg-white p-5 shadow-card">
               <p className="font-sans text-[1.6rem] font-bold leading-none text-navy-900">{stats.listings}+</p>
