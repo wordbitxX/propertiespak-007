@@ -5,6 +5,7 @@ import {
   DHAPLUS_SOURCE,
   PPS_SOURCE,
 } from "@/lib/map-library";
+import { SOCIETY_MAPS } from "@/lib/society-maps";
 
 /**
  * Same-origin proxy for the society map viewers.
@@ -12,6 +13,8 @@ import {
  *   /api/map-proxy/pps/<Name>.dzi                       → DeepZoom descriptor
  *   /api/map-proxy/pps/<Name>_files/<level>/<x>_<y>.jpg → DeepZoom tile
  *   /api/map-proxy/dhaplus/<image>.jpg                  → DHA Plus HD society map
+ *   /api/map-proxy/bplus/<cdn|maps>/<layer>/<z>/<x>/<y>.png → DHA Plus plot-layout tile
+ *     (same-origin, so the map can mask the CDN's "no data" filler tiles)
  *
  * Only files belonging to the curated maps in `@/lib/map-library` are allowed,
  * so this can never be used as an open proxy. Responses are cached at the edge
@@ -24,6 +27,20 @@ const DHAPLUS_BASE = process.env.MAP_PROXY_DHAPLUS_BASE || DHAPLUS_SOURCE.imageB
 
 const DZI_FILE = /^([A-Za-z0-9-]+)\.dzi$/;
 const DZI_TILE = /^([A-Za-z0-9-]+)_files\/(\d{1,2})\/(\d{1,5})_(\d{1,5})\.(jpg|jpeg|png)$/;
+const BPLUS_HOSTS: Record<string, string> = {
+  cdn: process.env.MAP_PROXY_BPLUS_CDN_BASE || "https://maps-cdn.bahriaplus.com/",
+  maps: process.env.MAP_PROXY_BPLUS_MAPS_BASE || "https://maps.bahriaplus.com/",
+};
+const BPLUS_TILE = /^(cdn|maps)\/(global\/[a-z0-9/_-]+?)\/(\d{1,2})\/(\d{1,7})\/(\d{1,7})\.png$/i;
+/** "cdn/global/dha/lhr/phase1" for every layer published in SOCIETY_MAPS. */
+const BPLUS_LAYERS = new Set(
+  SOCIETY_MAPS.flatMap((society) =>
+    society.layers.map((layer) => {
+      const match = /^https:\/\/(maps-cdn|maps)\.bahriaplus\.com\/(.+)\/\{z\}\/\{x\}\/\{y\}\.png$/.exec(layer.tiles);
+      return match ? `${match[1] === "maps-cdn" ? "cdn" : "maps"}/${match[2]}` : "";
+    }),
+  ).filter(Boolean),
+);
 const DHAPLUS_IMAGE = /^[A-Za-z0-9]{20,64}\.(jpg|jpeg|png)$/;
 
 const CONTENT_TYPES: Record<string, string> = {
@@ -41,6 +58,13 @@ function resolveUpstream(source: string, path: string): { url: string; ext: stri
     if (dzi && DEEP_ZOOM_DZI_NAMES.has(dzi[1])) return { url: `${PPS_BASE}${path}`, ext: "dzi" };
     const tile = DZI_TILE.exec(path);
     if (tile && DEEP_ZOOM_DZI_NAMES.has(tile[1])) return { url: `${PPS_BASE}${path}`, ext: tile[5].toLowerCase() };
+    return null;
+  }
+  if (source === "bplus") {
+    const tile = BPLUS_TILE.exec(path);
+    if (tile && BPLUS_LAYERS.has(`${tile[1]}/${tile[2]}`)) {
+      return { url: `${BPLUS_HOSTS[tile[1]]}${tile[2]}/${tile[3]}/${tile[4]}/${tile[5]}.png`, ext: "png" };
+    }
     return null;
   }
   if (source === "dhaplus") {

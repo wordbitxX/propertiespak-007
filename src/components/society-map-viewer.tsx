@@ -194,7 +194,8 @@ export function SocietyMapViewer({
         visibilityRatio: 0.8,
         constrainDuringPan: true,
         minZoomImageRatio: 0.8,
-        maxZoomPixelRatio: 3,
+        // Single images stop at ~native resolution so they never turn into a blur; DeepZoom pyramids are true HD.
+        maxZoomPixelRatio: source.type === "image" ? 1.25 : 2,
         animationTime: 0.6,
         springStiffness: 9,
         gestureSettingsMouse: { scrollToZoom: true, clickToZoom: false, dblClickToZoom: true },

@@ -50,8 +50,8 @@ export function DhaSocietyMapPanel({
   const [tab, setTab] = useState<Tab>(society ? "plot" : "image");
 
   const tabs: { key: Tab; label: string; available: boolean }[] = [
-    { key: "plot", label: "Interactive plot map", available: Boolean(society && bounds) },
-    { key: "image", label: "HD map image", available: Boolean(image) },
+    { key: "plot", label: "HD plot map", available: Boolean(society && bounds) },
+    { key: "image", label: society ? "Printable map image" : "HD map image", available: Boolean(image) },
   ];
   const available = tabs.filter((item) => item.available);
 
@@ -97,13 +97,14 @@ export function DhaSocietyMapPanel({
             zoom={14}
             fitBounds={bounds}
             society={society}
+            layoutControls
             showLocate={false}
             allowFullscreen
             heightClass="h-[520px] sm:h-[620px] lg:h-[min(78vh,760px)]"
             header={{
               label: "DHA Plus plot map",
               title: name,
-              subtitle: `${society.layers.length} sector plot overlay${society.layers.length === 1 ? "" : "s"} · satellite view`,
+              subtitle: `${society.layers.length} sector plot layout${society.layers.length === 1 ? "" : "s"} · HD map`,
             }}
           />
         </div>

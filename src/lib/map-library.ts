@@ -249,3 +249,10 @@ export const TOOLS_MENU: NavMenuLink[] = [
   { label: "Construction Cost Calculator", href: "/tools/construction-cost-calculator", description: "Build budget per sq ft" },
   { label: "Property Tax Calculator", href: "/tools/property-tax-calculator", description: "Buying, holding and selling taxes" },
 ];
+
+
+/** Same-origin proxy template for a DHA Plus plot-layout tile layer (see /api/map-proxy/bplus). */
+export function proxiedLayoutTiles(tiles: string): string | null {
+  const match = /^https:\/\/(maps-cdn|maps)\.bahriaplus\.com\/(.+\/\{z\}\/\{x\}\/\{y\}\.png)$/.exec(tiles);
+  return match ? `/api/map-proxy/bplus/${match[1] === "maps-cdn" ? "cdn" : "maps"}/${match[2]}` : null;
+}

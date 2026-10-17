@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type L from "leaflet";
 import { mapMarkerLayout, type LayoutPin } from "@/lib/map-marker-layout";
 import type { SocietyMapDef } from "@/lib/society-maps";
+import { proxiedLayoutTiles } from "@/lib/map-library";
 
 export type LeafletPin = {
   id: string | number;
@@ -35,6 +36,8 @@ type Props = {
   showLocate?: boolean;
   allowFullscreen?: boolean;
   society?: SocietyMapDef | null;
+  /** DHA Plus-style "HD Map | Satellite" switch + overlay strength slider; starts on the light HD map. */
+  layoutControls?: boolean;
   /** Called when the user taps/clicks the map (picker mode). */
   onPick?: (lat: number, lng: number) => void;
   /** Called after a GPS fix. */
@@ -90,6 +93,8 @@ function tileXYFor(lat: number, lng: number, z: number) {
  * Probe once per society: if the CDN allows anonymous reads we can filter the
  * placeholders out; otherwise the layout keeps its raw behaviour.
  */
+type LayoutMode = "direct" | "proxy" | "raw";
+
 function probeTileFiltering(probeUrl: string): Promise<boolean> {
   return new Promise((resolve) => {
     const img = new Image();
@@ -216,6 +221,7 @@ export function LeafletMap({
   showLocate = true,
   allowFullscreen = true,
   society = null,
+  layoutControls = false,
   onPick,
   onLocate,
   autoLocate = false,
@@ -239,7 +245,10 @@ export function LeafletMap({
   const controlRef = useRef<L.Control.Layers | null>(null);
   const tileHealthRef = useRef({ loaded: 0, failed: 0, reported: false });
   /** Per-society result of the CORS probe that enables placeholder filtering. */
-  const layoutProbeRef = useRef<Map<string, boolean>>(new Map());
+  const layoutProbeRef = useRef<Map<string, LayoutMode>>(new Map());
+  const baseLayersRef = useRef<{ gsat: L.TileLayer; gmap: L.TileLayer; osm: L.TileLayer } | null>(null);
+  const [layoutOpacity, setLayoutOpacity] = useState(1);
+  const layoutOpacityRef = useRef(1);
   /** One-shot guard so the base-map fallback only fires once. */
   const baseFallbackRef = useRef(false);
   /** Slug of the society the overlay state currently belongs to. */
@@ -255,7 +264,7 @@ export function LeafletMap({
   const [layoutMsg, setLayoutMsg] = useState("");
   const [locating, setLocating] = useState(false);
   const [locateMsg, setLocateMsg] = useState("");
-  const [baseName, setBaseName] = useState(clusterPins ? "Google Maps" : "Google Maps Satellite View");
+  const [baseName, setBaseName] = useState(clusterPins || layoutControls ? "Google Maps" : "Google Maps Satellite View");
   const [baseTileMsg, setBaseTileMsg] = useState("");
   const autoLocated = useRef(false);
   const lastFit = useRef("");
@@ -305,7 +314,7 @@ export function LeafletMap({
         zoom,
         minZoom: 5,
         maxZoom: 20,
-        layers: [clusterPins ? gmap : gsat],
+        layers: [clusterPins || layoutControls ? gmap : gsat],
         zoomControl: true,
         // In picker mode the map tap moves the pin, so the pin's popup must stay open.
         closePopupOnClick: !onPick,
@@ -367,6 +376,7 @@ export function LeafletMap({
         map.off("moveend zoomend", endGesture);
       };
 
+      baseLayersRef.current = { gsat, gmap, osm };
       const overlayGroup = Lmod.layerGroup().addTo(map);
       overlayGroupRef.current = overlayGroup;
 
@@ -472,15 +482,20 @@ export function LeafletMap({
     if (!society || layoutDead) return;
     let cancelled = false;
 
-    const buildLayers = (filterPlaceholders: boolean) => {
+    const buildLayers = (mode: LayoutMode) => {
       if (cancelled) return;
+      const filterPlaceholders = mode !== "raw";
       for (const layer of society.layers) {
-        const tile = Lmod.tileLayer(layer.tiles, {
+        const url = mode === "proxy" ? proxiedLayoutTiles(layer.tiles) ?? layer.tiles : layer.tiles;
+        const tile = Lmod.tileLayer(url, {
           minZoom: Math.min(layer.minZoom, 12),
-          maxZoom: 20,
+          maxZoom: 21,
           // DHA Plus publishes plot tiles down to z19 — use them all for a crisp HD layout.
           maxNativeZoom: layer.maxZoom,
-          opacity: 1,
+          opacity: layoutOpacityRef.current,
+          // The layers control auto-numbers base maps (satellite 1, roadmap 2, OSM 3);
+          // keep the plot layout above every one of them.
+          zIndex: 10,
           tms: false,
           bounds: Lmod.latLngBounds(normaliseBounds(layer.bounds)),
           attribution: "",
@@ -491,8 +506,8 @@ export function LeafletMap({
         // off once and say so — instead of leaving broken tiles on the map.
         tile.on("tileload", (e) => {
           tileHealthRef.current.loaded += 1;
-          // Green "no data" fillers from the CDN become transparent so the
-          // satellite base shows through (dhaplus-style clean overlay).
+          // Green/blue "no data" fillers from the CDN become transparent so the
+          // base map shows through (dhaplus-style clean overlay).
           if (filterPlaceholders && isPlaceholderTile(e.tile as HTMLImageElement)) {
             (e.tile as HTMLImageElement).src = TRANSPARENT_TILE;
           }
@@ -512,35 +527,47 @@ export function LeafletMap({
     };
 
     const cached = layoutProbeRef.current.get(society.slug);
-    if (cached === false) {
-      // The CDN blocks pixel checks, so its filler tiles cannot be masked —
-      // keep the map clean by leaving the layout off.
-      setLayoutDead(true);
-      setLayoutMsg("Society layout isn't available for this map — showing the base map.");
+    if (cached) {
+      buildLayers(cached);
       return;
     }
-    if (cached === true) {
-      buildLayers(true);
-      return;
-    }
-    // First enable of this society: probe whether placeholder filtering works.
+    // First enable of this society: find the best way to read the layout tiles.
+    //   1. CDN with CORS   → direct tiles, fillers masked;
+    //   2. our same-origin proxy → fillers masked (CDN without CORS);
+    //   3. neither         → raw CDN tiles, exactly like dhaplus.com shows them.
     const [[southLat, westLng], [northLat, eastLng]] = normaliseBounds(society.layers[0].bounds);
     const { x, y } = tileXYFor((southLat + northLat) / 2, (westLng + eastLng) / 2, 14);
-    const probeUrl = society.layers[0].tiles.replace("{z}", "14").replace("{x}", String(x)).replace("{y}", String(y));
-    probeTileFiltering(probeUrl).then((filterable) => {
+    const probeFor = (template: string) => template.replace("{z}", "14").replace("{x}", String(x)).replace("{y}", String(y));
+    const proxied = proxiedLayoutTiles(society.layers[0].tiles);
+    (async () => {
+      let mode: LayoutMode = "raw";
+      if (await probeTileFiltering(probeFor(society.layers[0].tiles))) mode = "direct";
+      else if (proxied && (await probeTileFiltering(probeFor(proxied)))) mode = "proxy";
       if (cancelled) return;
-      layoutProbeRef.current.set(society.slug, filterable);
-      if (filterable) {
-        buildLayers(true);
-      } else {
-        setLayoutDead(true);
-        setLayoutMsg("Society layout isn't available for this map — showing the base map.");
-      }
-    });
+      layoutProbeRef.current.set(society.slug, mode);
+      buildLayers(mode);
+    })();
     return () => {
       cancelled = true;
     };
   }, [society, layoutDead, ready]);
+
+  /* ---------- layout strength slider ---------- */
+  useEffect(() => {
+    layoutOpacityRef.current = layoutOpacity;
+    overlayTilesRef.current.forEach((tile) => tile.setOpacity(layoutOpacity));
+  }, [layoutOpacity]);
+
+  const switchBase = (name: "Google Maps" | "Google Maps Satellite View") => {
+    const map = mapRef.current;
+    const bases = baseLayersRef.current;
+    if (!map || !bases) return;
+    const next = name === "Google Maps" ? bases.gmap : bases.gsat;
+    for (const layer of [bases.gsat, bases.gmap, bases.osm]) if (layer !== next && map.hasLayer(layer)) map.removeLayer(layer);
+    if (!map.hasLayer(next)) next.addTo(map);
+    setBaseName(name);
+    setBaseTileMsg("");
+  };
 
   /* ---------- listing pins ---------- */
   useEffect(() => {
@@ -897,6 +924,23 @@ export function LeafletMap({
 
         {/* Right-side custom controls */}
         <div className="absolute right-3 top-3 z-[500] flex flex-col items-end gap-2">
+          {layoutControls && society && (
+            <div className="layout-switch" role="group" aria-label="Map style">
+              <div className="layout-switch-tabs">
+                {([["Google Maps", "HD Map"], ["Google Maps Satellite View", "Satellite"]] as const).map(([value, label]) => (
+                  <button key={value} type="button" aria-pressed={baseName === value} onClick={() => switchBase(value)}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {!layoutDead && (
+                <label className="layout-switch-slider">
+                  <span>Map overlay</span>
+                  <input type="range" min={0} max={1} step={0.05} value={layoutOpacity} onChange={(e) => setLayoutOpacity(Number(e.target.value))} aria-label="Plot layout strength" />
+                </label>
+              )}
+            </div>
+          )}
           {showLocate && <button type="button" onClick={() => locate(false)} disabled={locating} aria-label="Use my current location" title="My location" className={`${ctl} disabled:opacity-60`}>
             <svg viewBox="0 0 24 24" className={`h-5 w-5 ${locating ? "animate-spin" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3" /><circle cx="12" cy="12" r="8" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>
           </button>}

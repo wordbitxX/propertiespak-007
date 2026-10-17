@@ -5660,3 +5660,13 @@ html[data-header-solid] .site-header .header-account:hover {
 .dha-map-tab[aria-selected="true"] { background: #ffffff; color: var(--color-forest-800); box-shadow: 0 1px 4px rgba(6, 28, 51, .14); }
 .dha-plot-map { overflow: hidden; border: 1px solid var(--color-soft); border-radius: var(--radius-panel); box-shadow: var(--shadow-soft); }
 .dha-plot-map-loading { display: grid; height: 520px; place-items: center; background: #e8eee9; color: var(--color-ink-muted); font-size: .9rem; }
+
+/* DHA Plus-style map style switch (HD Map | Satellite + overlay strength) */
+.layout-switch { width: 232px; padding: 10px; border: 1px solid rgba(6, 28, 51, .08); border-radius: 14px; background: #fff; box-shadow: 0 10px 28px -12px rgba(6, 28, 51, .35); }
+.layout-switch-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 10px; background: #f1f4f2; }
+.layout-switch-tabs button { min-height: 34px; border: 0; border-radius: 8px; background: transparent; color: #415a4d; font-family: var(--font-sans); font-size: .8rem; font-weight: 650; cursor: pointer; transition: background-color .15s ease, color .15s ease; }
+.layout-switch-tabs button[aria-pressed="true"] { background: var(--color-forest-800); color: #fff; box-shadow: 0 2px 6px rgba(6, 28, 51, .2); }
+.layout-switch-slider { display: block; margin-top: 10px; padding: 0 4px; }
+.layout-switch-slider span { display: block; margin-bottom: 4px; color: #6b7d73; font-size: .62rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.layout-switch-slider input { width: 100%; accent-color: #d4a017; cursor: pointer; }
+@media (max-width: 640px) { .layout-switch { width: 190px; padding: 8px; } }
