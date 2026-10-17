@@ -248,6 +248,7 @@ export function LeafletMap({
   const layoutProbeRef = useRef<Map<string, LayoutMode>>(new Map());
   const baseLayersRef = useRef<{ gsat: L.TileLayer; gmap: L.TileLayer; osm: L.TileLayer } | null>(null);
   const [layoutOpacity, setLayoutOpacity] = useState(1);
+  const [viewZoom, setViewZoom] = useState(zoom);
   const layoutOpacityRef = useRef(1);
   /** One-shot guard so the base-map fallback only fires once. */
   const baseFallbackRef = useRef(false);
@@ -351,7 +352,7 @@ export function LeafletMap({
       // made two-finger zoom stutter, especially with many listing labels.
       const mapElem = containerRef.current;
       mapElem.dataset.mapOverview = String(clusterPins);
-      const updateZoom = () => { mapElem.dataset.mapZoom = String(map.getZoom()); const center = map.getCenter(); mapElem.dataset.mapCenter = `${center.lat.toFixed(6)},${center.lng.toFixed(6)}`; };
+      const updateZoom = () => { setViewZoom(map.getZoom()); mapElem.dataset.mapZoom = String(map.getZoom()); const center = map.getCenter(); mapElem.dataset.mapCenter = `${center.lat.toFixed(6)},${center.lng.toFixed(6)}`; };
       const startGesture = () => {
         mapElem.dataset.mapInteracting = "true";
         // Hover popups must never pan the viewport against a mouse/touch drag.
@@ -506,6 +507,10 @@ export function LeafletMap({
         // off once and say so — instead of leaving broken tiles on the map.
         tile.on("tileload", (e) => {
           tileHealthRef.current.loaded += 1;
+          if (tileHealthRef.current.reported) {
+            tileHealthRef.current.reported = false;
+            setLayoutMsg("");
+          }
           // Green/blue "no data" fillers from the CDN become transparent so the
           // base map shows through (dhaplus-style clean overlay).
           if (filterPlaceholders && isPlaceholderTile(e.tile as HTMLImageElement)) {
@@ -513,12 +518,16 @@ export function LeafletMap({
           }
         });
         tile.on("tileerror", () => {
+          // DHA Plus only publishes plot tiles at the zooms where plots are
+          // readable, so misses at overview zooms are normal: the layer stays
+          // on (dhaplus behaviour). Only flag a problem when the visitor is
+          // zoomed right in and still nothing at all has loaded.
           const health = tileHealthRef.current;
           health.failed += 1;
-          if (!health.reported && health.failed >= 6 && health.loaded === 0) {
+          const map = mapRef.current;
+          if (!health.reported && health.loaded === 0 && health.failed >= 12 && map && map.getZoom() >= 17) {
             health.reported = true;
-            setLayoutDead(true);
-            setLayoutMsg("Society layout is unavailable right now — showing the base map only.");
+            setLayoutMsg("Plot layout tiles are not loading right now — please refresh in a moment.");
           }
         });
         tile.addTo(group);
@@ -536,8 +545,8 @@ export function LeafletMap({
     //   2. our same-origin proxy → fillers masked (CDN without CORS);
     //   3. neither         → raw CDN tiles, exactly like dhaplus.com shows them.
     const [[southLat, westLng], [northLat, eastLng]] = normaliseBounds(society.layers[0].bounds);
-    const { x, y } = tileXYFor((southLat + northLat) / 2, (westLng + eastLng) / 2, 14);
-    const probeFor = (template: string) => template.replace("{z}", "14").replace("{x}", String(x)).replace("{y}", String(y));
+    const { x, y } = tileXYFor((southLat + northLat) / 2, (westLng + eastLng) / 2, 17);
+    const probeFor = (template: string) => template.replace("{z}", "17").replace("{x}", String(x)).replace("{y}", String(y));
     const proxied = proxiedLayoutTiles(society.layers[0].tiles);
     (async () => {
       let mode: LayoutMode = "raw";
@@ -567,6 +576,16 @@ export function LeafletMap({
     if (!map.hasLayer(next)) next.addTo(map);
     setBaseName(name);
     setBaseTileMsg("");
+  };
+
+  /** Jump to z18 — where DHA Plus plot numbers are crisp — keeping the view on the society. */
+  const zoomToPlots = () => {
+    const Lmod = leafletRef.current, map = mapRef.current;
+    if (!Lmod || !map || !society) return;
+    const all = Lmod.latLngBounds([]);
+    for (const layer of society.layers) all.extend(Lmod.latLngBounds(normaliseBounds(layer.bounds)));
+    const center = all.isValid() && !all.contains(map.getCenter()) ? all.getCenter() : map.getCenter();
+    map.flyTo(center, 18, { duration: 0.8 });
   };
 
   /* ---------- listing pins ---------- */
@@ -938,6 +957,14 @@ export function LeafletMap({
                   <span>Map overlay</span>
                   <input type="range" min={0} max={1} step={0.05} value={layoutOpacity} onChange={(e) => setLayoutOpacity(Number(e.target.value))} aria-label="Plot layout strength" />
                 </label>
+              )}
+              {viewZoom < 17 ? (
+                <button type="button" className="layout-switch-zoom" onClick={zoomToPlots}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m20 20-4.2-4.2M11 8v6M8 11h6" /></svg>
+                  Show plot numbers
+                </button>
+              ) : (
+                <p className="layout-switch-hint">Plot numbers visible · zoom {Math.round(viewZoom)} of 20</p>
               )}
             </div>
           )}

@@ -50,8 +50,8 @@ export function DhaSocietyMapPanel({
   const [tab, setTab] = useState<Tab>(society ? "plot" : "image");
 
   const tabs: { key: Tab; label: string; available: boolean }[] = [
-    { key: "plot", label: "HD plot map", available: Boolean(society && bounds) },
-    { key: "image", label: society ? "Printable map image" : "HD map image", available: Boolean(image) },
+    { key: "plot", label: "HD plot map · plot numbers", available: Boolean(society && bounds) },
+    { key: "image", label: society ? "Overview poster" : "HD map image", available: Boolean(image) },
   ];
   const available = tabs.filter((item) => item.available);
 
@@ -104,17 +104,25 @@ export function DhaSocietyMapPanel({
             header={{
               label: "DHA Plus plot map",
               title: name,
-              subtitle: `${society.layers.length} sector plot layout${society.layers.length === 1 ? "" : "s"} · HD map`,
+              subtitle: "HD · plot numbers from zoom 17",
             }}
           />
         </div>
       ) : image ? (
+        <>
+        {society && (
+          <p className="dha-poster-note">
+            This is DHA Plus&apos;s small overview poster — it has no plot numbers.{" "}
+            <button type="button" onClick={() => setTab("plot")}>Open the HD plot map</button> and zoom in to read every plot number.
+          </p>
+        )}
         <SocietyMapViewer
           source={{ type: "image", url: image, direct: directImage ?? undefined }}
           title={`${name} map`}
           sourceName={sourceName}
           sourceUrl={sourceUrl}
         />
+        </>
       ) : null}
     </div>
   );

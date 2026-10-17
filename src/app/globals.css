@@ -5669,4 +5669,11 @@ html[data-header-solid] .site-header .header-account:hover {
 .layout-switch-slider { display: block; margin-top: 10px; padding: 0 4px; }
 .layout-switch-slider span { display: block; margin-bottom: 4px; color: #6b7d73; font-size: .62rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 .layout-switch-slider input { width: 100%; accent-color: #d4a017; cursor: pointer; }
+.layout-switch-zoom { display: flex; width: 100%; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; min-height: 34px; border: 0; border-radius: 9px; background: #d4a017; color: #1d1a0e; font-family: var(--font-sans); font-size: .78rem; font-weight: 700; cursor: pointer; transition: filter .15s ease; }
+.layout-switch-zoom:hover { filter: brightness(1.06); }
+.layout-switch-zoom svg { width: 15px; height: 15px; }
+.layout-switch-hint { margin: 9px 4px 0; color: #2f6b4f; font-size: .7rem; font-weight: 650; }
 @media (max-width: 640px) { .layout-switch { width: 190px; padding: 8px; } }
+
+.dha-poster-note { margin: 0 0 12px; padding: 10px 14px; border: 1px solid #ecdca8; border-radius: 12px; background: #fdf8e9; color: #5b4a12; font-size: .85rem; line-height: 1.5; }
+.dha-poster-note button { border: 0; padding: 0; background: none; color: var(--color-forest-800); font-weight: 700; text-decoration: underline; cursor: pointer; }
