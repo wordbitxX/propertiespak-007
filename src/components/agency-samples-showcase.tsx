@@ -155,18 +155,23 @@ function SampleClassic({ agencies }: { agencies: Agency[] }) {
               {agency.verified && <BlueTick className="h-4 w-4 shrink-0" />}
             </p>
             <p className="agx-p1-city">{agency.city}</p>
-            <div className="agx-p1-split">
-              <span className="agx-p1-num">
+            <div className="agx-p1-stats">
+              <span className="agx-p1-chip">
+                <svg viewBox="0 0 20 20" aria-hidden="true" className="agx-p1-chip-icon">
+                  <path d="M3.5 9.2 10 4l6.5 5.2" />
+                  <path d="M5.5 8v7.5h9V8" />
+                  <path d="M8.5 15.5v-4h3v4" />
+                </svg>
                 <b>{agency.listings}</b>
-                <small>Listings</small>
+                <span>{agency.listings === 1 ? "Listing" : "Listings"}</span>
               </span>
-              <span className="agx-p1-divider" aria-hidden="true" />
-              <span className="agx-p1-num agx-p1-num--right">
-                <b>
-                  {agency.verifiedListings}
-                  <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="currentColor" /><path d="m6 10.3 2.6 2.6L14.2 7.4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                </b>
-                <small>Verified</small>
+              <span className="agx-p1-chip agx-p1-chip--verified">
+                <svg viewBox="0 0 20 20" aria-hidden="true" className="agx-p1-chip-icon">
+                  <path d="M10 2.8 15.6 5v4.4c0 3.6-2.4 6.3-5.6 7.6-3.2-1.3-5.6-4-5.6-7.6V5z" />
+                  <path d="m7.4 10 1.8 1.8 3.5-3.6" />
+                </svg>
+                <b>{agency.verifiedListings}</b>
+                <span>Verified</span>
               </span>
             </div>
           </Link>

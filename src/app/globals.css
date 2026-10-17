@@ -5931,3 +5931,13 @@ html[data-header-solid] .site-header .header-language-mobile:hover { background:
   .hero-city-pill { min-height: 31px; padding: 0 9px; font-size: .7rem; gap: 4px; }
   .hero-city-pill svg { width: 12px; height: 12px; }
 }
+
+/* P1 agency stats v3 — light, premium chips: Listings left, Verified right. */
+.agx-p1-stats { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px dashed #e6ebe8; }
+.agx-p1-chip { display: inline-flex; align-items: center; gap: 5px; min-width: 0; padding: 5px 10px 5px 8px; border: 1px solid #e7ece9; border-radius: 999px; background: linear-gradient(180deg, #ffffff, #fafbfa); box-shadow: 0 1px 2px rgba(13, 38, 29, .04); line-height: 1; white-space: nowrap; transition: border-color .2s ease, box-shadow .2s ease; }
+.agx-p1-chip-icon { width: 14px; height: 14px; flex: 0 0 14px; fill: none; stroke: #b08a3e; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.agx-p1-chip b { color: #0d261d; font-size: .84rem; font-weight: 750; letter-spacing: -.01em; }
+.agx-p1-chip span { color: #6f7d75; font-size: .74rem; font-weight: 550; }
+.agx-p1-chip--verified .agx-p1-chip-icon { stroke: #16a34a; }
+.agx-p1-chip--verified span { color: #2f7a52; }
+.agx-p1-card:hover .agx-p1-chip { border-color: #dbe5df; box-shadow: 0 3px 8px -4px rgba(13, 38, 29, .12); }
