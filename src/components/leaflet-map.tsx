@@ -126,31 +126,65 @@ function probeTileFiltering(probeUrl: string): Promise<boolean> {
  */
 function isPlaceholderTile(img: HTMLImageElement): boolean {
   try {
-    const S = 24;
+    // Point-sample the tile at full size: downscaling would blend thin roads
+    // and plot lines into one flat colour and hide real layout artwork.
+    const W = img.naturalWidth || 256;
+    const H = img.naturalHeight || 256;
+    const STEP = 4;
+    const RING = 12;
     const canvas = document.createElement("canvas");
-    canvas.width = S;
-    canvas.height = S;
+    canvas.width = W;
+    canvas.height = H;
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return false;
-    ctx.drawImage(img, 0, 0, S, S);
-    const { data } = ctx.getImageData(0, 0, S, S);
-    let reference: [number, number, number] | null = null;
+    ctx.drawImage(img, 0, 0);
+    const { data } = ctx.getImageData(0, 0, W, H);
+    const close = (a: number[], b: number[]) => Math.abs(a[0] - b[0]) <= 30 && Math.abs(a[1] - b[1]) <= 30 && Math.abs(a[2] - b[2]) <= 30;
+
+    // 1) Whole tile: overwhelmingly one flat opaque colour.
+    let reference: number[] | null = null;
     let similar = 0;
     let total = 0;
-    for (let i = 0; i < data.length; i += 4) {
-      if (data[i + 3] < 200) continue;
-      const pixel: [number, number, number] = [data[i], data[i + 1], data[i + 2]];
-      total += 1;
-      if (!reference) {
-        reference = pixel;
-        similar += 1;
-        continue;
-      }
-      if (Math.abs(pixel[0] - reference[0]) <= 30 && Math.abs(pixel[1] - reference[1]) <= 30 && Math.abs(pixel[2] - reference[2]) <= 30) {
-        similar += 1;
+    // 2) Outer ring: fillers are a flat frame around a centred glyph/caption,
+    //    so even a large glyph cannot hide them. Real layout art reaches the
+    //    tile edges with roads, plot lines or transparency.
+    let ringRef: number[] | null = null;
+    let ringSimilar = 0;
+    let ringTotal = 0;
+    let ringOpaque = 0;
+    for (let y = 0; y < H; y += STEP) {
+      for (let x = 0; x < W; x += STEP) {
+        const i = (y * W + x) * 4;
+        const opaque = data[i + 3] >= 200;
+        const pixel = [data[i], data[i + 1], data[i + 2]];
+        if (x < RING || y < RING || x >= W - RING || y >= H - RING) {
+          ringTotal += 1;
+          if (opaque) {
+            ringOpaque += 1;
+            if (!ringRef) ringRef = pixel;
+            if (close(pixel, ringRef)) ringSimilar += 1;
+          }
+        }
+        if (!opaque) continue;
+        total += 1;
+        if (!reference) reference = pixel;
+        if (close(pixel, reference)) similar += 1;
       }
     }
-    return total > 0 && similar / total >= 0.82;
+    // The CDN fillers are saturated blue / green. Plot artwork is cream, yellow,
+    // white or pastel (parks), so those are never treated as fillers.
+    const fillerColour = (rgb: number[] | null) => {
+      if (!rgb) return false;
+      const max = Math.max(...rgb);
+      const min = Math.min(...rgb);
+      const saturation = max === 0 ? 0 : (max - min) / max;
+      const [r, g, b] = rgb;
+      const blue = b > r + 40 && b >= g;
+      const green = g > r + 35 && g > b + 15;
+      return saturation >= 0.38 && max <= 240 && (blue || green);
+    };
+    if (total > 0 && similar / total >= 0.82 && fillerColour(reference)) return true;
+    return ringTotal > 0 && ringOpaque / ringTotal >= 0.97 && ringSimilar / ringTotal >= 0.94 && fillerColour(ringRef);
   } catch {
     return false;
   }
@@ -444,7 +478,8 @@ export function LeafletMap({
         const tile = Lmod.tileLayer(layer.tiles, {
           minZoom: Math.min(layer.minZoom, 12),
           maxZoom: 20,
-          maxNativeZoom: Math.min(layer.maxZoom, 16),
+          // DHA Plus publishes plot tiles down to z19 — use them all for a crisp HD layout.
+          maxNativeZoom: layer.maxZoom,
           opacity: 1,
           tms: false,
           bounds: Lmod.latLngBounds(normaliseBounds(layer.bounds)),

@@ -113,7 +113,7 @@ export default async function SocietyMapsPage() {
 
       {/* Dark Emerald & Champagne Gold Hero Section */}
       <section
-        className="relative overflow-hidden border-b border-[#DFB872]/30 py-14 text-white sm:py-18"
+        className="relative overflow-hidden border-b border-[#DFB872]/30 pb-14 pt-28 text-white sm:pb-16 lg:pb-20 lg:pt-36"
         style={{
           background: "linear-gradient(135deg, #051811 0%, #0B2E21 55%, #061B13 100%)",
         }}
@@ -171,6 +171,25 @@ export default async function SocietyMapsPage() {
                   Browse Verified Properties
                 </Link>
               </div>
+
+              <div className="mt-6 flex flex-wrap items-center gap-2" aria-label="Interactive HD maps">
+                <span className="mr-1 text-[0.66rem] font-extrabold uppercase tracking-[0.18em] text-white/60">HD maps:</span>
+                {[
+                  { label: "DHA Societies", href: "/maps/dha-societies" },
+                  { label: "DHA Lahore", href: "/maps/dha-societies?city=Lahore" },
+                  { label: "Bahria Town Lahore", href: "/maps/bahria-town-lahore-map" },
+                  { label: "Lake City", href: "/maps/lake-city-map" },
+                  { label: "LDA Avenue", href: "/maps/lda-avenue-map" },
+                ].map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="rounded-full border border-white/15 bg-white/[0.06] px-3 py-1.5 text-[0.74rem] font-semibold text-white/90 transition hover:border-[#F3D590] hover:text-[#F3D590]"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
             </div>
 
             {/* Right Stats Card */}
@@ -224,32 +243,46 @@ export default async function SocietyMapsPage() {
       {/* Maps & Malls cross-promo: mall footfall moves the same neighbourhoods these maps cover. */}
       <section className="ui-container mt-8 sm:mt-10" aria-labelledby="maps-malls-heading">
         <div
-          className="relative overflow-hidden rounded-2xl border border-[#DFB872]/35 p-6 text-white sm:p-8"
-          style={{ background: "linear-gradient(120deg, #051811 0%, #0B2E21 58%, #123B2A 100%)" }}
+          className="relative overflow-hidden rounded-[22px] border border-[#DFB872]/40 p-6 text-white shadow-[0_24px_60px_-34px_rgba(5,24,17,0.75)] sm:p-9"
+          style={{ background: "linear-gradient(118deg, #04140E 0%, #0A2A1E 52%, #10402D 100%)" }}
         >
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0"
-            style={{ background: "radial-gradient(circle at 88% 18%, rgba(216,175,104,0.22), transparent 46%)" }}
+            style={{
+              background:
+                "radial-gradient(circle at 92% 12%, rgba(223,184,114,0.26), transparent 42%), radial-gradient(circle at 6% 100%, rgba(22,163,74,0.22), transparent 48%)",
+            }}
           />
-          <div className="relative z-10 flex flex-wrap items-end justify-between gap-5">
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#F3D590]/70 to-transparent" />
+          <div className="relative z-10 grid gap-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
             <div className="max-w-2xl">
-              <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.18em] text-[#DFB872]">Maps &amp; Malls</p>
-              <h2 id="maps-malls-heading" className="mt-2 font-sans text-[1.45rem] font-bold leading-tight">
-                Shopping Malls in Pakistan — open &amp; coming soon
-              </h2>
-              <p className="mt-2 text-[0.9rem] leading-relaxed text-white/75">
-                Maps show where a plot sits; malls show where the footfall is going. Explore every major mall in Pakistan —
-                LuckyOne, Emporium, Dolmen, Centaurus, Giga and the upcoming projects — with property near each one.
+              <p className="inline-flex items-center gap-2 rounded-full border border-[#DFB872]/40 bg-white/[0.06] px-3 py-1 text-[0.66rem] font-extrabold uppercase tracking-[0.2em] text-[#F3D590]">
+                <IconPin className="h-3.5 w-3.5" />
+                Maps &amp; Malls
               </p>
+              <h2 id="maps-malls-heading" className="mt-3 font-sans text-[1.5rem] font-extrabold leading-tight tracking-[-0.02em] !text-white sm:text-[1.8rem]">
+                Shopping Malls in Pakistan <span className="text-[#F3D590]">— open &amp; coming soon</span>
+              </h2>
+              <p className="mt-3 text-[0.95rem] leading-relaxed text-white/85">
+                Maps show where a plot sits; malls show where the footfall is going. Explore every major mall in Pakistan
+                with the property around each one.
+              </p>
+              <ul className="mt-4 flex flex-wrap gap-2" aria-label="Featured malls">
+                {["LuckyOne", "Emporium", "Dolmen", "Centaurus", "Giga", "Packages Mall"].map((mall) => (
+                  <li key={mall} className="rounded-lg border border-white/15 bg-white/[0.07] px-3 py-1.5 text-[0.76rem] font-semibold text-white/90">
+                    {mall}
+                  </li>
+                ))}
+              </ul>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <Link href="/malls" className="btn btn-gold">
+            <div className="flex flex-wrap gap-3 lg:flex-col lg:items-stretch">
+              <Link href="/malls" className="btn btn-gold justify-center">
                 Explore all malls <IconArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/malls/luckyone-mall-karachi"
-                className="inline-flex min-h-11 items-center rounded-[10px] border border-white/25 px-4 font-sans text-[0.85rem] font-semibold text-white transition-colors hover:border-[#DFB872]"
+                className="inline-flex min-h-11 items-center justify-center rounded-[10px] border border-white/25 bg-white/[0.04] px-4 font-sans text-[0.85rem] font-semibold text-white transition-colors hover:border-[#DFB872] hover:text-[#F3D590]"
               >
                 Pakistan&rsquo;s largest mall
               </Link>

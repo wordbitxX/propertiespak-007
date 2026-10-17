@@ -19,7 +19,7 @@ export function DhaSocietiesExplorer({
 }) {
   const [city, setCity] = useState<CityFilter>(initialCity ?? "All");
   const [query, setQuery] = useState("");
-  // 1 = proxied image failed → try the original URL; 2 = both failed → placeholder.
+  // 1 = CDN image failed → try our proxy; 2 = both failed → placeholder.
   const [failed, setFailed] = useState<Map<string, number>>(() => new Map());
   const markFailed = (slug: string, attempt: number) =>
     setFailed((current) => {
@@ -80,7 +80,8 @@ export function DhaSocietiesExplorer({
           {visible.map((society) => {
             const attempts = failed.get(society.slug) ?? 0;
             const image =
-              attempts === 0 ? dhaSocietyImageUrl(society) : attempts === 1 && society.image ? `${DHAPLUS_SOURCE.imageBase}${society.image}` : null;
+              // CDN first (fastest for visitors), then our cached proxy, then a placeholder.
+              attempts === 0 && society.image ? `${DHAPLUS_SOURCE.imageBase}${society.image}` : attempts <= 1 ? dhaSocietyImageUrl(society) : null;
             return (
               <li key={society.slug}>
                 <Link href={`/maps/dha-societies/${society.slug}`} className="dha-map-card group">

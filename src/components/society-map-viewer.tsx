@@ -12,12 +12,15 @@ export type SocietyMapSource =
 type Status = "loading" | "ready" | "error";
 
 const ZOOM_STEP = 1.5;
-const PROBE_TIMEOUT = 15000;
+const PROBE_TIMEOUT = 6000;
+const MAX_LEVEL = 20;
+const CACHE_PREFIX = "pp-dzi:v2:";
 
 function loadImage(url: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
     const image = new Image();
     image.referrerPolicy = "no-referrer";
+    image.decoding = "async";
     const timer = window.setTimeout(() => resolve(null), PROBE_TIMEOUT);
     image.onload = () => {
       window.clearTimeout(timer);
@@ -31,66 +34,115 @@ function loadImage(url: string): Promise<HTMLImageElement | null> {
   });
 }
 
-/** Largest n in [known, limit) for which exists(n) is true, given exists(known) === true. */
-async function lastExisting(known: number, limit: number, exists: (n: number) => Promise<boolean>) {
-  let lo = known;
-  let hi = lo + 1;
-  while (hi < limit && (await exists(hi))) {
-    lo = hi;
-    hi = Math.min(limit, hi * 2);
+type DeepZoomDims = { format: string; width: number; height: number; tileSize: number; overlap: number };
+
+function descriptorFor(root: string, dims: DeepZoomDims) {
+  return {
+    Image: {
+      xmlns: "http://schemas.microsoft.com/deepzoom/2008",
+      Url: root,
+      Format: dims.format,
+      Overlap: String(dims.overlap),
+      TileSize: String(dims.tileSize),
+      Size: { Width: String(dims.width), Height: String(dims.height) },
+    },
+  };
+}
+
+function readCachedDims(key: string): DeepZoomDims | null {
+  try {
+    const raw = window.localStorage.getItem(CACHE_PREFIX + key);
+    if (!raw) return null;
+    const dims = JSON.parse(raw) as DeepZoomDims;
+    return dims.width > 0 && dims.height > 0 && dims.tileSize > 0 ? dims : null;
+  } catch {
+    return null;
   }
-  while (hi - lo > 1) {
-    const mid = Math.floor((lo + hi) / 2);
-    if (await exists(mid)) lo = mid;
-    else hi = mid;
+}
+
+function writeCachedDims(key: string, dims: DeepZoomDims) {
+  try {
+    window.localStorage.setItem(CACHE_PREFIX + key, JSON.stringify(dims));
+  } catch {
+    /* storage full or blocked — discovery simply runs again next time */
   }
-  return lo;
 }
 
 /**
  * Rebuild a DeepZoom descriptor from the public tile pyramid alone (plain <img> loads, no CORS),
- * so the map still opens when the .dzi file itself cannot be fetched.
+ * so the map still opens when the .dzi file itself cannot be fetched. Every probe round runs in
+ * parallel, so this takes ~25 small requests in three round trips:
+ *   1. tile 0_0 of every level  → highest level, tile size, and the single-tile level widths;
+ *   2. the 2nd/3rd tiles of the top level → overlap;
+ *   3. the 1–3 candidate edge tiles → the exact image width and height.
  */
-async function discoverDeepZoom(base: string, name: string) {
+async function discoverDeepZoom(base: string, name: string): Promise<DeepZoomDims | null> {
   const root = `${base}${name}_files/`;
-  for (const format of ["jpg", "png", "jpeg"]) {
-    const tile = (level: number, x: number, y: number) => loadImage(`${root}${level}/${x}_${y}.${format}`);
-    if (!(await tile(0, 0, 0))) continue;
-    const maxLevel = await lastExisting(0, 21, async (level) => Boolean(await tile(level, 0, 0)));
-    const first = await tile(maxLevel, 0, 0);
-    if (!first) return null;
-    const cols = (await lastExisting(0, 4096, async (x) => Boolean(await tile(maxLevel, x, 0)))) + 1;
-    const rows = (await lastExisting(0, 4096, async (y) => Boolean(await tile(maxLevel, 0, y)))) + 1;
+  const formats = ["jpg", "png", "jpeg"];
+  const roots = await Promise.all(formats.map((format) => loadImage(`${root}0/0_0.${format}`)));
+  const formatIndex = roots.findIndex(Boolean);
+  if (formatIndex < 0) return null;
+  const format = formats[formatIndex];
+  const tile = (level: number, x: number, y: number) => loadImage(`${root}${level}/${x}_${y}.${format}`);
 
-    let overlap = 1;
-    if (cols >= 3) {
-      const second = await tile(maxLevel, 1, 0);
-      if (second) overlap = second.naturalWidth - first.naturalWidth;
-    } else if (rows >= 3) {
-      const second = await tile(maxLevel, 0, 1);
-      if (second) overlap = second.naturalHeight - first.naturalHeight;
+  const levels = await Promise.all(
+    Array.from({ length: MAX_LEVEL + 1 }, (_, level) => (level === 0 ? Promise.resolve(roots[formatIndex]) : tile(level, 0, 0))),
+  );
+  let max = 0;
+  levels.forEach((image, level) => {
+    if (image) max = level;
+  });
+  const first = levels[max];
+  if (!first) return null;
+
+  const [right1, right2, down1, down2] = await Promise.all([tile(max, 1, 0), tile(max, 2, 0), tile(max, 0, 1), tile(max, 0, 2)]);
+  // A middle tile carries overlap on both sides, the first tile only on one.
+  let overlap: number | null = null;
+  if (right1 && right2) overlap = right1.naturalWidth - first.naturalWidth;
+  else if (down1 && down2) overlap = down1.naturalHeight - first.naturalHeight;
+  const edge = Math.max(first.naturalWidth, first.naturalHeight);
+  if (overlap === null || overlap < 0 || overlap > 8) overlap = edge % 2 === 1 ? 1 : 0;
+  const tileSize = (right1 || down1 ? edge : edge + overlap) - overlap;
+
+  const measure = async (dim: "naturalWidth" | "naturalHeight", hasSecond: boolean, probe: (i: number) => Promise<HTMLImageElement | null>) => {
+    if (!hasSecond) return first[dim];
+    const full = first[dim];
+    // Largest level where this axis is still a single tile: its tile 0 is the whole level.
+    let single = -1;
+    for (let level = max - 1; level >= 0; level -= 1) {
+      const image = levels[level];
+      if (image && image[dim] < full) {
+        single = level;
+        break;
+      }
     }
-    overlap = Math.max(0, overlap);
-    const tileSize = cols > 1 ? first.naturalWidth - overlap : rows > 1 ? first.naturalHeight - overlap : Math.max(first.naturalWidth, first.naturalHeight);
+    if (single < 0) return null;
+    const scale = 2 ** (max - single);
+    const levelSize = levels[single]![dim];
+    const lo = (levelSize - 1) * scale + 1;
+    const hi = levelSize * scale;
+    const firstCandidate = Math.max(1, Math.ceil(lo / tileSize) - 1);
+    const lastCandidate = Math.max(firstCandidate, Math.ceil(hi / tileSize) - 1);
+    const indices = Array.from({ length: Math.min(8, lastCandidate - firstCandidate + 1) }, (_, i) => firstCandidate + i);
+    const images = await Promise.all(indices.map(probe));
+    for (let i = indices.length - 1; i >= 0; i -= 1) {
+      const image = images[i];
+      if (image) return indices[i] * tileSize - overlap + image[dim];
+    }
+    return null;
+  };
 
-    const lastCol = cols > 1 ? await tile(maxLevel, cols - 1, 0) : first;
-    const lastRow = rows > 1 ? await tile(maxLevel, 0, rows - 1) : first;
-    if (!lastCol || !lastRow) return null;
-    const width = cols > 1 ? (cols - 1) * tileSize + lastCol.naturalWidth - overlap : first.naturalWidth;
-    const height = rows > 1 ? (rows - 1) * tileSize + lastRow.naturalHeight - overlap : first.naturalHeight;
+  const [width, height] = await Promise.all([
+    measure("naturalWidth", Boolean(right1), (x) => tile(max, x, 0)),
+    measure("naturalHeight", Boolean(down1), (y) => tile(max, 0, y)),
+  ]);
+  if (!width || !height) return null;
+  return { format, width, height, tileSize, overlap };
+}
 
-    return {
-      Image: {
-        xmlns: "http://schemas.microsoft.com/deepzoom/2008",
-        Url: root,
-        Format: format,
-        Overlap: String(overlap),
-        TileSize: String(tileSize),
-        Size: { Width: String(width), Height: String(height) },
-      },
-    };
-  }
-  return null;
+/** Promise that resolves once `ms` have passed (or immediately if the signal says stop). */
+function wait(ms: number) {
+  return new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 }
 
 /**
@@ -117,19 +169,21 @@ export function SocietyMapViewer({
     let cancelled = false;
     let viewer: OpenSeadragon.Viewer | null = null;
 
+    const fail = () => {
+      if (!cancelled) setStatus("error");
+    };
+
     (async () => {
       const OSD = (await import("openseadragon")).default;
       if (cancelled || !containerRef.current) return;
       viewer = OSD({
         element: containerRef.current,
-        // `buildPyramid` is supported by OpenSeadragon's ImageTileSource but missing from the type definitions.
-        tileSources:
-          source.type === "dzi"
-            ? source.url
-            : ({ type: "image", url: source.url, buildPyramid: true } as unknown as OpenSeadragon.TileSourceOptions),
         crossOriginPolicy: false,
         // The canvas drawer works with cross-origin tiles that send no CORS headers.
         drawer: "canvas",
+        // Paint whatever resolution is ready right away instead of fading levels in.
+        immediateRender: true,
+        blendTime: 0,
         showNavigationControl: false,
         showNavigator: true,
         navigatorPosition: "BOTTOM_RIGHT",
@@ -150,30 +204,94 @@ export function SocietyMapViewer({
       viewer.addHandler("open", () => {
         if (!cancelled) setStatus("ready");
       });
-      let triedDirect = false;
-      viewer.addHandler("open-failed", async () => {
-        if (cancelled) return;
-        if (triedDirect || !source.direct) {
-          setStatus("error");
-          return;
-        }
-        // Our proxy could not reach the source: let the visitor's browser load it directly.
-        triedDirect = true;
-        if (source.type === "image") {
-          viewer?.open({ tileSource: { type: "image", url: source.direct, buildPyramid: false } });
-          return;
-        }
-        const descriptor = await discoverDeepZoom(source.direct.base, source.direct.name);
-        if (cancelled) return;
-        if (descriptor) viewer?.open({ tileSource: descriptor });
-        else setStatus("error");
-      });
       viewer.addHandler("full-page", (event) => {
         if (!cancelled) setFullPage(Boolean((event as unknown as { fullPage: boolean }).fullPage));
       });
-    })().catch(() => {
-      if (!cancelled) setStatus("error");
-    });
+
+      /* ---------- single HD image: CDN first, our proxy as the fallback ---------- */
+      if (source.type === "image") {
+        // `buildPyramid` is supported by OpenSeadragon's ImageTileSource but missing from the type definitions.
+        const proxied = { tileSource: { type: "image", url: source.url, buildPyramid: true } as unknown as OpenSeadragon.TileSourceOptions };
+        let usedProxy = !source.direct;
+        viewer.addHandler("open-failed", () => {
+          if (cancelled) return;
+          if (usedProxy) return fail();
+          usedProxy = true;
+          viewer?.open(proxied);
+        });
+        viewer.open(source.direct ? { tileSource: { type: "image", url: source.direct, buildPyramid: false } as unknown as OpenSeadragon.TileSourceOptions } : proxied);
+        return;
+      }
+
+      /* ---------- DeepZoom pyramid ---------- */
+      const direct = source.direct;
+      const cacheKey = direct ? `${direct.base}${direct.name}` : "";
+      let mode: "direct" | "proxy" | null = null;
+      let tileFailures = 0;
+      let tilesLoaded = 0;
+
+      const openProxy = () => {
+        if (cancelled || mode === "proxy") return;
+        mode = "proxy";
+        viewer?.open({ tileSource: source.url });
+      };
+      const openDirect = (dims: DeepZoomDims) => {
+        if (cancelled || !direct) return;
+        mode = "direct";
+        viewer?.open({ tileSource: descriptorFor(`${direct.base}${direct.name}_files/`, dims) });
+      };
+
+      viewer.addHandler("open-failed", () => {
+        if (cancelled) return;
+        if (mode === "proxy") fail();
+      });
+      viewer.addHandler("tile-loaded", () => {
+        tilesLoaded += 1;
+      });
+      // Direct tiles suddenly blocked (hotlink rules changed)? Fall back to the proxy once.
+      viewer.addHandler("tile-load-failed", () => {
+        if (cancelled || mode !== "direct") return;
+        tileFailures += 1;
+        if (tilesLoaded === 0 && tileFailures >= 4) {
+          if (direct) window.localStorage.removeItem(CACHE_PREFIX + cacheKey);
+          openProxy();
+        }
+      });
+
+      // Seen this map before: open straight from the source tiles, no round trips.
+      const cached = direct ? readCachedDims(cacheKey) : null;
+      if (cached) {
+        openDirect(cached);
+        return;
+      }
+
+      // Race our proxy against browser-side discovery; whichever answers first wins.
+      let settled = false;
+      const proxyOk = fetch(source.url, { signal: AbortSignal.timeout(8000) })
+        .then((response) => response.ok)
+        .catch(() => false);
+      const discovery = direct
+        ? Promise.race([proxyOk.then((ok) => (ok ? null : undefined)), wait(1500).then(() => undefined)]).then((skip) =>
+            skip === null ? null : discoverDeepZoom(direct.base, direct.name),
+          )
+        : Promise.resolve(null);
+
+      proxyOk.then((ok) => {
+        if (cancelled || settled || !ok) return;
+        settled = true;
+        openProxy();
+      });
+      discovery.then((dims) => {
+        if (cancelled || !dims || !direct) return;
+        writeCachedDims(cacheKey, dims);
+        if (settled) return;
+        settled = true;
+        openDirect(dims);
+      });
+      Promise.all([proxyOk, discovery]).then(([ok, dims]) => {
+        if (!ok && !dims) fail();
+      });
+    })().catch(fail);
 
     return () => {
       cancelled = true;
