@@ -5702,3 +5702,27 @@ html body .site-header .header-list-property.header-list-property:focus-visible 
   background: linear-gradient(135deg, #6ee7a0 0%, #2fd06b 100%);
   color: #052e1b;
 }
+
+/* Popular cities: wider landscape boxes — 4 per row on desktop, the rest scroll (arrows + swipe). */
+.home-page .home-city-rail { margin-top: 18px; }
+.home-page .home-city-rail .mobile-scroll-toolbar { display: flex; margin-bottom: 10px; }
+.home-page .home-city-rail .mobile-scroll-track {
+  display: flex; gap: 14px; overflow-x: auto; overflow-y: hidden; padding-bottom: 4px;
+  scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.home-page .home-city-rail .mobile-scroll-track::-webkit-scrollbar { display: none; }
+.home-page .home-city-rail .mobile-scroll-track > .city-discovery-item { flex: 0 0 78%; min-width: 0; scroll-snap-align: start; }
+@media (min-width: 640px) { .home-page .home-city-rail .mobile-scroll-track > .city-discovery-item { flex-basis: calc((100% - 14px) / 2); } }
+@media (min-width: 900px) { .home-page .home-city-rail .mobile-scroll-track > .city-discovery-item { flex-basis: calc((100% - 28px) / 3); } }
+@media (min-width: 1200px) { .home-page .home-city-rail .mobile-scroll-track > .city-discovery-item { flex-basis: calc((100% - 42px) / 4); } }
+
+/* Popular cities: show the "EXPLORE POPULAR CITIES" eyebrow above the title (reference design). */
+.home-page #markets .section-heading .eyebrow {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px; color: #128a4f; font-size: .72rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+}
+
+/* Premium Properties For You: wider cards (3 across on desktop, like the reference) so the
+   type / purpose / Featured pills sit on one line. The rail still scrolls horizontally. */
+.featured-showcase-rail .property-rail-item { width: 262px; }
+@media (min-width: 1024px) { .featured-showcase-rail .property-rail-item { width: 272px; } }
+@media (min-width: 1280px) { .featured-showcase-rail .property-rail-item { width: 292px; } }

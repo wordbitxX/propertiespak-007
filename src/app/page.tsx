@@ -107,9 +107,6 @@ export default async function HomePage() {
       {/* 1. Featured Properties ("Premium Properties For You") */}
       <FeaturedProperties properties={featuredItems} total={featuredTotal} />
 
-      {/* 2. Top Verified Agents ("Work With Trusted Real Estate Experts") */}
-      <DealersSlider dealers={showcaseDealers} />
-
       {/* 3. Browse By Category ("Explore Properties by Category") */}
       <CategoryGrid counts={categoryCounts} />
 
@@ -118,6 +115,10 @@ export default async function HomePage() {
 
       {/* 5. Recently Added & Locally Viewed Properties */}
       <RecentlyAddedProperties properties={discovery.items} />
+
+      {/* Platinum Agency — top verified agencies, right below Recently Added */}
+      <DealersSlider dealers={showcaseDealers} />
+
       <RecentProperties />
 
       {/* 6. Property Discovery */}

@@ -99,16 +99,16 @@ export function DealersSlider({ dealers }: { dealers: DealerProfile[] }) {
       <div className="ui-container">
         <div className="agents-banner-card">
           <div className="agents-banner-intro">
-            <p className="agents-banner-eyebrow">TOP VERIFIED AGENTS</p>
+            <p className="agents-banner-eyebrow">TOP VERIFIED AGENCIES</p>
             <h2 id="home-dealers-heading" className="agents-banner-title">
-              Work With Trusted Real Estate Experts
+              Platinum Agency
             </h2>
             <p className="agents-banner-copy">
-              Connect with professional agents and find the perfect property with confidence.
+              Pakistan’s top-rated, verified real estate agencies — hand-picked for trusted, hassle-free deals.
             </p>
             <div className="agents-banner-actions">
               <Link href="/dealers" className="btn btn-gold agents-banner-cta">
-                <span>View All Agents</span>
+                <span>View All Agencies</span>
                 <IconArrowRight className="h-4 w-4" />
               </Link>
             </div>

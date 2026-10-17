@@ -16,6 +16,21 @@ export function purposeBadge(property: Pick<Property, "purpose" | "isNewProject"
   return { label: "For Sale", className: "bg-[#0D382A] text-white" };
 }
 
+/** Pastel type pill colours for the featured card ("House", "Apartment", "Plot" …). */
+const TYPE_PILL: Record<string, string> = {
+  house: "bg-[#CFF7E1] text-[#0F6B45]",
+  farmhouse: "bg-[#CFF7E1] text-[#0F6B45]",
+  apartment: "bg-[#E0E9FF] text-[#2F4FA0]",
+  penthouse: "bg-[#E0E9FF] text-[#2F4FA0]",
+  plot: "bg-[#FDF1C6] text-[#8A5A00]",
+  land: "bg-[#FDF1C6] text-[#8A5A00]",
+  shop: "bg-[#F1E6FF] text-[#6A3DB0]",
+  office: "bg-[#F1E6FF] text-[#6A3DB0]",
+  building: "bg-[#F1E6FF] text-[#6A3DB0]",
+  commercial: "bg-[#F1E6FF] text-[#6A3DB0]",
+  warehouse: "bg-[#F1E6FF] text-[#6A3DB0]",
+};
+
 function formatPkrNumeric(price: number | string, purpose: string): { main: string; suffix?: string } {
   const num = typeof price === "number" ? price : Number(price);
   if (!Number.isFinite(num) || num <= 0) {
@@ -32,12 +47,16 @@ export function PropertyCard({
   priority = false,
   className = "",
   compact = false,
+  variant = "default",
 }: {
   property: Property | PropertyWithDealer;
   priority?: boolean;
   className?: string;
   compact?: boolean;
+  /** "featured": type + purpose pills on the left and a "Featured" pill on the right (homepage premium rail). */
+  variant?: "default" | "featured";
 }) {
+  const featuredLook = variant === "featured";
   const dealerVerified = Boolean((property as PropertyWithDealer).dealerVerified);
   const listingVerified = dealerVerified || Boolean(property.verified);
   const badge = purposeBadge(property);
@@ -75,6 +94,30 @@ export function PropertyCard({
         <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
       </Link>
 
+      {featuredLook ? (
+        <>
+          <div className="pointer-events-none absolute left-2.5 top-2.5 flex max-w-[calc(100%-112px)] flex-wrap items-center gap-1.5">
+            <span className={`rounded-full px-2.5 py-[3px] font-sans text-[0.7rem] font-semibold shadow-sm ${TYPE_PILL[property.category] ?? "bg-white/95 text-[#0D382A]"}`}>
+              {property.propertyType}
+            </span>
+            <span
+              className={`rounded-full px-2.5 py-[3px] font-sans text-[0.7rem] font-semibold text-white shadow-sm ${
+                property.isNewProject ? "bg-[#0D382A]" : property.purpose === "rent" ? "bg-[#F26B3A]" : "bg-[#0B4A2B]"
+              }`}
+            >
+              {badge.label}
+            </span>
+          </div>
+          <div className="absolute right-2.5 top-2.5 flex flex-col items-end gap-1.5">
+            <span className="pointer-events-none inline-flex items-center gap-1 rounded-full bg-[#F26B3A] px-2.5 py-[3px] font-sans text-[0.7rem] font-semibold text-white shadow-sm" data-testid="featured-pill">
+              <svg viewBox="0 0 20 20" className="h-3 w-3" fill="currentColor" aria-hidden="true"><path d="M10 1.8l2.47 5.01 5.53.8-4 3.9.94 5.5L10 14.42 5.06 17.01 6 11.5 2 7.6l5.53-.8L10 1.8z" /></svg>
+              Featured
+            </span>
+            <FavoriteButton propertyId={property.id} title={property.title} />
+          </div>
+        </>
+      ) : (
+        <>
       <div
         className={`absolute flex flex-wrap items-center gap-1.5 ${
           compact ? "left-2.5 top-2.5 max-w-[calc(100%-60px)]" : "left-3.5 top-3.5"
@@ -92,10 +135,12 @@ export function PropertyCard({
         )}
       </div>
 
-      <div className={`absolute flex flex-col gap-1.5 ${compact ? "right-2.5 top-2.5" : "right-3.5 top-3.5"}`}>
+        <div className={`absolute flex flex-col gap-1.5 ${compact ? "right-2.5 top-2.5" : "right-3.5 top-3.5"}`}>
         <FavoriteButton propertyId={property.id} title={property.title} />
         {!compact && <CompareToggle propertyId={property.id} title={property.title} />}
       </div>
+        </>
+      )}
 
       <div className={`flex min-w-0 flex-1 flex-col ${compact ? "p-3.5" : "p-5"}`}>
         <h3 className={`font-sans font-bold leading-snug text-[#0D261D] ${titleClass}`}>

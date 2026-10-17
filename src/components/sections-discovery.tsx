@@ -163,6 +163,7 @@ export function FeaturedProperties({ properties, total }: { properties: Property
               query="featured=1&verified=1"
               label="Featured properties"
               autoPlay
+              cardVariant="featured"
             />
           </div>
         </div>
@@ -302,16 +303,12 @@ export function CityDiscovery({ cities, counts }: { cities: City[]; counts: Map<
       <div className="ui-container">
         <div className="section-card-surface">
           <SectionHeading
-            eyebrow="Explore the market"
-            title="Explore Popular Cities"
+            eyebrow="Explore Popular Cities"
+            title="Find Properties in Your Favorite City"
             description="Find the best properties in Pakistan's top cities"
             action={{ label: "View All Cities", href: "/properties" }}
           />
-          <div
-            className="city-discovery-rail mt-6"
-            role="region"
-            aria-label="Popular cities"
-          >
+          <MobileScrollGrid label="Popular cities" className="home-city-rail" testId="city-discovery-rail">
             {featured.map((city, index) => {
               const count = counts.get(city.slug) ?? 0;
               const cityImg = LOCAL_CITY_IMAGES[city.slug] ?? city.imageUrl;
@@ -320,7 +317,7 @@ export function CityDiscovery({ cities, counts }: { cities: City[]; counts: Map<
                 <Reveal key={city.slug} delay={index * 45} className="city-discovery-item">
                   <Link
                     href={`/city/${city.slug}`}
-                    className="zoom-frame group relative flex aspect-[4/5] flex-col justify-end overflow-hidden rounded-xl bg-[#0B2A20] p-4 shadow-sm"
+                    className="zoom-frame group relative flex aspect-[4/3] flex-col justify-end overflow-hidden rounded-xl bg-[#0B2A20] p-4 shadow-sm"
                   >
                     <ResilientImage
                       src={cityImg}
@@ -350,7 +347,7 @@ export function CityDiscovery({ cities, counts }: { cities: City[]; counts: Map<
                 </Reveal>
               );
             })}
-          </div>
+          </MobileScrollGrid>
         </div>
       </div>
     </Section>
