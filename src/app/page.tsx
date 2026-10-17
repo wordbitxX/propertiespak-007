@@ -104,7 +104,7 @@ export default async function HomePage() {
   const featuredTotal = featured.total;
 
   return (
-    <div className="home-page">
+    <div className="home-page lux-theme">
       <Hero stats={heroStats} />
 
       {/* 1. Featured Properties ("Premium Properties For You") */}

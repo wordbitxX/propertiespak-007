@@ -60,7 +60,7 @@ export default async function DealersPage({
   ];
 
   return (
-    <>
+    <div className="lux-theme">
       <JsonLd
         data={collectionPageJsonLd({
           name: "Verified property dealers and agencies",
@@ -250,6 +250,6 @@ export default async function DealersPage({
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }

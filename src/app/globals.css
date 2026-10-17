@@ -6258,3 +6258,91 @@ html:not([data-header-solid]):has(.pkr-hero--home) .site-header.site-header--ove
 }
 .dlr-card .agx-p1-name { font-family: var(--font-sans); font-weight: 700; letter-spacing: -.01em; }
 @media (max-width: 575px) { .dlr-stat dd { font-size: 1.35rem; } }
+
+/* =====================================================================
+   LUXURY PALETTE — PREVIEW (homepage + /dealers only, via .lux-theme)
+   Same family as the homepage hero: green-black, deep green, champagne
+   gold and warm cream. WhatsApp green, "Verified" chips and the blue
+   tick keep their own colours on purpose.
+   ===================================================================== */
+body:has(.lux-theme) {
+  --lux-deep: #061610;
+  --lux-green: #173C2D;
+  --lux-green-2: #0f2c20;
+  --lux-gold: #DFBE78;
+  --lux-gold-soft: #E5CD9D;
+  --lux-gold-2: #C9A45C;
+  --lux-gold-ink: #8A6729;
+  --lux-cream: #F6F3EC;
+  --lux-line: #E9E3D5;
+  /* Accent tokens: bright "app green" → champagne gold. */
+  --color-forest-400: #DFBE78;
+  --color-forest-500: #B08A3E;
+  --color-forest-50: #F5EFE1;
+  --color-gold-400: #E5CD9D;
+  --color-gold-500: #C9A45C;
+  --color-gold-600: #A9853F;
+  --gold-400: #E5CD9D;
+  --gold-500: #C9A45C;
+  /* Light surfaces: cool grey-green → warm cream. */
+  --surface-ivory: #F6F3EC;
+  --color-mist: #F6F3EC;
+  --color-soft: #E9E3D5;
+}
+
+/* Header: gold accents instead of neon green. */
+html body:has(.lux-theme) .header-brand .brand-lockup-accent { color: var(--lux-gold) !important; }
+body:has(.lux-theme) .header-desktop-nav .nav-link:hover,
+body:has(.lux-theme) .header-desktop-nav .nav-link[data-active="true"] { color: var(--lux-gold-soft); }
+body:has(.lux-theme) .header-desktop-nav .nav-link::after { background: var(--lux-gold); }
+body:has(.lux-theme) .site-header .header-action:hover { color: var(--lux-gold-soft); }
+html body:has(.lux-theme) .site-header .header-account:hover { border-color: var(--lux-gold) !important; color: var(--lux-gold) !important; }
+html body:has(.lux-theme) .site-header .header-list-property.header-list-property {
+  border: 1px solid rgba(223, 190, 120, .75);
+  background: linear-gradient(180deg, #1d4a37 0%, var(--lux-green) 100%);
+  color: #F3E3BF;
+  box-shadow: 0 8px 22px -12px rgba(0, 0, 0, .7), inset 0 1px 0 rgba(255, 255, 255, .06);
+}
+html body:has(.lux-theme) .site-header .header-list-property.header-list-property:hover,
+html body:has(.lux-theme) .site-header .header-list-property.header-list-property:focus-visible {
+  border-color: var(--lux-gold);
+  background: linear-gradient(135deg, #E9D3A2 0%, var(--lux-gold-2) 100%);
+  color: #1d1608;
+}
+html body:has(.lux-theme) .mobile-menu-list-btn {
+  border: 1px solid rgba(201, 164, 92, .6);
+  background: var(--lux-green);
+  color: #fff;
+  box-shadow: 0 8px 20px -12px rgba(6, 22, 16, .7);
+}
+
+/* Section eyebrows / kickers: deep champagne on light, soft gold on dark. */
+.lux-theme .section-heading .eyebrow,
+.home-page.lux-theme #markets .section-heading .eyebrow { color: var(--lux-gold-ink); }
+.lux-theme .section-heading .eyebrow > span { background: var(--lux-gold-2); opacity: 1; }
+.lux-theme .dlr-kicker { color: var(--lux-gold-ink); }
+
+/* Buttons: deep hero green, neutral shadow. */
+.lux-theme .btn-green,
+.lux-theme .btn-primary { background: var(--lux-green); box-shadow: 0 12px 26px -16px rgba(6, 22, 16, .75); }
+.lux-theme .btn-green:hover,
+.lux-theme .btn-primary:hover { background: var(--lux-green-2); }
+
+/* Warm white cards on cream. */
+.lux-theme .section-card-surface { border-color: var(--lux-line); }
+.lux-theme .agx-p1,
+.lux-theme .agx-p1-card,
+.lux-theme .dlr-step { border-color: var(--lux-line); }
+.lux-theme .agx-p1-card:hover { border-color: #D9C9A2; }
+.lux-theme .dlr-directory { background: linear-gradient(180deg, transparent 0, transparent 28px, var(--lux-cream) 28px); }
+.lux-theme .dlr-pill { border-color: var(--lux-line); }
+.lux-theme .dlr-pill span { background: #F3EEE2; color: #5d5440; }
+.lux-theme .dlr-pill:hover { border-color: #D9C9A2; }
+.lux-theme .dlr-pill.is-active { border-color: var(--lux-green); background: var(--lux-green); }
+
+/* Footer: gold links/hover instead of neon green (footer bg already matches). */
+body:has(.lux-theme) footer a:hover { color: var(--lux-gold-soft); }
+/* Dark panels: soft-gold kicker and a champagne primary button (deep green would sink into the dark). */
+.lux-theme .dlr-cta .dlr-kicker { color: var(--lux-gold-soft); }
+.lux-theme .dlr-cta .btn-green { background: linear-gradient(135deg, #E9D3A2 0%, var(--lux-gold-2) 100%); color: #1d1608; box-shadow: 0 12px 26px -14px rgba(201, 164, 92, .6); }
+.lux-theme .dlr-cta .btn-green:hover { background: linear-gradient(135deg, #F0DDB4 0%, #D4B06A 100%); }
