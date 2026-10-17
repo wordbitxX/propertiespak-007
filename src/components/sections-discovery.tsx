@@ -13,6 +13,7 @@ import {
 } from "@/components/icons";
 import { MobileScrollGrid } from "@/components/mobile-scroll-grid";
 import { PropertyRail } from "@/components/property-rail";
+import { TranslatedText } from "@/components/translated-text";
 import type { MapProperty } from "@/components/map-view";
 import { ResponsiveHomeMap } from "@/components/responsive-home-map";
 import { Reveal } from "@/components/reveal";
@@ -136,16 +137,20 @@ export function FeaturedProperties({ properties, total }: { properties: Property
       <div className="ui-container">
         <div className="featured-showcase-card">
           <div className="featured-showcase-intro">
-            <p className="featured-showcase-eyebrow">FEATURED PROPERTIES</p>
+            <p className="featured-showcase-eyebrow">
+              <TranslatedText text="FEATURED PROPERTIES" />
+            </p>
             <h2 id="featured-heading" className="featured-showcase-title">
-              Premium Properties For You
+              <TranslatedText text="Premium Properties For You" />
             </h2>
             <p className="featured-showcase-copy">
-              Explore handpicked properties in the most desirable locations across Pakistan.
+              <TranslatedText text="Explore handpicked properties in the most desirable locations across Pakistan." />
             </p>
             <div className="featured-showcase-actions">
               <Link href="/properties?featured=1&verified=1" className="featured-showcase-cta">
-                <span>View All Properties</span>
+                <span>
+                  <TranslatedText text="View All Properties" />
+                </span>
                 <IconArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>

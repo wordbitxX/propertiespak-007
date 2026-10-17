@@ -319,6 +319,27 @@ export const listingSubmissions = pgTable("listing_submissions", {
   reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
 });
 
+/**
+ * Client reviews. A review targets a dealer account (`dealerUserId`) or the
+ * platform itself (null). Nothing is public until an admin approves it in the
+ * admin workspace (`status`: pending | approved | rejected), so review schema
+ * markup and public ratings only ever reflect moderated, real submissions.
+ */
+export const reviews = pgTable("reviews", {
+  id: serial("id").primaryKey(),
+  dealerUserId: integer("dealer_user_id"),
+  authorName: text("author_name").notNull(),
+  authorCity: text("author_city").notNull().default(""),
+  rating: integer("rating").notNull().default(5), // 1–5
+  title: text("title").notNull().default(""),
+  body: text("body").notNull(),
+  status: text("status").notNull().default("pending"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+});
+
+export type Review = typeof reviews.$inferSelect;
+
 export type City = typeof cities.$inferSelect;
 export type Agent = typeof agents.$inferSelect;
 export type Project = typeof projects.$inferSelect;

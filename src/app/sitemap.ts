@@ -19,6 +19,7 @@ const STATIC_ROUTES: { path: string; priority: number; changeFrequency: "daily" 
   { path: "/projects", priority: 0.8, changeFrequency: "weekly" },
   { path: "/maps", priority: 0.9, changeFrequency: "weekly" },
   { path: "/blog", priority: 0.7, changeFrequency: "weekly" },
+  { path: "/pakistan-property-price-index", priority: 0.9, changeFrequency: "weekly" },
   { path: "/keywords-for-pakistan", priority: 0.9, changeFrequency: "weekly" },
   { path: "/tools", priority: 0.7, changeFrequency: "monthly" },
   { path: "/tools/mortgage-calculator", priority: 0.7, changeFrequency: "monthly" },

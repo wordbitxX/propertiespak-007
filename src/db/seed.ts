@@ -300,6 +300,20 @@ const SCHEMA_SQL = `
     WHERE s.property_id = p.id
       AND s.status = 'approved'
       AND coalesce(p.listed_by_phone, '') = '';
+    CREATE TABLE IF NOT EXISTS reviews (
+      id serial PRIMARY KEY,
+      dealer_user_id integer,
+      author_name text NOT NULL,
+      author_city text NOT NULL DEFAULT '',
+      rating integer NOT NULL DEFAULT 5,
+      title text NOT NULL DEFAULT '',
+      body text NOT NULL,
+      status text NOT NULL DEFAULT 'pending',
+      created_at timestamptz NOT NULL DEFAULT now(),
+      reviewed_at timestamptz
+    );
+    CREATE INDEX IF NOT EXISTS reviews_status_idx ON reviews (status, created_at);
+    CREATE INDEX IF NOT EXISTS reviews_dealer_idx ON reviews (dealer_user_id, status);
     CREATE TABLE IF NOT EXISTS app_meta (
       key text PRIMARY KEY,
       value text NOT NULL,

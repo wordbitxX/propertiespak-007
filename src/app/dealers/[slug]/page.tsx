@@ -10,10 +10,11 @@ import { PageHero } from "@/components/page-hero";
 import { Section } from "@/components/section";
 import { BlueTick, initialsFor, UnverifiedChip } from "@/components/verified-badge";
 import { IconArrowRight, IconBuilding, IconMail, IconPhone, IconPin, IconWhatsApp } from "@/components/icons";
-import { getDealerBySlug, getPropertiesForDealer } from "@/lib/queries";
+import { getApprovedReviews, getDealerBySlug, getPropertiesForDealer, getReviewSummary } from "@/lib/queries";
+import { ReviewForm, Stars } from "@/components/review-form";
+import { ResilientImage } from "@/components/resilient-image";
 import { formatDate } from "@/lib/format";
-import { buildMetadata, breadcrumbJsonLd, itemListJsonLd } from "@/lib/seo";
-import { SITE } from "@/lib/constants";
+import { buildMetadata, breadcrumbJsonLd, dealerJsonLd, itemListJsonLd } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -54,35 +55,29 @@ export default async function DealerProfilePage({ params }: PageProps) {
   const dealer = await getDealerBySlug(slug);
   if (!dealer || !dealer.slug) notFound();
 
-  const listings = await getPropertiesForDealer(dealer, 24);
+  const [listings, dealerReviews, reviewSummary] = await Promise.all([
+    getPropertiesForDealer(dealer, 24),
+    getApprovedReviews({ dealerUserId: dealer.id, limit: 12 }),
+    getReviewSummary(dealer.id),
+  ]);
   const areas = Array.from(new Set(listings.map((property) => property.locationArea))).slice(0, 12);
   const cityNames = Array.from(new Set(listings.map((property) => property.cityName)));
 
   return (
     <>
       <JsonLd
-        data={{
-          "@context": "https://schema.org",
-          "@type": "RealEstateAgent",
-          "@id": `${SITE.url}/dealers/${dealer.slug}#agent`,
+        data={dealerJsonLd({
+          slug: dealer.slug,
           name: dealer.name,
-          url: `${SITE.url}/dealers/${dealer.slug}`,
-          description: dealer.bio || `${dealer.name} lists property on Properties Pak.`,
+          bio: dealer.bio || undefined,
           email: dealer.email,
-          telephone: dealer.phone || undefined,
-          areaServed: cityNames.map((name) => ({ "@type": "City", name })),
-          worksFor: dealer.agency ? { "@type": "Organization", name: dealer.agency } : undefined,
-          knowsLanguage: ["en-PK", "ur-PK"],
-          memberOf: { "@id": `${SITE.url}/#organization` },
-          hasCertification: dealer.isVerified
-            ? {
-                "@type": "Certification",
-                name: "Properties Pak verified dealer",
-                description:
-                  "Identity, agency and contact number confirmed by the Properties Pak team; account holds published property listings.",
-              }
-            : undefined,
-        }}
+          phone: dealer.phone || undefined,
+          agency: dealer.agency || undefined,
+          image: dealer.avatarUrl || dealer.companyLogo || undefined,
+          isVerified: dealer.isVerified,
+          cityNames,
+          reviewSummary,
+        })}
       />
       <JsonLd
         data={breadcrumbJsonLd([
@@ -134,8 +129,12 @@ export default async function DealerProfilePage({ params }: PageProps) {
                 />
               </div>
               <div className="flex flex-wrap items-start gap-5 rounded-panel border border-soft bg-white p-6 shadow-soft">
-                <span className="grid h-20 w-20 shrink-0 place-items-center rounded-full bg-navy-900 font-sans text-[1.5rem] font-bold text-white">
-                  {initialsFor(dealer.name)}
+                <span className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full bg-navy-900 font-sans text-[1.5rem] font-bold text-white">
+                  {dealer.avatarUrl ? (
+                    <ResilientImage src={dealer.avatarUrl} alt={dealer.name} width={160} height={160} className="h-full w-full object-cover" />
+                  ) : (
+                    initialsFor(dealer.name)
+                  )}
                 </span>
                 <div className="min-w-0 flex-1">
                   <h2 className="flex flex-wrap items-center gap-2.5 font-sans text-[1.375rem] font-bold text-navy-900">
@@ -288,6 +287,48 @@ export default async function DealerProfilePage({ params }: PageProps) {
               ))}
             </div>
           )}
+        </div>
+      </Section>
+
+      <Section tone="light">
+        <div className="ui-container">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="eyebrow text-forest-700">
+                <span className="h-px w-6 bg-current" /> Client reviews
+              </p>
+              <h2 className="display-3 mt-3 text-navy-900">Reviews for {dealer.name}</h2>
+              <p className="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-ink-muted">
+                {reviewSummary.count > 0
+                  ? `Rated ${reviewSummary.average.toFixed(1)} out of 5 from ${reviewSummary.count} approved ${reviewSummary.count === 1 ? "review" : "reviews"}.`
+                  : "No approved reviews yet — be the first client to share your experience. Reviews appear after our team approves them."}
+              </p>
+            </div>
+            {reviewSummary.count > 0 && <Stars rating={Math.round(reviewSummary.average)} className="h-5 w-5" />}
+          </div>
+
+          {dealerReviews.length > 0 && (
+            <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+              {dealerReviews.map((review) => (
+                <article key={review.id} className="flex h-full flex-col rounded-panel border border-soft bg-white p-6 shadow-soft">
+                  <Stars rating={review.rating} />
+                  {review.title && <h3 className="mt-3 font-sans text-[1rem] font-semibold text-navy-900">{review.title}</h3>}
+                  <p className="mt-2 flex-1 text-[0.9375rem] leading-relaxed text-ink">{review.body}</p>
+                  <footer className="mt-5 border-t border-soft pt-4 text-[0.8125rem] text-ink-muted">
+                    <span className="font-semibold text-navy-900">{review.authorName}</span>
+                    {review.authorCity ? ` · ${review.authorCity}` : ""} · {formatDate(review.createdAt)}
+                  </footer>
+                </article>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-8 max-w-3xl rounded-panel border border-soft bg-mist p-6 sm:p-8">
+            <h3 className="font-sans text-[1.125rem] font-bold text-navy-900">Worked with {dealer.name}? Leave a review</h3>
+            <div className="mt-5">
+              <ReviewForm dealerUserId={dealer.id} subject={dealer.name} />
+            </div>
+          </div>
         </div>
       </Section>
     </>

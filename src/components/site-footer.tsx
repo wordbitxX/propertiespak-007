@@ -65,6 +65,7 @@ const COLUMNS = [
       { label: "Construction costs", href: "/tools/construction-cost-calculator" },
       { label: "Property tax", href: "/tools/property-tax-calculator" },
       { label: "Rent vs buy", href: "/tools/rent-vs-buy-calculator" },
+      { label: "Pakistan Property Price Index", href: "/pakistan-property-price-index" },
     ],
   },
   {

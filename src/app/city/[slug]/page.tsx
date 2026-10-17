@@ -12,7 +12,7 @@ import { Section, SectionHeading } from "@/components/section";
 import { PROPERTY_TYPES } from "@/lib/constants";
 import { formatPrice } from "@/lib/format";
 import { getCities, getCityBySlug, getMapProperties, searchProperties } from "@/lib/queries";
-import { buildMetadata, itemListJsonLd, listingRobots, webPageJsonLd } from "@/lib/seo";
+import { breadcrumbJsonLd, buildMetadata, itemListJsonLd, listingRobots, webPageJsonLd } from "@/lib/seo";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -93,6 +93,13 @@ export default async function CityPage({ params, searchParams }: PageProps) {
 
   return (
     <>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", href: "/" },
+          { name: "Properties", href: "/properties" },
+          { name: city.name, href: `/city/${city.slug}` },
+        ])}
+      />
       <JsonLd data={webPageJsonLd({
         name: `Property in ${city.name}`,
         description: `${city.tagline}. Property for sale and rent in ${city.name}, ${city.province}.`,

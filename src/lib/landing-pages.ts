@@ -1369,6 +1369,127 @@ const INVESTMENT_GUIDE: LandingContent = {
 };
 
 /* ------------------------------------------------------------------ */
+/*  Society-level intent pages (long-tail: /bahria-town-phase-8-houses) */
+/* ------------------------------------------------------------------ */
+
+/**
+ * One intent variant per society: houses, plots, apartments and rentals.
+ * Each variant is a distinct search intent with its own title, H1, keywords,
+ * filtered live listings and FAQ — it never duplicates the society guide at
+ * `/property-for-sale/<society>`, which stays the canonical overview page and
+ * is linked from every variant. Slugs are additive only: no existing URL,
+ * title or canonical changes, so indexed pages keep their signals.
+ */
+const SOCIETY_INTENTS = [
+  {
+    suffix: "houses",
+    label: "Houses",
+    filters: { purpose: "buy", category: "house" },
+    question: "Are houses or plots better in",
+    answerLead: "Houses suit buyers who want immediate occupancy and rental income without a construction timeline",
+  },
+  {
+    suffix: "plots",
+    label: "Plots",
+    filters: { purpose: "buy", category: "plot" },
+    question: "What should I check before buying a plot in",
+    answerLead: "Confirm possession status, development and utility charges, the allotment/transfer chain and the current transfer procedure in writing",
+  },
+  {
+    suffix: "apartments",
+    label: "Apartments",
+    filters: { purpose: "buy", category: "apartment" },
+    question: "Are apartments a good option in",
+    answerLead: "Apartments suit buyers who want a lower entry price and managed maintenance; compare service charges, lift and backup-power arrangements and parking before you commit",
+  },
+  {
+    suffix: "for-rent",
+    label: "Property for Rent",
+    filters: { purpose: "rent" },
+    question: "What rent should I expect in",
+    answerLead: "Rents move with size, furnishing and exact street; record rent escalation, deposit, notice period and maintenance responsibility in a written tenancy agreement",
+  },
+] as const;
+
+export function getAllSocietyIntentSlugs(): string[] {
+  return SOCIETIES.flatMap((society) => SOCIETY_INTENTS.map((intent) => `${society.slug}-${intent.suffix}`));
+}
+
+export function buildSocietyIntentLanding(slug: string): LandingContent | null {
+  const intent = SOCIETY_INTENTS.find((item) => slug.endsWith(`-${item.suffix}`));
+  if (!intent) return null;
+  const societySlug = slug.slice(0, -(intent.suffix.length + 1));
+  const society = SOCIETY_BY_SLUG.get(societySlug);
+  if (!society) return null;
+  const city = CITY_BY_SLUG.get(society.citySlug);
+  if (!city) return null;
+
+  const intentTitle = intent.suffix === "for-rent" ? `Property for Rent in ${society.name}` : `${intent.label} for Sale in ${society.name}`;
+  const filters: PropertyFilters = { ...intent.filters, q: society.match, city: society.citySlug };
+  const alternatives: PropertyFilters =
+    intent.suffix === "for-rent"
+      ? { purpose: "rent", city: society.citySlug }
+      : { ...intent.filters, city: society.citySlug };
+
+  return {
+    slug,
+    kind: "type-city",
+    eyebrow: `${society.cityName} · ${intent.label} · Location guide`,
+    h1: intentTitle,
+    metaTitle: `${intentTitle} | Prices & Listings | Properties Pak`,
+    metaDescription: `${intentTitle}: live listings, indicative prices, what to verify before you ${intent.suffix === "for-rent" ? "sign" : "buy"} and how ${society.name} compares with neighbouring ${society.cityName} areas.`,
+    keywords: [
+      `${intent.suffix === "for-rent" ? "property for rent" : `${intent.label.toLowerCase()} for sale`} ${society.name}`,
+      `${society.name} ${intent.label.toLowerCase()}`,
+      `${intent.label.toLowerCase()} ${society.cityName}`,
+      `${society.name} property`,
+    ],
+    intro: [
+      society.heroNote,
+      `${intentTitle} — this page filters live Properties Pak inventory to ${intent.label.toLowerCase()} in ${society.name}, so you compare like with like instead of scanning the whole ${society.cityName} market. ${society.inventoryNote}`,
+      `${society.priceNote} These figures are indicative, based on current asking prices — confirm the exact unit, its dues and possession status before you commit.`,
+    ],
+    filters,
+    alternatives,
+    facets: [
+      { label: `All property in ${society.name}`, href: `/property-for-sale/${society.slug}`, note: "Society overview & guide" },
+      { label: `Property for sale in ${society.cityName}`, href: `/property-for-sale-in-${society.citySlug}`, note: "Full city inventory" },
+      { label: `Property for rent in ${society.cityName}`, href: `/property-for-rent-in-${society.citySlug}`, note: "City-wide rentals" },
+    ],
+    societies: society.nearby
+      .map((nearbySlug) => SOCIETY_BY_SLUG.get(nearbySlug))
+      .filter((item): item is SocietyEntry => Boolean(item))
+      .map((item) => ({ name: item.name, href: `/property-for-sale/${item.slug}`, note: item.priceNote })),
+    priceBands: [
+      { label: "Indicative pricing", range: society.priceNote.replace(/^Indicative pricing:\s*/i, ""), note: "Indicative reference" },
+      { label: "Benchmark", range: city.ppsf, note: `Market benchmark for ${city.name}` },
+      { label: "City range", range: intent.suffix === "for-rent" ? city.rentBand : city.saleBand, note: "Across all areas" },
+    ],
+    insightNotes: [
+      { title: "Documentation", copy: "Confirm dues clearance, the transfer chain and the current transfer procedure in writing before releasing any token payment." },
+      { title: "Investor view", copy: society.investmentNote },
+      { title: "Access & amenities", copy: city.accessNote },
+    ],
+    faqs: [
+      {
+        question: `${intent.question} ${society.name}?`,
+        answer: `${intent.answerLead}. ${society.investmentNote}`,
+      },
+      ...society.faqs.slice(0, 2),
+    ],
+    relatedLinks: [
+      { label: `Property in ${society.name} (overview)`, href: `/property-for-sale/${society.slug}` },
+      ...SOCIETY_INTENTS.filter((item) => item.suffix !== intent.suffix).map((item) => ({
+        label: item.suffix === "for-rent" ? `Property for rent in ${society.name}` : `${item.label} for sale in ${society.name}`,
+        href: `/${society.slug}-${item.suffix}`,
+      })),
+      { label: "Pakistan Property Price Index", href: "/pakistan-property-price-index" },
+      { label: `Property for sale in ${society.cityName}`, href: `/property-for-sale-in-${society.citySlug}` },
+    ],
+  };
+}
+
+/* ------------------------------------------------------------------ */
 /*  Resolution                                                         */
 /* ------------------------------------------------------------------ */
 
@@ -1380,7 +1501,7 @@ export function resolveLanding(slug: string): LandingContent | null {
     const rent = buildCityLanding(city.slug, "rent");
     if (rent?.slug === slug) return rent;
   }
-  return buildTypeLanding(slug);
+  return buildSocietyIntentLanding(slug) ?? buildTypeLanding(slug);
 }
 
 export function getAllLandingSlugs(): string[] {
@@ -1389,6 +1510,7 @@ export function getAllLandingSlugs(): string[] {
     slugs.push(`property-for-sale-in-${city.slug}`, `property-for-rent-in-${city.slug}`);
   }
   for (const landing of TYPE_LANDINGS) slugs.push(landing.slug);
+  slugs.push(...getAllSocietyIntentSlugs());
   return slugs;
 }
 

@@ -23,6 +23,8 @@ const CORE_PAGES = [
   "/tools/construction-cost-calculator",
   "/tools/property-tax-calculator",
   "/tools/rent-vs-buy-calculator",
+  "/pakistan-property-price-index",
+  "/dealers",
   "/about",
   "/contact",
   "/advertise",
