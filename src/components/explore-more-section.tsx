@@ -3,16 +3,17 @@
 import { useRef } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/components/language-provider";
+import { IconArrowRight } from "@/components/icons";
 import {
-  IconArrowRight,
-  IconArea,
-  IconBuilding,
-  IconCalculator,
-  IconChart,
-  IconCompass,
-  IconLayers,
-  IconMap,
-} from "@/components/icons";
+  PremiumAreaGuide,
+  PremiumCalculators,
+  PremiumCompare,
+  PremiumConstruction,
+  PremiumHomeLoan,
+  PremiumNewProjects,
+  PremiumPlotFinder,
+  PremiumTrends,
+} from "@/components/premium-icons";
 
 /**
  * Tools, guides and resources that live on Properties Pak itself — every card
@@ -23,56 +24,56 @@ const LINKS = [
     title: "New Projects",
     description: "The best investment opportunities",
     href: "/properties/new-projects",
-    icon: IconBuilding,
+    icon: PremiumNewProjects,
     color: "sand",
   },
   {
     title: "Construction Cost Calculator",
     description: "Get construction cost estimate",
     href: "/tools/construction-cost-calculator",
-    icon: IconBuilding,
+    icon: PremiumConstruction,
     color: "blue",
   },
   {
     title: "Home Loan Calculator",
     description: "Find affordable loan packages",
     href: "/tools/mortgage-calculator",
-    icon: IconCalculator,
+    icon: PremiumHomeLoan,
     color: "mint",
   },
   {
     title: "Area Guides",
     description: "Explore housing societies in Pakistan",
     href: "/towns",
-    icon: IconCompass,
+    icon: PremiumAreaGuide,
     color: "rose",
   },
   {
     title: "Plot Finder",
     description: "Find plots in any housing society",
     href: "/properties?category=plot",
-    icon: IconMap,
+    icon: PremiumPlotFinder,
     color: "green",
   },
   {
     title: "Property Trends",
     description: "Find popular areas to buy property",
     href: "/blog",
-    icon: IconChart,
+    icon: PremiumTrends,
     color: "lavender",
   },
   {
     title: "All Calculators",
     description: "Every investment tool in one place",
     href: "/tools",
-    icon: IconArea,
+    icon: PremiumCalculators,
     color: "aqua",
   },
   {
     title: "Compare Listings",
     description: "Line up shortlisted homes side by side",
     href: "/compare",
-    icon: IconLayers,
+    icon: PremiumCompare,
     color: "violet",
   },
 ] as const;
@@ -111,7 +112,7 @@ export function ExploreMoreSection() {
               return (
                 <Link key={item.title} className="explore-more-card" href={item.href}>
                   <span className={`explore-more-icon explore-more-icon--${item.color}`} aria-hidden="true">
-                    <Icon className="h-7 w-7" />
+                    <Icon className="h-[34px] w-[34px]" />
                   </span>
                   <span className="explore-more-copy">
                     <span className="explore-more-title">{t(item.title)}</span>

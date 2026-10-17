@@ -16,8 +16,28 @@ export function purposeBadge(property: Pick<Property, "purpose" | "isNewProject"
   return { label: "For Sale", className: "bg-[#0D382A] text-white" };
 }
 
-/** One shared colour for every type pill on the featured card (House, Villa, Apartment, Plot …). */
-const TYPE_PILL_CLASS = "bg-[#CFF7E1] text-[#0F6B45]";
+/** Distinct pastel colour per property type on the featured card (House, Villa, Apartment, Plot …). */
+const TYPE_PILL: Record<string, string> = {
+  house: "bg-[#CFF7E1] text-[#0F6B45]",
+  villa: "bg-[#FFE0E6] text-[#B0234A]",
+  bungalow: "bg-[#FFE9D6] text-[#B4561A]",
+  farmhouse: "bg-[#E8F6C8] text-[#4D6B12]",
+  apartment: "bg-[#E0E9FF] text-[#2F4FA0]",
+  flat: "bg-[#E0E9FF] text-[#2F4FA0]",
+  penthouse: "bg-[#E6E0FF] text-[#4B3BA6]",
+  plot: "bg-[#FDF1C6] text-[#8A5A00]",
+  land: "bg-[#FDF1C6] text-[#8A5A00]",
+  shop: "bg-[#F1E6FF] text-[#6A3DB0]",
+  office: "bg-[#DDF4F8] text-[#11677A]",
+  building: "bg-[#E6ECF2] text-[#334B63]",
+  commercial: "bg-[#F1E6FF] text-[#6A3DB0]",
+  warehouse: "bg-[#ECE7E1] text-[#5C4A36]",
+};
+function typePillClass(property: Pick<Property, "propertyType" | "category">) {
+  const type = property.propertyType.toLowerCase();
+  const byType = Object.keys(TYPE_PILL).find((key) => type.includes(key));
+  return TYPE_PILL[byType ?? property.category] ?? "bg-white/95 text-[#0D382A]";
+}
 
 function formatPkrNumeric(price: number | string, purpose: string): { main: string; suffix?: string } {
   const num = typeof price === "number" ? price : Number(price);
@@ -85,7 +105,7 @@ export function PropertyCard({
       {featuredLook ? (
         <>
           <div className="pointer-events-none absolute left-2.5 top-2.5 flex max-w-[calc(100%-112px)] flex-wrap items-center gap-1.5">
-            <span className={`rounded-full px-2.5 py-[3px] font-sans text-[0.7rem] font-semibold shadow-sm ${TYPE_PILL_CLASS}`}>
+            <span className={`rounded-full px-2.5 py-[3px] font-sans text-[0.7rem] font-semibold shadow-sm ${typePillClass(property)}`}>
               {property.propertyType}
             </span>
             <span

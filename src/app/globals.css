@@ -5891,3 +5891,43 @@ html body .site-header .header-list-property.header-list-property:focus-visible 
 .agx-p1-stat--verified > span { align-items: flex-end; }
 .agx-p1-stat--verified b { color: #6d4c0c; }
 .agx-p1-stat--verified small { color: #9a7a3a; }
+
+/* Verified Agencies stats v3 — clean two-column footer: Listings left · Verified right */
+.agx-p1-split { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 0; margin-top: 14px; padding: 12px 6px 0; border-top: 1px solid #edf1ef; }
+.agx-p1-num { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; line-height: 1; }
+.agx-p1-num--right { align-items: flex-end; }
+.agx-p1-num b { display: inline-flex; align-items: center; gap: 5px; color: #0d261d; font-size: 1.22rem; font-weight: 800; letter-spacing: -.02em; }
+.agx-p1-num b svg { width: 15px; height: 15px; color: #16a34a; }
+.agx-p1-num small { color: #8a978f; font-size: .64rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.agx-p1-divider { width: 1px; height: 30px; background: linear-gradient(180deg, transparent, #dfe6e2, transparent); }
+
+/* Explore more — premium emerald icon tiles with gold duotone accents */
+.explore-more-icon { position: relative; overflow: hidden; width: 60px; height: 60px; flex-basis: 60px; border-radius: 16px; background: linear-gradient(145deg, #13573f 0%, #0a3326 60%, #062219 100%) !important; color: #ffffff !important; --icon-accent: #dfb872; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), inset 0 0 0 1px rgba(223, 184, 114, .28), 0 10px 22px -12px rgba(6, 34, 25, .65); }
+.explore-more-icon::after { content: ""; position: absolute; inset: 0 0 50% 0; background: linear-gradient(180deg, rgba(255, 255, 255, .12), transparent); pointer-events: none; }
+.explore-more-card:hover .explore-more-icon { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), inset 0 0 0 1px rgba(223, 184, 114, .6), 0 14px 26px -12px rgba(6, 34, 25, .7); }
+
+/* Mobile header: language toggle always visible on the dark header (also after scrolling) */
+.site-header .header-language-mobile,
+.site-header--solid .header-language-mobile,
+html[data-header-solid] .site-header .header-language-mobile { color: #ffffff; border-color: transparent; }
+.site-header--solid .header-language-mobile:hover,
+html[data-header-solid] .site-header .header-language-mobile:hover { background: rgba(255, 255, 255, .12); }
+
+/* Mobile menu "List Your Property": solid green like the desktop header CTA */
+.mobile-menu-list-btn { border: 0; background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%); color: #052e1b; font-weight: 700; box-shadow: 0 8px 20px -10px rgba(34, 197, 94, .8); }
+.mobile-menu-list-btn:hover { background: linear-gradient(135deg, #6ee7a0 0%, #2fd06b 100%); color: #052e1b; }
+
+/* Hero city pills: always one line; scroll sideways on small screens */
+@media (max-width: 767px) {
+  .hero-city-pills-bar { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; overflow-y: hidden; padding: 2px 2px 4px; margin-inline: -2px; scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; }
+  .hero-city-pills-bar::-webkit-scrollbar { display: none; }
+  .hero-city-pill { flex: 0 0 auto; white-space: nowrap; scroll-snap-align: start; }
+}
+@media (max-width: 767px) {
+  /* Centre when the pills fit; auto margins collapse when they overflow so every pill stays reachable. */
+  .hero-city-pill:first-child { margin-left: auto; }
+  .hero-city-pill:last-child { margin-right: auto; }
+  .hero-city-pills-bar { gap: 5px; }
+  .hero-city-pill { min-height: 31px; padding: 0 9px; font-size: .7rem; gap: 4px; }
+  .hero-city-pill svg { width: 12px; height: 12px; }
+}

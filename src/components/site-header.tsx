@@ -534,7 +534,7 @@ export function SiteHeader({ isAuthenticated = false }: { isAuthenticated?: bool
               </div>
             </div>
             <div className="navigation-drawer-footer">
-              <Link href="/list-property" onClick={dismiss} className="btn btn-gold min-h-12 w-full">
+              <Link href="/list-property" onClick={dismiss} className="btn mobile-menu-list-btn min-h-12 w-full">
                 {t("List Your Property")} <IconArrowRight className="h-4 w-4" />
               </Link>
               <Link
