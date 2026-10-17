@@ -67,6 +67,8 @@ export const MALLS: Mall[] = [
       "Packages Group's family-oriented mall on Walton Road, known for wide corridors, a large hypermarket anchor, multiplex cinema and one of Lahore's busiest food floors.",
     highlights: ["Hypermarket anchor", "Multiplex cinema", "Family dining floor"],
     featured: true,
+    image: "/images/malls/packages-mall-lahore.jpg",
+    imageAlt: "Packages Mall Lahore — the sweeping Walton Road facade and entrance canopies",
   },
   {
     slug: "dolmen-mall-lahore",
@@ -99,6 +101,8 @@ export const MALLS: Mall[] = [
     description:
       "A Cantt-side retail and corporate address combining shopping floors with offices and serviced apartments, anchored by the Green Valley hypermarket.",
     highlights: ["Retail + offices + apartments", "Hypermarket anchor", "Cantt / Mall Road catchment"],
+    image: "/images/malls/mall-of-lahore.jpg",
+    imageAlt: "Mall of Lahore, Park Lane Tower in Cantt — retail, offices and apartments",
   },
   {
     slug: "fortress-square-mall-lahore",
@@ -111,6 +115,8 @@ export const MALLS: Mall[] = [
     description:
       "Five-storey mall inside the Fortress Stadium complex with 100+ outlets, cinema and a rooftop food court — a long-standing family leisure stop in Cantt.",
     highlights: ["100+ outlets", "Cinema", "Rooftop food court"],
+    image: "/images/malls/fortress-square-mall-lahore.jpg",
+    imageAlt: "Fortress Square Mall Lahore at night, inside the Fortress Stadium complex in Cantt",
   },
   {
     slug: "amanah-mall-lahore",
@@ -122,6 +128,8 @@ export const MALLS: Mall[] = [
     description:
       "Model Town's entertainment-led mall with a trampoline park, VR attractions, cinema and multi-level parking serving the Model Town–Faisal Town belt.",
     highlights: ["Trampoline & VR parks", "Cinema", "Multi-basement parking"],
+    image: "/images/malls/amanah-mall-lahore.jpg",
+    imageAlt: "Amanah Mall Lahore on Model Town Link Road — the mall and serviced apartments tower",
   },
   {
     slug: "avenue-mall-lahore",
@@ -144,6 +152,8 @@ export const MALLS: Mall[] = [
     description:
       "A Gulberg fashion mall in Lahore's premium shopping district, popular for bridal, designer and occasion-wear boutiques near M.M. Alam Road.",
     highlights: ["Designer & bridal boutiques", "Gulberg premium district", "Food & coffee spots"],
+    image: "/images/malls/xinhua-mall-lahore.jpg",
+    imageAlt: "Xinhua Mall Lahore at Hussain Chowk, Gulberg — illuminated evening facade from above",
   },
   {
     slug: "gulberg-galleria-lahore",
@@ -178,6 +188,8 @@ export const MALLS: Mall[] = [
     description:
       "Bahria Town Lahore's grand mall in Sector E with retail floors, a large food court and rooftop dining serving the whole Bahria–Raiwind corridor.",
     highlights: ["Bahria Town's main mall", "Rooftop dining", "Food court & brands"],
+    image: "/images/malls/jasmine-grand-mall-lahore.jpg",
+    imageAlt: "Jasmine Grand Mall, Bahria Town Lahore at night — Sector E Main Boulevard",
   },
   {
     slug: "pace-shopping-mall-lahore",
@@ -260,6 +272,8 @@ export const MALLS: Mall[] = [
       "Karachi's premium sea-facing mall at Dolmen City, Clifton — international brands, a large food court with sea views and the Harbour Front office towers in the same complex.",
     highlights: ["Sea-facing food court", "Premium international brands", "Dolmen City complex"],
     featured: true,
+    image: "/images/malls/dolmen-mall-clifton-karachi.jpg",
+    imageAlt: "Dolmen Mall Clifton, Karachi at night — Dolmen City on Marine Drive by the sea",
   },
   {
     slug: "dolmen-mall-tariq-road-karachi",
@@ -296,6 +310,8 @@ export const MALLS: Mall[] = [
     description:
       "A Clifton high-rise combining a multi-level shopping mall with office floors above — retail, dining and a cinema serving the Clifton–DHA corridor.",
     highlights: ["Mall + office tower", "Cinema", "Clifton location"],
+    image: "/images/malls/ocean-mall-tower-karachi.jpg",
+    imageAlt: "Ocean Mall and Tower, Clifton Karachi — the curved high-rise over the mall",
   },
   {
     slug: "northwalk-mall-karachi",
@@ -309,6 +325,8 @@ export const MALLS: Mall[] = [
     description:
       "One of Karachi's largest newer malls by area, a 1.5 million sq ft retail destination serving North Nazimabad and the wider central-north Karachi market.",
     highlights: ["1.5M sq ft scale", "New-generation format", "Central Karachi catchment"],
+    image: "/images/malls/northwalk-mall-karachi.jpg",
+    imageAlt: "The Northwalk Mall, North Nazimabad Karachi — evening street frontage",
   },
   {
     slug: "park-towers-karachi",
@@ -331,6 +349,8 @@ export const MALLS: Mall[] = [
     description:
       "Saddar's central mall on Zaibunnisa Street, best known for its multiplex cinema and electronics-to-fashion tenant mix in Karachi's downtown core.",
     highlights: ["Multiplex cinema", "Saddar downtown", "Electronics & fashion"],
+    image: "/images/malls/atrium-mall-karachi.jpg",
+    imageAlt: "Inside Atrium Mall Karachi, Saddar — brand floors around the central atrium",
   },
   {
     slug: "millennium-mall-karachi",
@@ -453,6 +473,8 @@ export const MALLS: Mall[] = [
     description:
       "F-7's premium compact mall: fashion, beauty, cafés and a rooftop dining strip in Islamabad's most established markaz catchment.",
     highlights: ["F-7 Markaz", "Rooftop dining", "Premium compact format"],
+    image: "/images/malls/safa-gold-mall-islamabad.jpg",
+    imageAlt: "Safa Gold Mall Islamabad in F-7 Markaz, College Road",
   },
   {
     slug: "amazon-mall-islamabad",
@@ -464,6 +486,8 @@ export const MALLS: Mall[] = [
     description:
       "A themed GT Road mall serving the DHA–Bahria corridor with fashion outlets, food and family retail in a rainforest-inspired interior.",
     highlights: ["Themed interiors", "GT Road frontage", "Outlet brands"],
+    image: "/images/malls/amazon-mall-islamabad.jpg",
+    imageAlt: "Amazon Mall Islamabad, DHA Phase 2 — themed mall visualisation by the developer",
   },
   {
     slug: "olympus-mall-islamabad",
@@ -561,6 +585,8 @@ export const MALLS: Mall[] = [
     description:
       "A premium-leaning galleria in Faisalabad known for textile and fashion retail — fitting for Pakistan's textile capital — plus dining and family shopping.",
     highlights: ["Textile & fashion focus", "Premium galleria format", "Dining options"],
+    image: "/images/malls/lyallpur-galleria-faisalabad.jpg",
+    imageAlt: "Lyallpur Galleria Faisalabad — atrium and facade of the Canal Road retail destination",
   },
   {
     slug: "misaq-ul-mall-faisalabad",
@@ -599,6 +625,8 @@ export const MALLS: Mall[] = [
     description:
       "Bosan Road's flagship mall for Multan with a supermarket anchor, cinema and family retail serving the Bosan Road–Gulgasht growth belt.",
     highlights: ["Bosan Road anchor", "Cinema", "Supermarket"],
+    image: "/images/malls/mall-of-multan.jpg",
+    imageAlt: "Mall of Multan on Bosan Road — the city's main branded retail address",
   },
   {
     slug: "united-mall-gulgasht-multan",
@@ -624,6 +652,8 @@ export const MALLS: Mall[] = [
     description:
       "Gujranwala's best-known mall address on GT Road with fashion brands, food court and family entertainment for the city's main corridor.",
     highlights: ["GT Road frontage", "Food court", "Brand outlets"],
+    image: "/images/malls/kings-mall-gujranwala.jpg",
+    imageAlt: "Kings Mall Gujranwala entrance at night, neon-lit frontage on GT Road side",
   },
   {
     slug: "mall-of-gujranwala",
@@ -693,6 +723,8 @@ export const MALLS: Mall[] = [
     description:
       "Hyderabad's main modern mall on Auto Bhan Road: brand outlets, food court and family entertainment for the Latifabad catchment. Properties Pak's full city hub for Hyderabad is coming as inventory grows.",
     highlights: ["Auto Bhan Road", "Food court", "Latifabad catchment"],
+    image: "/images/malls/boulevard-mall-hyderabad.jpg",
+    imageAlt: "Boulevard Mall Hyderabad, Sindh — the city's landmark shopping destination",
   },
   {
     slug: "emerald-mall-hyderabad",

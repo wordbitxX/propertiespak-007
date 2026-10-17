@@ -66,9 +66,22 @@ export default function MallsPage() {
   const cities = getMallCities();
   const openCount = malls.filter((mall) => mall.status === "open").length;
   const upcoming = malls.filter((mall) => mall.status === "upcoming");
-  const featured = malls.filter((mall) => mall.featured && mall.status === "open");
-  const heroMall = featured.find((mall) => mall.slug === "luckyone-mall-karachi") ?? featured[0];
-  const showcase = featured.filter((mall) => mall.slug !== heroMall?.slug).slice(0, 4);
+  const bySlug = (slug: string) => malls.find((mall) => mall.slug === slug);
+  // Lahore's heavyweights first — the city's biggest malls lead the page.
+  const LahoreIcons = [
+    "emporium-mall-lahore",
+    "packages-mall-lahore",
+    "dolmen-mall-lahore",
+    "amanah-mall-lahore",
+    "mall-of-lahore",
+    "jasmine-grand-mall-lahore",
+  ].map(bySlug).filter((mall) => Boolean(mall)) as typeof malls;
+  const landmarks = [
+    "luckyone-mall-karachi",
+    "centaurus-mall-islamabad",
+    "giga-mall-islamabad",
+    "dolmen-mall-clifton-karachi",
+  ].map(bySlug).filter((mall) => Boolean(mall)) as typeof malls;
 
   const stats = [
     { value: String(malls.length), label: "Malls tracked", note: "Open + coming soon" },
@@ -148,28 +161,40 @@ export default function MallsPage() {
         </div>
       </section>
 
-      {/* Iconic malls showcase */}
-      {heroMall && (
-        <Section tone="light">
-          <div className="ui-container">
-            <SectionHeading
-              eyebrow="The icons"
-              title="Pakistan's landmark malls"
-              description="The destinations that define retail in their cities — and move every property price around them."
-            />
-            <div className="mt-8 grid gap-5 lg:grid-cols-2">
-              <MallCard mall={heroMall} priority />
-              <div className="grid gap-5 sm:grid-cols-2">
-                {showcase.map((mall) => (
-                  <MallCard key={mall.slug} mall={mall} />
-                ))}
-              </div>
-            </div>
+      {/* Lahore first: the city's biggest malls lead the directory. */}
+      <Section tone="light">
+        <div className="ui-container">
+          <SectionHeading
+            eyebrow="Lahore first"
+            title="Lahore's biggest malls"
+            description="Emporium, Packages, Dolmen, Amanah and the rest of the heavyweights — the malls that anchor Johar Town, Gulberg, DHA and Cantt property demand."
+            action={{ label: "All Lahore property", href: "/city/lahore" }}
+          />
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            {LahoreIcons.map((mall, index) => (
+              <MallCard key={mall.slug} mall={mall} priority={index < 3} />
+            ))}
           </div>
-        </Section>
-      )}
+        </div>
+      </Section>
 
-      <Section tone="mist" >
+      {/* National landmarks */}
+      <Section tone="mist">
+        <div className="ui-container">
+          <SectionHeading
+            eyebrow="The icons"
+            title="Pakistan's landmark malls"
+            description="The destinations that define retail in Karachi and Islamabad — and move every property price around them."
+          />
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {landmarks.map((mall) => (
+              <MallCard key={mall.slug} mall={mall} />
+            ))}
+          </div>
+        </div>
+      </Section>
+
+      <Section tone="light">
         <div className="ui-container" id="mall-directory">
           <SectionHeading
             eyebrow="Directory"
