@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { BlueTick, UnverifiedChip, initialsFor } from "@/components/verified-badge";
+import { ResilientImage } from "@/components/resilient-image";
 import { IconCheck, IconClose, IconSearch } from "@/components/icons";
 import type { DealerProfile } from "@/lib/queries";
 import { formatDate } from "@/lib/format";
@@ -34,7 +35,74 @@ export function AdminUsersPanel() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [identityDraft, setIdentityDraft] = useState({ name: "", agency: "" });
+  const [uploading, setUploading] = useState<"photo" | "logo" | null>(null);
+  const [profileDraft, setProfileDraft] = useState({
+    name: "",
+    agency: "",
+    designation: "",
+    role: "member",
+    phone: "",
+    whatsapp: "",
+    companyPhone: "",
+    companyWebsite: "",
+    cityName: "",
+    citySlug: "",
+    officeAddress: "",
+    experience: "",
+    areas: "",
+    bio: "",
+    verificationNote: "",
+    avatarUrl: "",
+    companyLogo: "",
+  });
+
+  function startEditing(user: DealerProfile) {
+    setEditingId(user.id);
+    setProfileDraft({
+      name: user.name ?? "",
+      agency: user.agency ?? "",
+      designation: user.designation ?? "",
+      role: user.role ?? "member",
+      phone: user.phone ?? "",
+      whatsapp: user.whatsapp ?? "",
+      companyPhone: user.companyPhone ?? "",
+      companyWebsite: user.companyWebsite ?? "",
+      cityName: user.cityName ?? "",
+      citySlug: user.citySlug ?? "",
+      officeAddress: user.officeAddress ?? "",
+      experience: user.experience ?? "",
+      areas: user.areas ?? "",
+      bio: user.bio ?? "",
+      verificationNote: user.verificationNote ?? "",
+      avatarUrl: user.avatarUrl ?? "",
+      companyLogo: user.companyLogo ?? "",
+    });
+    setError("");
+    setNotice("");
+  }
+
+  async function uploadProfileImage(file: File | undefined, kind: "photo" | "logo") {
+    if (!file) return;
+    setUploading(kind);
+    setError("");
+    try {
+      const form = new FormData();
+      form.append("images", file);
+      const response = await fetch("/api/media/upload", { method: "POST", body: form });
+      const payload = (await response.json()) as { ok?: boolean; images?: { url: string }[]; error?: string };
+      if (!response.ok || !payload.ok || !payload.images?.[0]?.url) {
+        setError(payload.error ?? "Could not upload that image.");
+        return;
+      }
+      const url = payload.images[0].url;
+      setProfileDraft((current) => ({ ...current, [kind === "photo" ? "avatarUrl" : "companyLogo"]: url }));
+      setNotice(`${kind === "photo" ? "Profile picture" : "Company logo"} uploaded — save the profile to publish it.`);
+    } catch {
+      setError("Network error while uploading. Please try again.");
+    } finally {
+      setUploading(null);
+    }
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -120,15 +188,12 @@ export function AdminUsersPanel() {
     }
   }
 
-  async function saveIdentity(user: DealerProfile) {
-    const name = identityDraft.name.trim();
-    const agency = identityDraft.agency.trim();
-    if (name.length < 2) {
+  async function saveProfile(user: DealerProfile) {
+    const draft = Object.fromEntries(
+      Object.entries(profileDraft).map(([key, value]) => [key, value.trim()]),
+    ) as typeof profileDraft;
+    if (draft.name.length < 2) {
       setError("Public name must be at least 2 characters.");
-      return;
-    }
-    if (name.length > 120 || agency.length > 160) {
-      setError("Name or agency is too long. Please shorten it and try again.");
       return;
     }
 
@@ -139,15 +204,15 @@ export function AdminUsersPanel() {
       const response = await fetch(`/api/admin/users/${user.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, agency }),
+        body: JSON.stringify(draft),
       });
       const payload = (await response.json()) as { ok?: boolean; error?: string };
       if (!response.ok || !payload.ok) {
-        setError(payload.error ?? "Could not update the dealer name and agency.");
+        setError(payload.error ?? "Could not update the profile.");
         return;
       }
       setEditingId(null);
-      setNotice(`Public name and agency updated for ${name}.`);
+      setNotice(`Complete profile updated for ${draft.name} — photo, contact and professional details are now live on the public profile.`);
       await load();
     } catch {
       setError("Network error. Please try again.");
@@ -247,8 +312,12 @@ export function AdminUsersPanel() {
             <article key={user.id} className="min-w-0 rounded-panel border border-soft bg-white p-5 shadow-soft">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="flex min-w-0 items-start gap-4">
-                  <span className="relative grid h-12 w-12 shrink-0 place-items-center rounded-full bg-navy-900 font-sans text-[0.9375rem] font-bold text-white">
-                    {initialsFor(user.name)}
+                  <span className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-navy-900 font-sans text-[0.9375rem] font-bold text-white">
+                    {user.avatarUrl ? (
+                      <ResilientImage src={user.avatarUrl} alt="" width={96} height={96} className="h-full w-full object-cover" />
+                    ) : (
+                      initialsFor(user.name)
+                    )}
                     {user.isVerified && (
                       <span className="absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full border-2 border-white bg-white">
                         <BlueTick className="h-4 w-4" />
@@ -302,15 +371,12 @@ export function AdminUsersPanel() {
                       if (editingId === user.id) {
                         setEditingId(null);
                       } else {
-                        setEditingId(user.id);
-                        setIdentityDraft({ name: user.name, agency: user.agency });
-                        setError("");
-                        setNotice("");
+                        startEditing(user);
                       }
                     }}
                     className="btn btn-outline"
                   >
-                    {editingId === user.id ? "Close editor" : "Edit name / agency"}
+                    {editingId === user.id ? "Close editor" : "Edit full profile"}
                   </button>
                   <button
                     type="button"
@@ -336,46 +402,167 @@ export function AdminUsersPanel() {
                   id={`admin-user-edit-${user.id}`}
                   onSubmit={(event) => {
                     event.preventDefault();
-                    void saveIdentity(user);
+                    void saveProfile(user);
                   }}
                   className="mt-4 rounded-xl border border-forest-600/25 bg-forest-50 p-4"
                 >
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <p className="font-sans text-[0.9375rem] font-semibold text-navy-900">Complete profile editor</p>
+                  <p className="mt-1 text-[0.75rem] text-ink-muted">
+                    Everything saved here appears on the public dealer profile, directory cards and listing contact blocks. Email and verification status are managed separately.
+                  </p>
+
+                  <div className="mt-4 flex flex-wrap gap-5">
                     <div>
-                      <label className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted" htmlFor={`admin-user-name-${user.id}`}>
-                        Public name
+                      <p className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted">Profile picture</p>
+                      <div className="mt-2 flex items-center gap-3">
+                        <span className="grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-navy-900 font-sans text-[1rem] font-bold text-white">
+                          {profileDraft.avatarUrl ? (
+                            <ResilientImage src={profileDraft.avatarUrl} alt="" width={128} height={128} className="h-full w-full object-cover" />
+                          ) : (
+                            initialsFor(profileDraft.name || user.name)
+                          )}
+                        </span>
+                        <div className="grid gap-1.5">
+                          <label className="btn btn-outline cursor-pointer">
+                            {uploading === "photo" ? "Uploading…" : "Upload picture"}
+                            <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="sr-only" disabled={uploading !== null} onChange={(event) => { void uploadProfileImage(event.target.files?.[0], "photo"); event.target.value = ""; }} />
+                          </label>
+                          {profileDraft.avatarUrl && (
+                            <button type="button" className="text-[0.75rem] font-semibold text-red-700 hover:underline" onClick={() => setProfileDraft((current) => ({ ...current, avatarUrl: "" }))}>
+                              Remove picture
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted">Company logo</p>
+                      <div className="mt-2 flex items-center gap-3">
+                        <span className="grid h-16 w-16 place-items-center overflow-hidden rounded-xl border border-soft bg-white font-sans text-[0.75rem] font-bold text-ink-muted">
+                          {profileDraft.companyLogo ? (
+                            <ResilientImage src={profileDraft.companyLogo} alt="" width={128} height={128} className="h-full w-full object-contain" />
+                          ) : (
+                            "No logo"
+                          )}
+                        </span>
+                        <div className="grid gap-1.5">
+                          <label className="btn btn-outline cursor-pointer">
+                            {uploading === "logo" ? "Uploading…" : "Upload logo"}
+                            <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="sr-only" disabled={uploading !== null} onChange={(event) => { void uploadProfileImage(event.target.files?.[0], "logo"); event.target.value = ""; }} />
+                          </label>
+                          {profileDraft.companyLogo && (
+                            <button type="button" className="text-[0.75rem] font-semibold text-red-700 hover:underline" onClick={() => setProfileDraft((current) => ({ ...current, companyLogo: "" }))}>
+                              Remove logo
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    {(
+                      [
+                        ["name", "Public name", 120, true],
+                        ["agency", "Agency / company name", 160, false],
+                        ["designation", "Designation / job title", 120, false],
+                        ["phone", "Phone", 32, false],
+                        ["whatsapp", "WhatsApp", 32, false],
+                        ["companyPhone", "Company phone", 32, false],
+                        ["companyWebsite", "Company website", 300, false],
+                        ["cityName", "City name", 80, false],
+                        ["citySlug", "City slug (e.g. lahore)", 80, false],
+                        ["experience", "Experience", 160, false],
+                      ] as const
+                    ).map(([field, label, maxLength, required]) => (
+                      <div key={field}>
+                        <label className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted" htmlFor={`admin-user-${field}-${user.id}`}>
+                          {label}
+                        </label>
+                        <input
+                          id={`admin-user-${field}-${user.id}`}
+                          value={profileDraft[field]}
+                          onChange={(event) => setProfileDraft((current) => ({ ...current, [field]: event.target.value }))}
+                          maxLength={maxLength}
+                          required={required}
+                          className="field mt-1.5"
+                        />
+                      </div>
+                    ))}
+                    <div>
+                      <label className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted" htmlFor={`admin-user-role-${user.id}`}>
+                        Account role
+                      </label>
+                      <select
+                        id={`admin-user-role-${user.id}`}
+                        value={profileDraft.role}
+                        onChange={(event) => setProfileDraft((current) => ({ ...current, role: event.target.value }))}
+                        className="field mt-1.5"
+                      >
+                        <option value="member">Member</option>
+                        <option value="dealer">Dealer</option>
+                        <option value="agency">Agency</option>
+                      </select>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted" htmlFor={`admin-user-officeAddress-${user.id}`}>
+                        Office address
                       </label>
                       <input
-                        id={`admin-user-name-${user.id}`}
-                        value={identityDraft.name}
-                        onChange={(event) => setIdentityDraft((current) => ({ ...current, name: event.target.value }))}
-                        maxLength={120}
-                        minLength={2}
-                        required
+                        id={`admin-user-officeAddress-${user.id}`}
+                        value={profileDraft.officeAddress}
+                        onChange={(event) => setProfileDraft((current) => ({ ...current, officeAddress: event.target.value }))}
+                        maxLength={300}
                         className="field mt-1.5"
                       />
                     </div>
-                    <div>
-                      <label className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted" htmlFor={`admin-user-agency-${user.id}`}>
-                        Agency / company name
+                    <div className="sm:col-span-2 xl:col-span-3">
+                      <label className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted" htmlFor={`admin-user-areas-${user.id}`}>
+                        Areas they deal in
                       </label>
                       <input
-                        id={`admin-user-agency-${user.id}`}
-                        value={identityDraft.agency}
-                        onChange={(event) => setIdentityDraft((current) => ({ ...current, agency: event.target.value }))}
-                        maxLength={160}
+                        id={`admin-user-areas-${user.id}`}
+                        value={profileDraft.areas}
+                        onChange={(event) => setProfileDraft((current) => ({ ...current, areas: event.target.value }))}
+                        maxLength={300}
                         className="field mt-1.5"
-                        placeholder="Leave blank for an individual dealer"
+                        placeholder="Comma-separated, e.g. DHA Phase 5, Bahria Town"
+                      />
+                    </div>
+                    <div className="sm:col-span-2 xl:col-span-3">
+                      <label className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted" htmlFor={`admin-user-bio-${user.id}`}>
+                        Bio
+                      </label>
+                      <textarea
+                        id={`admin-user-bio-${user.id}`}
+                        value={profileDraft.bio}
+                        onChange={(event) => setProfileDraft((current) => ({ ...current, bio: event.target.value }))}
+                        maxLength={600}
+                        rows={3}
+                        className="field mt-1.5"
+                      />
+                    </div>
+                    <div className="sm:col-span-2 xl:col-span-3">
+                      <label className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted" htmlFor={`admin-user-verificationNote-${user.id}`}>
+                        Verification notes (internal / request context)
+                      </label>
+                      <textarea
+                        id={`admin-user-verificationNote-${user.id}`}
+                        value={profileDraft.verificationNote}
+                        onChange={(event) => setProfileDraft((current) => ({ ...current, verificationNote: event.target.value }))}
+                        maxLength={600}
+                        rows={2}
+                        className="field mt-1.5"
                       />
                     </div>
                   </div>
-                  <p className="mt-2 text-[0.75rem] text-ink-muted">Changes appear on the public dealer profile and agency directory.</p>
+
                   <div className="mt-4 flex flex-wrap justify-end gap-2">
                     <button type="button" disabled={acting === user.id} onClick={() => setEditingId(null)} className="btn btn-outline">
                       Cancel
                     </button>
-                    <button type="submit" disabled={acting === user.id} className="btn btn-primary">
-                      {acting === user.id ? "Saving…" : "Save changes"}
+                    <button type="submit" disabled={acting === user.id || uploading !== null} className="btn btn-primary">
+                      {acting === user.id ? "Saving…" : "Save complete profile"}
                     </button>
                   </div>
                 </form>

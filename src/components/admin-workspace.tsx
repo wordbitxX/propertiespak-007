@@ -5,13 +5,15 @@ import { AdminDashboard } from "@/components/admin-dashboard";
 import { AdminPropertyManager } from "@/components/admin-property-manager";
 import { AdminInquiryInbox } from "@/components/admin-inquiry-inbox";
 import { AdminUsersPanel } from "@/components/admin-users-panel";
+import { AdminReviewsPanel } from "@/components/admin-reviews-panel";
 
-export type AdminSection = "approvals" | "properties" | "inquiries" | "users";
+export type AdminSection = "approvals" | "properties" | "inquiries" | "users" | "reviews";
 const SECTIONS = [
   { key: "approvals" as const, label: "Owner approvals", copy: "Review submitted listings" },
   { key: "properties" as const, label: "Manage properties", copy: "Add, edit and delete listings" },
   { key: "inquiries" as const, label: "Client enquiries", copy: "Enquiries, visits and follow-ups" },
-  { key: "users" as const, label: "Users & dealers", copy: "Verify accounts for the blue tick" },
+  { key: "users" as const, label: "Users & dealers", copy: "Verify accounts & edit full profiles" },
+  { key: "reviews" as const, label: "Client reviews", copy: "Approve reviews before they go public" },
 ];
 
 export function AdminWorkspace({ initialSection = "approvals" }: { initialSection?: AdminSection }) {
@@ -20,7 +22,7 @@ export function AdminWorkspace({ initialSection = "approvals" }: { initialSectio
 
   return (
     <div className="min-w-0">
-      <div className="grid min-w-0 gap-3 md:grid-cols-2 xl:grid-cols-4" role="tablist" aria-label="Admin sections">
+      <div className="grid min-w-0 gap-3 md:grid-cols-2 xl:grid-cols-5" role="tablist" aria-label="Admin sections">
         {SECTIONS.map((item) => (
           <button key={item.key} type="button" role="tab" aria-selected={section === item.key} onClick={() => {
             setSection(item.key);
@@ -41,7 +43,9 @@ export function AdminWorkspace({ initialSection = "approvals" }: { initialSectio
               ? "Property manager"
               : section === "inquiries"
                 ? "Client enquiries & visit requests"
-                : "User accounts & dealer verification"}
+                : section === "reviews"
+                  ? "Client review moderation"
+                  : "User accounts & dealer verification"}
         </h1>
         <p className="mt-2 max-w-3xl text-[0.875rem] leading-7 text-ink-muted">
           {section === "approvals"
@@ -59,6 +63,8 @@ export function AdminWorkspace({ initialSection = "approvals" }: { initialSectio
             <AdminPropertyManager />
           ) : section === "inquiries" ? (
             <AdminInquiryInbox onNewCount={setNewCount} />
+          ) : section === "reviews" ? (
+            <AdminReviewsPanel />
           ) : (
             <AdminUsersPanel />
           )}

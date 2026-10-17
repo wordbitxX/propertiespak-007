@@ -16,7 +16,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   if (!(await isAdminAuthenticated())) redirect("/admin/login?session=missing");
   const { tab } = await searchParams;
   const initialSection: AdminSection =
-    tab === "inquiries" || tab === "properties" || tab === "users" ? tab : "approvals";
+    tab === "inquiries" || tab === "properties" || tab === "users" || tab === "reviews" ? tab : "approvals";
   return (
     <div className="min-h-screen bg-mist pb-16 pt-[68px] lg:pt-[76px]">
       <div className="border-b border-soft bg-navy-950">

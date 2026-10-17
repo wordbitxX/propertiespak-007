@@ -35,6 +35,8 @@ const STATIC_TOP_LEVEL = new Set([
   "favicon.ico",
   "property-investment-in-pakistan",
   "keywords-for-pakistan",
+  "pakistan-property-price-index",
+  "malls",
 ]);
 
 const KNOWN_PREFIXES = [

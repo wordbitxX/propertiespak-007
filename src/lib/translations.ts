@@ -313,6 +313,12 @@ const URDU: Record<string, string> = {
   "All Types": "تمام اقسام",
   "Any Budget": "کوئی بھی بجٹ",
   "Premium Properties For You": "آپ کے لیے پریمیم پراپرٹیز",
+  "FEATURED PROPERTIES": "نمایاں پراپرٹیز",
+  "TOP VERIFIED AGENTS": "سرفہرست تصدیق شدہ ایجنٹس",
+  "Explore handpicked properties in the most desirable locations across Pakistan.":
+    "پاکستان کے پسندیدہ ترین علاقوں میں منتخب پراپرٹیز دیکھیں۔",
+  "Connect with professional agents and find the perfect property with confidence.":
+    "پیشہ ور ایجنٹس سے رابطہ کریں اور اعتماد کے ساتھ بہترین پراپرٹی تلاش کریں۔",
   "View All Properties": "تمام پراپرٹیز دیکھیں",
   "Work With Trusted Real Estate Experts": "قابلِ اعتماد ریئل اسٹیٹ ماہرین کے ساتھ کام کریں",
   "View All Agents": "تمام ایجنٹس دیکھیں",
@@ -327,6 +333,7 @@ const URDU: Record<string, string> = {
   "Rent Property": "پراپرٹی کرائے پر لیں",
   "Sell / List Property": "پراپرٹی فروخت / لسٹ کریں",
   "Maps": "نقشے",
+  "Malls": "مالز",
   "Society PDF Maps": "سوسائٹی پی ڈی ایف نقشے",
   "Property guides & Blog": "پراپرٹی گائیڈز اور بلاگ",
 };

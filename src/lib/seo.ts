@@ -375,6 +375,117 @@ export function articleJsonLd(post: Post) {
   };
 }
 
+/**
+ * RealEstateAgent markup for a dealer profile. `aggregateRating` is only
+ * emitted when moderated, approved reviews actually exist — never from
+ * seeded or estimated numbers.
+ */
+export function dealerJsonLd(input: {
+  slug: string;
+  name: string;
+  bio?: string;
+  email?: string;
+  phone?: string;
+  agency?: string;
+  image?: string;
+  isVerified?: boolean;
+  cityNames?: string[];
+  reviewSummary?: { count: number; average: number };
+}) {
+  const url = `${SITE.url}/dealers/${input.slug}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "RealEstateAgent",
+    "@id": `${url}#agent`,
+    name: input.name,
+    url,
+    description: input.bio || `${input.name} lists property on Properties Pak.`,
+    email: input.email || undefined,
+    telephone: input.phone || undefined,
+    image: input.image || undefined,
+    areaServed: (input.cityNames ?? []).map((name) => ({ "@type": "City", name })),
+    worksFor: input.agency ? { "@type": "Organization", name: input.agency } : undefined,
+    knowsLanguage: ["en-PK", "ur-PK"],
+    memberOf: { "@id": `${SITE.url}/#organization` },
+    hasCertification: input.isVerified
+      ? {
+          "@type": "Certification",
+          name: "Properties Pak verified dealer",
+          description:
+            "Identity, agency and contact number confirmed by the Properties Pak team; account holds published property listings.",
+        }
+      : undefined,
+    aggregateRating:
+      input.reviewSummary && input.reviewSummary.count > 0
+        ? {
+            "@type": "AggregateRating",
+            ratingValue: input.reviewSummary.average,
+            reviewCount: input.reviewSummary.count,
+            bestRating: 5,
+            worstRating: 1,
+          }
+        : undefined,
+  };
+}
+
+/** ShoppingCenter markup for a mall directory page. */
+export function mallJsonLd(input: {
+  slug: string;
+  name: string;
+  description: string;
+  city: string;
+  area: string;
+  status: "open" | "upcoming";
+  openingDate?: string;
+  image?: string;
+}) {
+  const url = `${SITE.url}/malls/${input.slug}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "ShoppingCenter",
+    "@id": `${url}#mall`,
+    name: input.name,
+    url,
+    description: input.description,
+    ...(input.image ? { image: input.image.startsWith("http") ? input.image : `${SITE.url}${input.image}` } : {}),
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: input.area,
+      addressLocality: input.city,
+      addressCountry: "PK",
+    },
+    openingDate: input.status === "open" ? input.openingDate : undefined,
+    additionalProperty: [
+      { "@type": "PropertyValue", name: "Status", value: input.status === "open" ? "Open" : "Coming soon / under construction" },
+    ],
+  };
+}
+
+/** Dataset markup for the Pakistan Property Price Index (linkable data asset). */
+export function priceIndexJsonLd(input: { listings: number; cities: number; dateModified: string }) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    "@id": `${SITE.url}/pakistan-property-price-index#dataset`,
+    name: "Pakistan Property Price Index",
+    description:
+      "Median asking prices and price per square foot for property in Pakistan, computed from live Properties Pak listings by city, property type and area.",
+    url: `${SITE.url}/pakistan-property-price-index`,
+    creator: { "@id": `${SITE.url}/#organization` },
+    publisher: { "@id": `${SITE.url}/#organization` },
+    inLanguage: SITE.language,
+    isAccessibleForFree: true,
+    dateModified: input.dateModified,
+    spatialCoverage: { "@type": "Country", name: "Pakistan" },
+    variableMeasured: [
+      { "@type": "PropertyValue", name: "Median asking price (PKR)" },
+      { "@type": "PropertyValue", name: "Median price per square foot (PKR)" },
+      { "@type": "PropertyValue", name: "Median monthly rent (PKR)" },
+    ],
+    size: `${input.listings} listings across ${input.cities} cities`,
+  };
+}
+
 export function faqJsonLd(faqs: { question: string; answer: string }[]) {
   return {
     "@context": "https://schema.org",

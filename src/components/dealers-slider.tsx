@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useRef } from "react";
-import { IconArrowRight, IconStarFilled } from "@/components/icons";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { IconArrowRight } from "@/components/icons";
 import { ResilientImage } from "@/components/resilient-image";
 import { BlueTick } from "@/components/verified-badge";
+import { useLanguage } from "@/components/language-provider";
 import type { DealerProfile } from "@/lib/queries";
 
 const AGENT_AVATARS = [
@@ -21,18 +22,77 @@ const AGENT_SPECIALTIES = [
   "Residential  |  Plots",
 ] as const;
 
-const AGENT_RATINGS = [48, 36, 29, 17, 42, 31, 24, 19] as const;
+const AGENTS_AUTO_SCROLL_MS = 3200;
 
 export function DealersSlider({ dealers }: { dealers: DealerProfile[] }) {
+  const { t } = useLanguage();
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const drag = useRef<{ pointer: number; x: number; left: number; moved: boolean } | null>(null);
   const dragged = useRef(false);
+  const interactionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [interactionPaused, setInteractionPaused] = useState(false);
+
+  const pauseForUser = useCallback(() => {
+    setInteractionPaused(true);
+    if (interactionTimerRef.current) clearTimeout(interactionTimerRef.current);
+    interactionTimerRef.current = setTimeout(() => {
+      interactionTimerRef.current = null;
+      setInteractionPaused(false);
+    }, 5000);
+  }, []);
 
   function scrollByCards(direction: -1 | 1) {
     const el = viewportRef.current;
     if (!el) return;
     el.scrollBy({ left: direction * 280, behavior: "smooth" });
   }
+
+  useEffect(() => () => {
+    if (interactionTimerRef.current) clearTimeout(interactionTimerRef.current);
+  }, []);
+
+  /**
+   * Auto-scroll, mirroring the Premium Properties rail: the experts rail
+   * drifts one card at a time while it is on screen, pauses on hover, focus
+   * or any manual interaction (resuming after 5 s), wraps back to the start
+   * at the end, and never runs for visitors who prefer reduced motion.
+   */
+  useEffect(() => {
+    if (dealers.length <= 1 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    let visible = false;
+    const visibility = new IntersectionObserver(
+      (entries) => {
+        visible = entries.some((entry) => entry.isIntersecting);
+      },
+      { threshold: 0.15 },
+    );
+    visibility.observe(viewport);
+
+    const timer = window.setInterval(() => {
+      const rail = viewportRef.current;
+      if (!rail || !visible || document.hidden || hovered || focused || interactionPaused || drag.current) return;
+      const maxScroll = rail.scrollWidth - rail.clientWidth;
+      if (maxScroll <= 2) return;
+      const track = rail.querySelector<HTMLElement>(".agents-rail-track");
+      const card = rail.querySelector<HTMLElement>(".agents-rail-item");
+      const gap = track ? parseFloat(getComputedStyle(track).columnGap || getComputedStyle(track).gap) || 14 : 14;
+      const step = (card?.getBoundingClientRect().width ?? 280) + gap;
+      if (rail.scrollLeft >= maxScroll - 2) {
+        rail.scrollTo({ left: 0, behavior: "smooth" });
+        return;
+      }
+      rail.scrollBy({ left: step, behavior: "smooth" });
+    }, AGENTS_AUTO_SCROLL_MS);
+
+    return () => {
+      window.clearInterval(timer);
+      visibility.disconnect();
+    };
+  }, [dealers.length, hovered, focused, interactionPaused]);
 
   return (
     <section id="home-dealers" className="home-dealers-section" aria-labelledby="home-dealers-heading">
@@ -60,9 +120,17 @@ export function DealersSlider({ dealers }: { dealers: DealerProfile[] }) {
                 ref={viewportRef}
                 className="agents-rail-viewport"
                 data-testid="dealers-marquee"
+                data-auto-scroll="true"
                 role="region"
                 aria-label="Dealers and agencies"
                 tabIndex={0}
+                onMouseEnter={() => setHovered(true)}
+                onMouseLeave={() => setHovered(false)}
+                onFocusCapture={() => setFocused(true)}
+                onBlurCapture={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false);
+                }}
+                onWheel={() => pauseForUser()}
                 onKeyDown={(event) => {
                   if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
                     event.preventDefault();
@@ -118,10 +186,6 @@ export function DealersSlider({ dealers }: { dealers: DealerProfile[] }) {
                     const avatarSrc = dealer.avatarUrl || dealer.companyLogo || fallbackAvatar;
                     const displayName = dealer.name?.trim() || dealer.agency?.trim() || "Property Advisor";
                     const specialty = AGENT_SPECIALTIES[index % AGENT_SPECIALTIES.length];
-                    const ratingCount =
-                      dealer.listings > 0
-                        ? Math.max(12, dealer.listings * 4 + (index % 7))
-                        : AGENT_RATINGS[index % AGENT_RATINGS.length];
 
                     return (
                       <li key={`${dealer.id}-${index}`} className="agents-rail-item">
@@ -153,13 +217,11 @@ export function DealersSlider({ dealers }: { dealers: DealerProfile[] }) {
                             </div>
                           </div>
 
-                          <div className="agent-expert-rating" aria-label={`5 out of 5 stars (${ratingCount})`}>
-                            <span className="agent-expert-stars" aria-hidden="true">
-                              {[0, 1, 2, 3, 4].map((star) => (
-                                <IconStarFilled key={star} className="h-3.5 w-3.5 text-[#DFB872]" />
-                              ))}
+                          <div className="agent-expert-rating">
+                            <span className="agent-expert-reviews">
+                              {dealer.isVerified ? "Verified by Properties Pak" : "Profile in review"}
+                              {dealer.verifiedListings > 0 ? ` · ${dealer.verifiedListings} verified listings` : ""}
                             </span>
-                            <span className="agent-expert-reviews">({ratingCount})</span>
                           </div>
 
                           <div className="agent-expert-footer">

@@ -34,7 +34,7 @@ import { Section, SectionHeading } from "@/components/section";
 import { formatArea, formatDate, formatNumber, formatPrice } from "@/lib/format";
 import { getAgentBySlug, getLeadDealerForProperty, getPropertyBySlug, getSimilarProperties, getNearbyProperties } from "@/lib/queries";
 import { BlueTick, initialsFor } from "@/components/verified-badge";
-import { buildMetadata, propertyJsonLd } from "@/lib/seo";
+import { buildMetadata, faqJsonLd, propertyJsonLd } from "@/lib/seo";
 import { SITE } from "@/lib/constants";
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -120,6 +120,38 @@ export default async function PropertyDetailPage({ params }: PageProps) {
   const whatsappMessage = encodeURIComponent(
     `Hi ${contactName}, I'm interested in this property on Properties Pak: ${property.title}, ${property.locationArea}, ${property.cityName}. Please share more details. Reference EWX-${String(property.id).padStart(5, "0")}.`,
   );
+  const propertyFaqs = [
+    {
+      question: `What is the price of this ${property.propertyType.toLowerCase()} in ${property.locationArea}, ${property.cityName}?`,
+      answer: `The asking price is ${formatPrice(property.price, property.priceUnit)}${property.negotiable ? " and the seller has marked it negotiable" : ""}. For context, the area is ${formatArea(property.areaValue, property.areaUnit)}${property.bedrooms ? ` with ${property.bedrooms} bedrooms and ${property.bathrooms} bathrooms` : ""}. Confirm the final price, dues and transfer charges in writing before paying any token amount.`,
+    },
+    {
+      question: `Is this ${property.cityName} listing verified?`,
+      answer: property.verified
+        ? "Yes — this listing has been reviewed and verified by the Properties Pak admin team. Buyers should still confirm title, dues, possession and the transfer procedure independently before paying any token amount."
+        : "This listing is published on Properties Pak and reviewed before it goes live, and the listing page names who published it. Buyers should confirm title, dues, possession and the transfer procedure independently before paying any token amount.",
+    },
+    {
+      question: `How do I arrange a visit to this property in ${property.locationArea}?`,
+      answer: `Use the call or WhatsApp buttons on this page, or the enquiry form, to arrange a visit. Reference EWX-${String(property.id).padStart(5, "0")} when you contact ${contactName} so the right listing is discussed.`,
+    },
+    ...(property.purpose === "rent"
+      ? [
+          {
+            question: "What should I confirm before renting this property?",
+            answer:
+              "Record the monthly rent, escalation, security deposit, notice period, utility and maintenance responsibility, and an inventory of any furnished items in a written tenancy agreement before moving in.",
+          },
+        ]
+      : [
+          {
+            question: "What documents should I check before buying this property?",
+            answer:
+              "Request the allotment and transfer letters, a written dues statement up to the transfer date, the approved building plan where a house exists, and confirmation of the current transfer procedure from the relevant authority or society office.",
+          },
+        ]),
+  ];
+
   const facts: { label: string; value: string; icon?: React.ComponentType<{ className?: string }> }[] = [
     { label: "Property type", value: property.propertyType, icon: IconBuilding },
     { label: "Purpose", value: property.purpose === "rent" ? "For rent" : "For sale" },
@@ -531,6 +563,27 @@ export default async function PropertyDetailPage({ params }: PageProps) {
         </div>
       </Section>
 
+      {/* FAQs — the same questions are emitted as FAQPage schema below. */}
+      <Section tone="light">
+        <div className="ui-container">
+          <SectionHeading
+            eyebrow="Good to know"
+            title="Questions about this property"
+            description={`Straight answers on price, verification and visiting this ${property.propertyType.toLowerCase()} in ${property.locationArea}.`}
+          />
+          <div className="mt-8 grid gap-3 lg:grid-cols-2">
+            {propertyFaqs.map((faq) => (
+              <details key={faq.question} className="group rounded-panel border border-soft bg-white px-5 py-4 shadow-soft">
+                <summary className="cursor-pointer list-none font-sans text-[0.9375rem] font-semibold text-navy-900">
+                  {faq.question}
+                </summary>
+                <p className="mt-2.5 text-[0.875rem] leading-relaxed text-ink-muted">{faq.answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </Section>
+
       {/* Similar */}
       {similar.length > 0 && (
         <Section tone="mist">
@@ -579,6 +632,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
       <div className="h-20 lg:hidden" aria-hidden="true" />
 
       <JsonLd data={propertyJsonLd(property)} />
+      <JsonLd data={faqJsonLd(propertyFaqs)} />
     </>
   );
 }

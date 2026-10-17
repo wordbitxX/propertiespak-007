@@ -7,7 +7,8 @@ import { PageHero } from "@/components/page-hero";
 import { Section, SectionHeading } from "@/components/section";
 import { LeadForm } from "@/components/lead-form";
 import { formatPrice } from "@/lib/format";
-import { buildMetadata } from "@/lib/seo";
+import { JsonLd } from "@/components/json-ld";
+import { buildMetadata, faqJsonLd, webPageJsonLd } from "@/lib/seo";
 
 type ToolConfig = {
   key: ToolKey;
@@ -174,8 +175,33 @@ export default async function ToolPage({ params }: PageProps) {
 
   const others = Object.entries(TOOL_CONFIG).filter(([slug]) => slug !== tool);
 
+  const toolFaqs = [
+    {
+      question: `How do I use the ${config.eyebrow.toLowerCase()}?`,
+      answer: `${config.description} Start from the example modelled on this page, then replace every input with the figures for the property you are actually considering.`,
+    },
+    {
+      question: "Are the results financial advice?",
+      answer:
+        "No. All Properties Pak tools are estimates for planning only and are not financial advice. Rates, taxes and charges change — confirm current figures with your lender, lawyer or tax advisor before committing.",
+    },
+    {
+      question: "What should I check besides the numbers?",
+      answer: config.notes[0],
+    },
+  ];
+
   return (
     <>
+      <JsonLd
+        data={webPageJsonLd({
+          name: config.title,
+          description: config.description,
+          path: `/tools/${tool}`,
+          about: config.keywords,
+        })}
+      />
+      <JsonLd data={faqJsonLd(toolFaqs)} />
       <PageHero
         eyebrow={config.eyebrow}
         title={config.title}
@@ -241,6 +267,22 @@ export default async function ToolPage({ params }: PageProps) {
             description="Share the property and your assumptions — our advisory desk will review the figures and highlight risks you may have missed."
             source={`tool-${tool}`}
           />
+        </div>
+      </Section>
+
+      <Section tone="light">
+        <div className="ui-container">
+          <SectionHeading eyebrow="Questions" title={`${config.eyebrow} FAQs`} />
+          <div className="mt-6 grid gap-3 lg:grid-cols-3">
+            {toolFaqs.map((faq) => (
+              <details key={faq.question} className="group rounded-panel border border-soft bg-white px-5 py-4 shadow-soft">
+                <summary className="cursor-pointer list-none font-sans text-[0.9375rem] font-semibold text-navy-900">
+                  {faq.question}
+                </summary>
+                <p className="mt-2.5 text-[0.875rem] leading-relaxed text-ink-muted">{faq.answer}</p>
+              </details>
+            ))}
+          </div>
         </div>
       </Section>
 

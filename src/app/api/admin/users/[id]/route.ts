@@ -1,13 +1,40 @@
 import { NextResponse } from "next/server";
-import { clearVerificationRequest, setUserVerification, updateAdminUserIdentity } from "@/lib/queries";
+import { clearVerificationRequest, setUserVerification, updateAdminUserIdentity, type AdminUserProfileInput } from "@/lib/queries";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { invalidateCatalog } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
 
+const TEXT_LIMITS: Record<keyof AdminUserProfileInput, number> = {
+  name: 120,
+  agency: 160,
+  phone: 32,
+  whatsapp: 32,
+  bio: 600,
+  designation: 120,
+  officeAddress: 300,
+  citySlug: 80,
+  cityName: 80,
+  companyPhone: 32,
+  companyWebsite: 300,
+  companyLogo: 500,
+  avatarUrl: 500,
+  experience: 160,
+  areas: 300,
+  role: 20,
+  verificationNote: 600,
+};
+
+const PROFILE_FIELDS = Object.keys(TEXT_LIMITS) as (keyof AdminUserProfileInput)[];
+
+function optionalUrl(value: string) {
+  if (!value) return true;
+  return /^https?:\/\//i.test(value) || value.startsWith("/");
+}
+
 /**
- * Admin-only account controls: verification and the public name / agency shown
- * on dealer profiles and directory cards.
+ * Admin-only account controls: verification plus a complete profile edit —
+ * identity, contact, professional details, profile picture and company logo.
  */
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!(await isAdminAuthenticated())) {
@@ -21,12 +48,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   try {
-    const body = (await request.json()) as {
-      verified?: boolean;
-      action?: string;
-      name?: unknown;
-      agency?: unknown;
-    };
+    const body = (await request.json()) as Record<string, unknown> & { verified?: boolean; action?: string };
 
     // Reviewing a request (approved or rejected) clears it from the queue.
     if (body.action === "clear-request") {
@@ -37,27 +59,35 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       return NextResponse.json({ ok: true });
     }
 
-    const hasName = Object.prototype.hasOwnProperty.call(body, "name");
-    const hasAgency = Object.prototype.hasOwnProperty.call(body, "agency");
-    if (hasName || hasAgency) {
-      if ((hasName && typeof body.name !== "string") || (hasAgency && typeof body.agency !== "string")) {
-        return NextResponse.json({ ok: false, error: "Name and agency must be text values." }, { status: 400 });
+    const hasProfileField = PROFILE_FIELDS.some((field) => Object.prototype.hasOwnProperty.call(body, field));
+    if (hasProfileField) {
+      const input: AdminUserProfileInput = {};
+      for (const field of PROFILE_FIELDS) {
+        if (!Object.prototype.hasOwnProperty.call(body, field)) continue;
+        const value = body[field];
+        if (typeof value !== "string") {
+          return NextResponse.json({ ok: false, error: `${field} must be a text value.` }, { status: 400 });
+        }
+        const trimmed = value.trim();
+        if (trimmed.length > TEXT_LIMITS[field]) {
+          return NextResponse.json({ ok: false, error: `${field} is too long (max ${TEXT_LIMITS[field]} characters).` }, { status: 400 });
+        }
+        input[field] = trimmed;
       }
-
-      const name = hasName ? (body.name as string).trim() : undefined;
-      const agency = hasAgency ? (body.agency as string).trim() : undefined;
-      if (name !== undefined && (name.length < 2 || name.length > 120)) {
+      if (input.name !== undefined && input.name.length < 2) {
         return NextResponse.json({ ok: false, error: "Name must be between 2 and 120 characters." }, { status: 400 });
       }
-      if (agency !== undefined && agency.length > 160) {
-        return NextResponse.json({ ok: false, error: "Agency name must be 160 characters or fewer." }, { status: 400 });
+      if (input.role !== undefined && input.role !== "" && !["member", "dealer", "agency"].includes(input.role)) {
+        return NextResponse.json({ ok: false, error: "Role must be member, dealer or agency." }, { status: 400 });
+      }
+      for (const field of ["companyWebsite", "companyLogo", "avatarUrl"] as const) {
+        const value = input[field];
+        if (value && !optionalUrl(value)) {
+          return NextResponse.json({ ok: false, error: `${field} must be a full URL or an uploaded image path.` }, { status: 400 });
+        }
       }
 
-      const changes = {
-        ...(name !== undefined ? { name } : {}),
-        ...(agency !== undefined ? { agency } : {}),
-      };
-      const updatedIdentity = await updateAdminUserIdentity(userId, changes);
+      const updatedIdentity = await updateAdminUserIdentity(userId, input);
       if (!updatedIdentity) {
         return NextResponse.json({ ok: false, error: "Account not found." }, { status: 404 });
       }

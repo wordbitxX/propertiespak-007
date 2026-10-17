@@ -46,6 +46,7 @@ const DESKTOP_NAV_ITEMS = [
   { label: "New Projects", href: "/projects" },
   { label: "Areas", href: "/towns" },
   { label: "Maps", href: "/maps" },
+  { label: "Malls", href: "/malls" },
   { label: "Blog", href: "/blog" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
@@ -73,7 +74,7 @@ function LanguageSwitch({ mobile = false }: { mobile?: boolean }) {
     );
   }
   return (
-    <div className="header-language-switch" role="group" aria-label={t("Choose language")}>
+    <div className="header-language-switch header-language-pill" role="group" aria-label={t("Choose language")} data-testid="header-language-toggle">
       <button
         type="button"
         lang="en"
@@ -181,15 +182,39 @@ export function SiteHeader({ isAuthenticated = false }: { isAuthenticated?: bool
       >
         <div className="header-utility-bar">
           <div className="ui-container">
-            <Link href="/contact">{t("Help & Support")}</Link>
-            <span className="header-utility-separator" aria-hidden="true">
-              |
-            </span>
-            <Link href="/advertise">{t("Advertise on Properties Pak")}</Link>
-            <span className="header-utility-separator" aria-hidden="true">
-              |
-            </span>
-            <LanguageSwitch />
+            <div className="header-topbar-links">
+              <Link href="/contact">{t("Help & Support")}</Link>
+              <span className="header-utility-separator" aria-hidden="true">
+                |
+              </span>
+              <Link href="/advertise">{t("Advertise on Properties Pak")}</Link>
+            </div>
+            <div className="header-topbar-actions">
+              <button
+                type="button"
+                data-testid="topbar-search"
+                className="header-topbar-action"
+                aria-label={t("Search properties")}
+                onClick={(event) => openPanel("search", event.currentTarget)}
+              >
+                <IconSearch className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>{t("Search")}</span>
+              </button>
+              <Link
+                href="/favorites"
+                data-testid="topbar-saved"
+                className="header-topbar-action"
+                aria-label={`${t("Saved properties")}${count ? `, ${count} ${t("saved")}` : ""}`}
+              >
+                <IconHeart className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>{t("Saved")}</span>
+                {count > 0 && <span className="header-topbar-count">{count > 99 ? "99+" : count}</span>}
+              </Link>
+              <span className="header-utility-separator" aria-hidden="true">
+                |
+              </span>
+              <LanguageSwitch />
+            </div>
           </div>
         </div>
 

@@ -11,6 +11,7 @@ import {
   projects,
   listingSubmissions,
   properties,
+  reviews,
   testimonials,
   users,
   type Property,
@@ -405,6 +406,227 @@ async function getTestimonialsUncached() {
   return db.select().from(testimonials).orderBy(asc(testimonials.sortOrder));
 }
 
+/* ------------------------------------------------------------------ */
+/*  Client reviews (moderated)                                         */
+/* ------------------------------------------------------------------ */
+
+export type ReviewSummary = { count: number; average: number };
+
+async function getApprovedReviewsUncached(options: { dealerUserId?: number | null; limit?: number } = {}) {
+  await ensureSeeded();
+  const conditions = [eq(reviews.status, "approved")];
+  if (options.dealerUserId !== undefined) {
+    conditions.push(
+      options.dealerUserId === null ? sql`${reviews.dealerUserId} is null` : eq(reviews.dealerUserId, options.dealerUserId),
+    );
+  }
+  return db
+    .select()
+    .from(reviews)
+    .where(and(...conditions))
+    .orderBy(desc(reviews.createdAt))
+    .limit(Math.max(1, Math.min(60, options.limit ?? 12)));
+}
+
+async function getReviewSummaryUncached(dealerUserId?: number | null): Promise<ReviewSummary> {
+  await ensureSeeded();
+  const where =
+    dealerUserId === undefined
+      ? eq(reviews.status, "approved")
+      : dealerUserId === null
+        ? and(eq(reviews.status, "approved"), sql`${reviews.dealerUserId} is null`)
+        : and(eq(reviews.status, "approved"), eq(reviews.dealerUserId, dealerUserId));
+  const [row] = await db
+    .select({
+      count: sql<number>`cast(count(*) as int)`,
+      average: sql<number>`coalesce(round(avg(${reviews.rating})::numeric, 2), 0)`,
+    })
+    .from(reviews)
+    .where(where);
+  return { count: Number(row?.count ?? 0), average: Number(row?.average ?? 0) };
+}
+
+/** Public submission — always lands in the admin moderation queue first. */
+export async function createReview(input: {
+  dealerUserId?: number | null;
+  authorName: string;
+  authorCity?: string;
+  rating: number;
+  title?: string;
+  body: string;
+}) {
+  await ensureSeeded();
+  const rows = await db
+    .insert(reviews)
+    .values({
+      dealerUserId: input.dealerUserId ?? null,
+      authorName: input.authorName.trim().slice(0, 120),
+      authorCity: (input.authorCity ?? "").trim().slice(0, 80),
+      rating: Math.max(1, Math.min(5, Math.round(input.rating))),
+      title: (input.title ?? "").trim().slice(0, 160),
+      body: input.body.trim().slice(0, 1200),
+      status: "pending",
+    })
+    .returning({ id: reviews.id });
+  return rows[0];
+}
+
+/** Admin moderation queue: newest first, pending first. */
+export async function getAdminReviews() {
+  await ensureSeeded();
+  return db
+    .select({
+      id: reviews.id,
+      dealerUserId: reviews.dealerUserId,
+      dealerName: users.name,
+      dealerSlug: users.slug,
+      authorName: reviews.authorName,
+      authorCity: reviews.authorCity,
+      rating: reviews.rating,
+      title: reviews.title,
+      body: reviews.body,
+      status: reviews.status,
+      createdAt: reviews.createdAt,
+      reviewedAt: reviews.reviewedAt,
+    })
+    .from(reviews)
+    .leftJoin(users, eq(reviews.dealerUserId, users.id))
+    .orderBy(sql`case when ${reviews.status} = 'pending' then 0 else 1 end`, desc(reviews.createdAt))
+    .limit(120);
+}
+
+export async function setReviewStatus(reviewId: number, status: "approved" | "rejected") {
+  await ensureSeeded();
+  const updated = await db
+    .update(reviews)
+    .set({ status, reviewedAt: new Date() })
+    .where(eq(reviews.id, reviewId))
+    .returning({ id: reviews.id, status: reviews.status });
+  return updated[0];
+}
+
+export async function deleteReview(reviewId: number) {
+  await ensureSeeded();
+  const deleted = await db.delete(reviews).where(eq(reviews.id, reviewId)).returning({ id: reviews.id });
+  return deleted[0];
+}
+
+/* ------------------------------------------------------------------ */
+/*  Pakistan Property Price Index (live asking-price aggregates)       */
+/* ------------------------------------------------------------------ */
+
+export type PriceIndexRow = {
+  key: string;
+  label: string;
+  citySlug: string;
+  listings: number;
+  medianPrice: number;
+  medianPpsf: number;
+  medianRent: number;
+  rentListings: number;
+};
+
+export type PriceIndexData = {
+  generatedAt: string;
+  totals: { listings: number; saleListings: number; rentListings: number; cities: number; areas: number; medianPpsf: number; medianPrice: number };
+  byCity: PriceIndexRow[];
+  byCategory: PriceIndexRow[];
+  byArea: PriceIndexRow[];
+};
+
+async function getPriceIndexUncached(): Promise<PriceIndexData> {
+  await ensureSeeded();
+  const salePpsf = sql`case when ${properties.purpose} <> 'rent' and ${properties.areaSqft} > 0 and ${properties.price} > 0 then ${properties.price}::double precision / ${properties.areaSqft} end`;
+  const [totalsRows, cityRows, categoryRows, areaRows] = await Promise.all([
+    db
+      .select({
+        listings: sql<number>`cast(count(*) as int)`,
+        saleListings: sql<number>`cast(count(*) filter (where ${properties.purpose} <> 'rent') as int)`,
+        rentListings: sql<number>`cast(count(*) filter (where ${properties.purpose} = 'rent') as int)`,
+        cities: sql<number>`cast(count(distinct ${properties.citySlug}) as int)`,
+        areas: sql<number>`cast(count(distinct ${properties.locationArea}) as int)`,
+        medianPpsf: sql<number>`coalesce(percentile_cont(0.5) within group (order by ${salePpsf}), 0)`,
+        medianPrice: sql<number>`coalesce(percentile_cont(0.5) within group (order by ${properties.price}) filter (where ${properties.purpose} <> 'rent'), 0)`,
+      })
+      .from(properties)
+      .where(isPublished),
+    db
+      .select({
+        key: properties.citySlug,
+        label: properties.cityName,
+        citySlug: properties.citySlug,
+        listings: sql<number>`cast(count(*) as int)`,
+        medianPrice: sql<number>`coalesce(percentile_cont(0.5) within group (order by ${properties.price}) filter (where ${properties.purpose} <> 'rent'), 0)`,
+        medianPpsf: sql<number>`coalesce(percentile_cont(0.5) within group (order by ${salePpsf}), 0)`,
+        medianRent: sql<number>`coalesce(percentile_cont(0.5) within group (order by ${properties.price}) filter (where ${properties.purpose} = 'rent'), 0)`,
+        rentListings: sql<number>`cast(count(*) filter (where ${properties.purpose} = 'rent') as int)`,
+      })
+      .from(properties)
+      .where(isPublished)
+      .groupBy(properties.citySlug, properties.cityName)
+      .orderBy(desc(sql`count(*)`)),
+    db
+      .select({
+        key: properties.category,
+        label: properties.category,
+        citySlug: sql<string>`''`,
+        listings: sql<number>`cast(count(*) as int)`,
+        medianPrice: sql<number>`coalesce(percentile_cont(0.5) within group (order by ${properties.price}) filter (where ${properties.purpose} <> 'rent'), 0)`,
+        medianPpsf: sql<number>`coalesce(percentile_cont(0.5) within group (order by ${salePpsf}), 0)`,
+        medianRent: sql<number>`coalesce(percentile_cont(0.5) within group (order by ${properties.price}) filter (where ${properties.purpose} = 'rent'), 0)`,
+        rentListings: sql<number>`cast(count(*) filter (where ${properties.purpose} = 'rent') as int)`,
+      })
+      .from(properties)
+      .where(isPublished)
+      .groupBy(properties.category)
+      .orderBy(desc(sql`count(*)`)),
+    db
+      .select({
+        key: sql<string>`${properties.citySlug} || ':' || ${properties.locationArea}`,
+        label: properties.locationArea,
+        citySlug: properties.citySlug,
+        listings: sql<number>`cast(count(*) as int)`,
+        medianPrice: sql<number>`coalesce(percentile_cont(0.5) within group (order by ${properties.price}) filter (where ${properties.purpose} <> 'rent'), 0)`,
+        medianPpsf: sql<number>`coalesce(percentile_cont(0.5) within group (order by ${salePpsf}), 0)`,
+        medianRent: sql<number>`coalesce(percentile_cont(0.5) within group (order by ${properties.price}) filter (where ${properties.purpose} = 'rent'), 0)`,
+        rentListings: sql<number>`cast(count(*) filter (where ${properties.purpose} = 'rent') as int)`,
+      })
+      .from(properties)
+      .where(isPublished)
+      .groupBy(properties.citySlug, properties.locationArea)
+      .having(sql`count(*) >= 3`)
+      .orderBy(desc(sql`count(*)`))
+      .limit(30),
+  ]);
+  const num = (value: unknown) => Math.round(Number(value ?? 0));
+  const mapRow = (row: Record<string, unknown>): PriceIndexRow => ({
+    key: String(row.key ?? ""),
+    label: String(row.label ?? ""),
+    citySlug: String(row.citySlug ?? ""),
+    listings: num(row.listings),
+    medianPrice: num(row.medianPrice),
+    medianPpsf: num(row.medianPpsf),
+    medianRent: num(row.medianRent),
+    rentListings: num(row.rentListings),
+  });
+  const totals = totalsRows[0];
+  return {
+    generatedAt: new Date().toISOString(),
+    totals: {
+      listings: num(totals?.listings),
+      saleListings: num(totals?.saleListings),
+      rentListings: num(totals?.rentListings),
+      cities: num(totals?.cities),
+      areas: num(totals?.areas),
+      medianPpsf: num(totals?.medianPpsf),
+      medianPrice: num(totals?.medianPrice),
+    },
+    byCity: (cityRows as Record<string, unknown>[]).map(mapRow),
+    byCategory: (categoryRows as Record<string, unknown>[]).map(mapRow),
+    byArea: (areaRows as Record<string, unknown>[]).map(mapRow),
+  };
+}
+
 async function getAgentsUncached() {
   await ensureSeeded();
   return db.select().from(agents).orderBy(asc(agents.id));
@@ -722,14 +944,77 @@ export async function setUserVerification(userId: number, verified: boolean) {
   return updated[0];
 }
 
-/** Admin: update the name and agency shown on public dealer profiles. */
-export async function updateAdminUserIdentity(userId: number, input: { name?: string; agency?: string }) {
+/** Every profile field an admin may edit from the Users workspace. */
+export type AdminUserProfileInput = {
+  name?: string;
+  agency?: string;
+  phone?: string;
+  whatsapp?: string;
+  bio?: string;
+  designation?: string;
+  officeAddress?: string;
+  citySlug?: string;
+  cityName?: string;
+  companyPhone?: string;
+  companyWebsite?: string;
+  companyLogo?: string;
+  avatarUrl?: string;
+  experience?: string;
+  areas?: string;
+  role?: string;
+  verificationNote?: string;
+};
+
+const ADMIN_PROFILE_FIELDS = [
+  "name",
+  "agency",
+  "phone",
+  "whatsapp",
+  "bio",
+  "designation",
+  "officeAddress",
+  "citySlug",
+  "cityName",
+  "companyPhone",
+  "companyWebsite",
+  "companyLogo",
+  "avatarUrl",
+  "experience",
+  "areas",
+  "role",
+  "verificationNote",
+] as const;
+
+/**
+ * Admin: complete profile edit — identity, contact, professional details and
+ * profile picture / company logo URLs (uploaded through `/api/media/upload`).
+ * Only whitelisted text fields are applied; verification state is untouched
+ * here and stays on the dedicated verify action.
+ */
+export async function updateAdminUserIdentity(userId: number, input: AdminUserProfileInput) {
   await ensureSeeded();
+  const patch: Record<string, string> = {};
+  for (const field of ADMIN_PROFILE_FIELDS) {
+    const value = input[field];
+    if (typeof value !== "string") continue;
+    const trimmed = value.trim();
+    if (field === "name" && trimmed.length < 2) continue;
+    if (field === "role" && !["member", "dealer", "agency"].includes(trimmed)) continue;
+    patch[field] = trimmed;
+  }
+  if (Object.keys(patch).length === 0) return undefined;
   const updated = await db
     .update(users)
-    .set(input)
+    .set(patch)
     .where(eq(users.id, userId))
-    .returning({ id: users.id, name: users.name, agency: users.agency, slug: users.slug });
+    .returning({
+      id: users.id,
+      name: users.name,
+      agency: users.agency,
+      slug: users.slug,
+      avatarUrl: users.avatarUrl,
+      companyLogo: users.companyLogo,
+    });
   return updated[0];
 }
 
@@ -867,6 +1152,9 @@ export const getPosts = cachedQuery("getPosts", getPostsUncached);
 export const getPostBySlug = cachedQuery("getPostBySlug", getPostBySlugUncached);
 export const getAllPostSlugs = cachedQuery("getAllPostSlugs", getAllPostSlugsUncached);
 export const getTestimonials = cachedQuery("getTestimonials", getTestimonialsUncached);
+export const getApprovedReviews = cachedQuery("getApprovedReviews", getApprovedReviewsUncached);
+export const getReviewSummary = cachedQuery("getReviewSummary", getReviewSummaryUncached);
+export const getPriceIndex = cachedQuery("getPriceIndex", getPriceIndexUncached);
 export const getAgents = cachedQuery("getAgents", getAgentsUncached);
 export const getAgentBySlug = cachedQuery("getAgentBySlug", getAgentBySlugUncached);
 export const getPlatformStats = cachedQuery("getPlatformStats", getPlatformStatsUncached);

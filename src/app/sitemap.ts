@@ -4,6 +4,7 @@ import { getAllDealerSlugs, getAllPostSlugs, getAllProjectSlugs, getAllPropertyS
 import { getAllLandingSlugs, getAllSocietySlugs } from "@/lib/landing-pages";
 import { getAllKeywordLandingSlugs } from "@/lib/keyword-landings";
 import { TOWNS, getAllTownSlugs } from "@/lib/towns";
+import { getAllMallSlugs } from "@/lib/malls";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,7 @@ const STATIC_ROUTES: { path: string; priority: number; changeFrequency: "daily" 
   { path: "/projects", priority: 0.8, changeFrequency: "weekly" },
   { path: "/maps", priority: 0.9, changeFrequency: "weekly" },
   { path: "/blog", priority: 0.7, changeFrequency: "weekly" },
+  { path: "/pakistan-property-price-index", priority: 0.9, changeFrequency: "weekly" },
   { path: "/keywords-for-pakistan", priority: 0.9, changeFrequency: "weekly" },
   { path: "/tools", priority: 0.7, changeFrequency: "monthly" },
   { path: "/tools/mortgage-calculator", priority: 0.7, changeFrequency: "monthly" },
@@ -35,6 +37,7 @@ const STATIC_ROUTES: { path: string; priority: number; changeFrequency: "daily" 
   { path: "/list-property", priority: 0.7, changeFrequency: "monthly" },
   { path: "/sitemap", priority: 0.8, changeFrequency: "daily" },
   { path: "/dealers", priority: 0.9, changeFrequency: "daily" },
+  { path: "/malls", priority: 0.85, changeFrequency: "weekly" },
   { path: "/towns", priority: 0.9, changeFrequency: "weekly" },
   ...Array.from(new Set(TOWNS.map((town) => town.citySlug))).map((city) => ({
     path: `/towns/${city}`,
@@ -74,6 +77,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
+  const malls: MetadataRoute.Sitemap = getAllMallSlugs().map((slug) => ({
+    url: `${SITE.url}/malls/${slug}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+
   try {
     const [properties, projects, posts, cities, dealers] = await Promise.all([
       getAllPropertySlugs(),
@@ -87,6 +96,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ...base,
       ...landing,
       ...society,
+      ...malls,
       ...cities.map((item) => ({
         url: `${SITE.url}/city/${item.slug}`,
         changeFrequency: "daily" as const,

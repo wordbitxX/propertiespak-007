@@ -16,6 +16,7 @@ import { CtaSection, InvestmentSection, WhyEstateWx } from "@/components/section
 import { DealersSlider } from "@/components/dealers-slider";
 import { PopularSearches } from "@/components/popular-searches";
 import {
+  getApprovedReviews,
   getCities,
   getCityListingCounts,
   getDealerShowcase,
@@ -24,9 +25,11 @@ import {
   getPosts,
   getPopularSearches,
   getProjects,
+  getReviewSummary,
   searchProperties,
 } from "@/lib/queries";
 import { buildMetadata } from "@/lib/seo";
+import { ClientReviewsSection } from "@/components/reviews-section";
 import { HomeExploreProperties } from "@/components/home-explore-properties";
 import { RecentProperties } from "@/components/recent-properties";
 
@@ -70,6 +73,8 @@ export default async function HomePage() {
     posts,
     showcaseDealers,
     popularSearches,
+    clientReviews,
+    reviewSummary,
   ] = await Promise.all([
     getPlatformStats(),
     searchProperties({ featured: true, verified: true, pageSize: 8 }),
@@ -84,10 +89,16 @@ export default async function HomePage() {
     getPosts(3),
     getDealerShowcase(48),
     getPopularSearches(),
+    getApprovedReviews({ limit: 6 }),
+    getReviewSummary(),
   ]);
 
-  const featuredItems = featured.items.length > 0 ? featured.items : discovery.items.slice(0, 8);
-  const featuredTotal = featured.total > 0 ? featured.total : discovery.total;
+  // "Premium Properties For You" is an admin-verified rail: only listings the
+  // admin team has verified (and featured) may appear here. There is
+  // deliberately no fallback to unverified inventory — if nothing qualifies,
+  // the section hides instead of quietly showing unchecked listings.
+  const featuredItems = featured.items;
+  const featuredTotal = featured.total;
 
   return (
     <div className="home-page">
@@ -155,6 +166,10 @@ export default async function HomePage() {
       />
 
       <InsightsPreview posts={posts} />
+
+      {/* Client reviews (admin-approved only) & review submission */}
+      <ClientReviewsSection reviews={clientReviews} summary={reviewSummary} />
+
       <CtaSection />
     </div>
   );
