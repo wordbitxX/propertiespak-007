@@ -5857,3 +5857,12 @@ html body .site-header .header-list-property.header-list-property:focus-visible 
 .agx-p5-spot .agx-p5-name, .agx-p5-spot .agx-p5-name span { color: #fff; }
 .agx-showcase h1.agx-title, .agx-showcase h2.agx-title:not(.agx-title--light), .agx-showcase .agx-serif { color: #0d261d; }
 .agx-showcase h2.agx-title--light { color: #fff; }
+
+/* Verified Agencies (P1) — stats + CTA under the city, no Platinum chip */
+.agx-p1-card { gap: 0; padding: 28px 18px 18px; }
+.agx-p1-link { display: flex; width: 100%; flex-direction: column; align-items: center; gap: 4px; }
+.agx-p1-stats { width: 100%; margin: 14px 0 12px; }
+.agx-p1-cta { width: 100%; text-align: center; }
+.home-page .home-verified-agencies { padding: clamp(28px, 4vw, 44px) 0; }
+.home-page .home-verified-agencies .agx-p1 { box-shadow: 0 10px 30px -24px rgba(8, 34, 26, .35); }
+.home-page .home-verified-agencies .agx-serif { color: #0d261d; }

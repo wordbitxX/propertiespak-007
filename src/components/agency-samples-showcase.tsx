@@ -143,28 +143,48 @@ function PlatinumChip({ dark = false }: { dark?: boolean }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* P1 — dhaplus "Registered Agencies" style                            */
+/* P1 — dhaplus "Registered Agencies" style → homepage "Verified Agencies" */
 /* ------------------------------------------------------------------ */
 function SampleClassic({ agencies }: { agencies: Agency[] }) {
   const { bind, move } = useAutoRail(3200);
   return (
     <section className="agx-p1">
       <div className="agx-head">
-        <h2 className="agx-serif">Platinum Agencies in Pakistan</h2>
+        <h2 id="verified-agencies-heading" className="agx-serif">Verified Agencies in Pakistan</h2>
         <RoundArrows move={move} />
       </div>
-      <div className="agx-rail agx-p1-rail" {...bind} tabIndex={0} aria-label="Platinum agencies">
+      <div className="agx-rail agx-p1-rail" {...bind} tabIndex={0} aria-label="Verified agencies">
         {agencies.map((agency) => (
-          <Link key={agency.id} href={agency.href} className="agx-p1-card">
-            <PlatinumChip />
-            <AgencyLogo agency={agency} size={92} />
-            <p className="agx-p1-name">
-              <span className="truncate">{agency.name}</span>
-              {agency.verified && <BlueTick className="h-4 w-4 shrink-0" />}
-            </p>
-            <p className="agx-p1-city">{agency.city}</p>
-          </Link>
+          <article key={agency.id} className="agx-p1-card">
+            <Link href={agency.href} className="agx-p1-link" aria-label={`${agency.name} — view agency`}>
+              <AgencyLogo agency={agency} size={92} />
+              <p className="agx-p1-name">
+                <span className="truncate">{agency.name}</span>
+                {agency.verified && <BlueTick className="h-4 w-4 shrink-0" />}
+              </p>
+              <p className="agx-p1-city">{agency.city}</p>
+            </Link>
+            <div className="agx-p3-stats agx-p1-stats">
+              <div><b>{agency.listings}</b><span>Listings</span></div>
+              <div><b>{agency.verifiedListings}</b><span>Verified</span></div>
+              <div><b>{agency.verified ? "Yes" : "—"}</b><span>KYC</span></div>
+            </div>
+            <Link href={agency.href} className="agx-p3-cta agx-p1-cta">View agency</Link>
+          </article>
         ))}
+      </div>
+    </section>
+  );
+}
+
+/** Homepage section: the chosen P1 "Verified Agencies" design with live agency data. */
+export function VerifiedAgenciesSection({ dealers }: { dealers: DealerProfile[] }) {
+  const agencies = toAgencies(dealers).slice(0, 16);
+  if (agencies.length === 0) return null;
+  return (
+    <section id="home-dealers" className="home-verified-agencies" aria-labelledby="verified-agencies-heading">
+      <div className="ui-container">
+        <SampleClassic agencies={agencies} />
       </div>
     </section>
   );
@@ -378,7 +398,7 @@ export function AgencySamplesShowcase({ dealers }: { dealers: DealerProfile[] })
           <p className="agx-sub">No agency profiles yet — samples will appear once agencies are added.</p>
         ) : (
           <>
-            <SampleFrame code="P1" title="Registered style" note="dhaplus-inspired · white logo cards · serif heading · round arrows">
+            <SampleFrame code="P1" title="Verified Agencies (on homepage)" note="dhaplus registered style · logo cards · stats · View agency button">
               <SampleClassic agencies={agencies} />
             </SampleFrame>
             <SampleFrame code="P2" title="Platinum Luxe" note="dark emerald · metallic platinum borders · gold accents">

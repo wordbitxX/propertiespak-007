@@ -13,7 +13,7 @@ import {
   RecentlyAddedProperties,
 } from "@/components/sections-discovery";
 import { CtaSection, InvestmentSection, WhyEstateWx } from "@/components/sections-editorial";
-import { DealersSlider } from "@/components/dealers-slider";
+import { VerifiedAgenciesSection } from "@/components/agency-samples-showcase";
 import { PopularSearches } from "@/components/popular-searches";
 import {
   getApprovedReviews,
@@ -116,8 +116,8 @@ export default async function HomePage() {
       {/* 5. Recently Added & Locally Viewed Properties */}
       <RecentlyAddedProperties properties={discovery.items} />
 
-      {/* Platinum Agency — top verified agencies, right below Recently Added */}
-      <DealersSlider dealers={showcaseDealers} />
+      {/* Verified Agencies (dhaplus "Registered Agencies" style) — right below Recently Added */}
+      <VerifiedAgenciesSection dealers={showcaseDealers} />
 
       <RecentProperties />
 
