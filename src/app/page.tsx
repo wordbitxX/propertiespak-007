@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { DEEP_ZOOM_MAPS, DHA_SOCIETY_MAPS } from "@/lib/map-library";
 import Link from "next/link";
 import { Hero } from "@/components/hero";
 import { Section, SectionHeading } from "@/components/section";
@@ -105,7 +106,7 @@ export default async function HomePage() {
 
   return (
     <div className="home-page">
-      <Hero stats={heroStats} />
+      <Hero stats={{ ...heroStats, maps: DHA_SOCIETY_MAPS.length + DEEP_ZOOM_MAPS.length }} />
 
       {/* 1. Featured Properties ("Premium Properties For You") */}
       <FeaturedProperties properties={featuredItems} total={featuredTotal} />

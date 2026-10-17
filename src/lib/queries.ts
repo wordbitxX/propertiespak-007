@@ -1216,13 +1216,14 @@ export const getAgents = cachedQuery("getAgents", getAgentsUncached);
 export const getAgentBySlug = cachedQuery("getAgentBySlug", getAgentBySlugUncached);
 export const getPlatformStats = cachedQuery("getPlatformStats", getPlatformStatsUncached);
 
-/** Hero counters for the /sample hero replica: live listings, registered members, distinct listing locations. */
+/** Homepage hero counters: live listings, verified listings, distinct listing locations (+ members). */
 async function getHeroStatsUncached() {
   await ensureSeeded();
   const [row] = await db
     .select({
       listings: sql<number>`cast(count(*) as int)`,
       locations: sql<number>`cast(count(distinct ${properties.locationArea}) as int)`,
+      verified: sql<number>`cast(count(*) filter (where ${properties.verified}) as int)`,
       members: sql<number>`(select cast(count(*) as int) from ${users})`,
     })
     .from(properties)
@@ -1231,6 +1232,7 @@ async function getHeroStatsUncached() {
     listings: Number(row?.listings ?? 0),
     members: Number(row?.members ?? 0),
     locations: Number(row?.locations ?? 0),
+    verified: Number(row?.verified ?? 0),
   };
 }
 export const getHeroStats = cachedQuery("getHeroStats", getHeroStatsUncached);

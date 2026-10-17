@@ -5,6 +5,12 @@ export type Locale = "en" | "ur";
  * Listing names, addresses and other user-submitted content remain as entered.
  */
 const URDU: Record<string, string> = {
+  "Properties Listed": "درج شدہ پراپرٹیز",
+  "Listing Locations": "لسٹنگ مقامات",
+  "HD Society Maps": "ایچ ڈی سوسائٹی نقشے",
+  "Use my current location": "میرا موجودہ مقام استعمال کریں",
+  "Show properties near me": "میرے قریب پراپرٹیز دکھائیں",
+  "Detecting your location…": "آپ کا مقام معلوم کیا جا رہا ہے…",
   "Buy · Sell · Rent in Pakistan": "پاکستان میں خریدیں · فروخت کریں · کرایہ پر لیں",
   "Help & Support": "مدد اور معاونت",
   "Advertise on Properties Pak": "پراپرٹیز پاک پر اشتہار دیں",

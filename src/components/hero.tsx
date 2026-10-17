@@ -18,7 +18,7 @@ import {
 } from "@/lib/property-search";
 
 type Tab = "buy" | "rent" | "sell";
-type HeroStats = { listings: number; members: number; locations: number };
+type HeroStats = { listings: number; verified: number; locations: number; maps: number };
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "buy", label: "Buy" },
@@ -45,11 +45,19 @@ function HomeIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-function PersonIcon({ className }: { className?: string }) {
+function ShieldCheckIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="12" cy="8" r="3.6" />
-      <path d="M5 20.5c.6-3.8 3.4-6 7-6s6.4 2.2 7 6" />
+      <path d="M12 3.2 5 6v5.6c0 4.3 3 7.9 7 9.2 4-1.3 7-4.9 7-9.2V6l-7-2.8Z" />
+      <path d="m8.8 12.2 2.2 2.2 4.3-4.5" />
+    </svg>
+  );
+}
+function MapIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m9 4.5-5.5 2v13l5.5-2 6 2 5.5-2v-13l-5.5 2-6-2Z" />
+      <path d="M9 4.5v13M15 6.5v13" />
     </svg>
   );
 }
@@ -222,10 +230,10 @@ export function Hero({ stats }: { stats: HeroStats }) {
             </span>
           </li>
           <li>
-            <PersonIcon className="pkr-stat-icon" />
+            <ShieldCheckIcon className="pkr-stat-icon" />
             <span>
-              <b>{stats.members}</b>
-              <small>{t("Registered Members")}</small>
+              <b>{stats.verified}</b>
+              <small>{t("Verified Listings")}</small>
             </span>
           </li>
           <li>
@@ -234,6 +242,15 @@ export function Hero({ stats }: { stats: HeroStats }) {
               <b>{stats.locations}</b>
               <small>{t("Listing Locations")}</small>
             </span>
+          </li>
+          <li>
+            <Link href="/maps" className="pkr-stat-link">
+              <MapIcon className="pkr-stat-icon" />
+              <span>
+                <b>{stats.maps}</b>
+                <small>{t("HD Society Maps")}</small>
+              </span>
+            </Link>
           </li>
         </ul>
       </div>
