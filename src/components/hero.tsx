@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useLanguage } from "@/components/language-provider";
+import { HeroBudgetField, HeroLocationField } from "@/components/hero-search-fields";
+import type { LocationSuggestion } from "@/lib/location-suggest";
 import { BUDGETS_BUY, BUDGETS_RENT } from "@/lib/constants";
 import {
   COMMERCIAL_SEARCH_TYPES,
@@ -75,13 +77,16 @@ export function Hero({ stats }: { stats: HeroStats }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("buy");
   const [location, setLocation] = useState("");
+  const [place, setPlace] = useState<LocationSuggestion | null>(null);
   const [type, setType] = useState("");
-  const [budget, setBudget] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
   const budgets = tab === "rent" ? BUDGETS_RENT : BUDGETS_BUY;
 
   function selectTab(next: Tab) {
     setTab(next);
-    setBudget("");
+    setMinPrice("");
+    setMaxPrice("");
   }
 
   function submit(event: FormEvent) {
@@ -90,8 +95,11 @@ export function Hero({ stats }: { stats: HeroStats }) {
       router.push("/list-property");
       return;
     }
-    const [minPrice = "", maxPrice = ""] = budget ? budget.split("-") : [];
-    const state = { ...defaultPropertySearch(tab), keyword: location.trim(), type, minPrice, maxPrice };
+    const base = { ...defaultPropertySearch(tab), type, minPrice, maxPrice };
+    // A picked suggestion becomes a precise city / area filter; free text stays a keyword search.
+    const state = place
+      ? { ...base, city: place.city, town: place.town, townExact: place.townExact }
+      : { ...base, keyword: location.trim() };
     router.push(propertySearchHref(state));
   }
 
@@ -160,19 +168,7 @@ export function Hero({ stats }: { stats: HeroStats }) {
             ))}
           </div>
           <div className="pkr-search-card">
-            <label className="pkr-field pkr-field--location">
-              <span className="pkr-field-label">{t("Location")}</span>
-              <span className="pkr-field-control">
-                <input
-                  type="text"
-                  value={location}
-                  onChange={(event) => setLocation(event.target.value)}
-                  placeholder={t("Enter city or area")}
-                  autoComplete="off"
-                />
-                <PinIcon className="pkr-field-icon" />
-              </span>
-            </label>
+            <HeroLocationField value={location} onChange={setLocation} onPick={setPlace} />
             <label className="pkr-field">
               <span className="pkr-field-label">{t("Property type")}</span>
               <span className="pkr-field-control">
@@ -187,20 +183,15 @@ export function Hero({ stats }: { stats: HeroStats }) {
                 <ChevronIcon className="pkr-field-chevron" />
               </span>
             </label>
-            <label className="pkr-field">
-              <span className="pkr-field-label">{t("Your budget")}</span>
-              <span className="pkr-field-control">
-                <select value={budget} onChange={(event) => setBudget(event.target.value)}>
-                  <option value="">{t("Any price")}</option>
-                  {budgets.map((item) => (
-                    <option key={item.value} value={item.value}>
-                      {t(item.label)}
-                    </option>
-                  ))}
-                </select>
-                <ChevronIcon className="pkr-field-chevron" />
-              </span>
-            </label>
+            <HeroBudgetField
+              presets={budgets}
+              minPrice={minPrice}
+              maxPrice={maxPrice}
+              onChange={(low, high) => {
+                setMinPrice(low);
+                setMaxPrice(high);
+              }}
+            />
             <button type="submit" className="pkr-search-submit">
               {t(tab === "sell" ? "List Your Property" : "Search Properties")}
               <ArrowIcon className="pkr-search-submit-arrow" />

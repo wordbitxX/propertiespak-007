@@ -362,6 +362,21 @@ async function getCityListingCountsUncached() {
   return new Map(rows.map((row) => [row.citySlug, row.total]));
 }
 
+/** Published listing counts per city + location area (powers search suggestions). */
+async function getLocationAreaCountsUncached() {
+  await ensureSeeded();
+  return db
+    .select({
+      citySlug: properties.citySlug,
+      cityName: properties.cityName,
+      area: properties.locationArea,
+      total: sql<number>`cast(count(*) as int)`,
+    })
+    .from(properties)
+    .where(isPublished)
+    .groupBy(properties.citySlug, properties.cityName, properties.locationArea);
+}
+
 async function getProjectsUncached(limit = 12, featuredOnly = false) {
   await ensureSeeded();
   const query = db.select().from(projects);
@@ -1142,6 +1157,7 @@ export const getFeaturedProperties = cachedQuery("getFeaturedProperties", getFea
 export const getPropertiesByIds = cachedQuery("getPropertiesByIds", getPropertiesByIdsUncached);
 export const getMapProperties = cachedQuery("getMapProperties", getMapPropertiesUncached);
 export const getCities = cachedQuery("getCities", getCitiesUncached);
+export const getLocationAreaCounts = cachedQuery("getLocationAreaCounts", getLocationAreaCountsUncached);
 export const getCityBySlug = cachedQuery("getCityBySlug", getCityBySlugUncached);
 export const getCityListingCounts = cachedQuery("getCityListingCounts", getCityListingCountsUncached);
 export const getPopularSearches = cachedQuery("getPopularSearches", getPopularSearchesUncached);
