@@ -640,6 +640,45 @@ async function refreshSeedGalleries(q: Executor) {
 }
 
 /**
+ * One-time: a few of each founding dealer's seeded listings start out awaiting
+ * listing verification (see `pendingReview` in seed-dealers.ts). It runs once
+ * per database (tracked in app_meta) and only touches untouched seed listings
+ * — stock photos, still verified — so decisions an administrator or dealer
+ * made later are never overwritten.
+ */
+async function holdSeedListingsForReview(q: Executor) {
+  const marker = await q.execute<{ value: string }>(
+    sql`select value from app_meta where key = 'seed_listing_review_v1' limit 1`,
+  );
+  if (marker.rows.length > 0) return;
+
+  for (const dealer of dealerSeed) {
+    if (dealer.pendingReview <= 0) continue;
+    const account = (
+      await q.select({ id: users.id }).from(users).where(eq(users.email, dealer.email)).limit(1)
+    )[0];
+    if (!account) continue;
+    await q.execute(sql`
+      update properties set verified = false
+       where id in (
+         select id from properties
+          where listed_by_user_id = ${account.id}
+            and published = true
+            and verified = true
+            and cover_image like 'https://images.pexels.com/%'
+          order by id desc
+          limit ${dealer.pendingReview}
+       )
+    `);
+  }
+
+  await q.execute(sql`
+    insert into app_meta (key, value, updated_at) values ('seed_listing_review_v1', 'done', now())
+    on conflict (key) do nothing
+  `);
+}
+
+/**
  * Fingerprint of everything the seed writes. It changes only when the seed
  * data or the schema guard changes (i.e. on a deploy that edits them), so the
  * full seed runs once per change instead of on every serverless cold start.
@@ -696,6 +735,7 @@ async function runSeed() {
     await seedProperties(tx);
     await refreshSeedGalleries(tx);
     await linkDealerListings(tx);
+    await holdSeedListingsForReview(tx);
     await tx.execute(sql`
       insert into app_meta (key, value, updated_at) values ('seed_version', ${SEED_VERSION}, now())
       on conflict (key) do update set value = excluded.value, updated_at = now()

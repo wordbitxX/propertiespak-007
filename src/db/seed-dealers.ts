@@ -22,6 +22,11 @@ export type DealerSeed = {
   companyPhone: string;
   companyWebsite: string;
   isVerified: boolean;
+  /**
+   * How many of this dealer's seeded listings start out awaiting listing
+   * verification, so profile counters read like a real, in-progress portfolio.
+   */
+  pendingReview: number;
   /** Login password for the seeded account (documented for the platform team). */
   password: string;
 };
@@ -43,6 +48,7 @@ export const dealerSeed: DealerSeed[] = [
     companyPhone: "+92 42 3560000",
     companyWebsite: "https://wordbitxtech.com/",
     isVerified: true,
+    pendingReview: 2,
     password: "propertiespak",
   },
   {
@@ -61,6 +67,7 @@ export const dealerSeed: DealerSeed[] = [
     companyPhone: "+92 51 1110000",
     companyWebsite: "https://wordbitxtech.com/",
     isVerified: true,
+    pendingReview: 0,
     password: "propertiespak",
   },
   {
@@ -79,6 +86,7 @@ export const dealerSeed: DealerSeed[] = [
     companyPhone: "+92 21 3450000",
     companyWebsite: "https://wordbitxtech.com/",
     isVerified: true,
+    pendingReview: 4,
     password: "propertiespak",
   },
   {
@@ -97,6 +105,7 @@ export const dealerSeed: DealerSeed[] = [
     companyPhone: "+92 61 1110000",
     companyWebsite: "https://wordbitxtech.com/",
     isVerified: true,
+    pendingReview: 0,
     password: "propertiespak",
   },
   {
@@ -115,6 +124,7 @@ export const dealerSeed: DealerSeed[] = [
     companyPhone: "+92 42 3590000",
     companyWebsite: "https://wordbitxtech.com/",
     isVerified: true,
+    pendingReview: 3,
     password: "propertiespak",
   },
   {
@@ -133,6 +143,7 @@ export const dealerSeed: DealerSeed[] = [
     companyPhone: "+92 51 5120000",
     companyWebsite: "https://wordbitxtech.com/",
     isVerified: true,
+    pendingReview: 2,
     password: "propertiespak",
   },
   {
@@ -151,6 +162,7 @@ export const dealerSeed: DealerSeed[] = [
     companyPhone: "+92 21 3580000",
     companyWebsite: "https://wordbitxtech.com/",
     isVerified: true,
+    pendingReview: 4,
     password: "propertiespak",
   },
   {
@@ -169,6 +181,7 @@ export const dealerSeed: DealerSeed[] = [
     companyPhone: "+92 41 1110000",
     companyWebsite: "https://wordbitxtech.com/",
     isVerified: true,
+    pendingReview: 0,
     password: "propertiespak",
   },
 ];

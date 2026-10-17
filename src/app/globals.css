@@ -5941,3 +5941,34 @@ html[data-header-solid] .site-header .header-language-mobile:hover { background:
 .agx-p1-chip--verified .agx-p1-chip-icon { stroke: #16a34a; }
 .agx-p1-chip--verified span { color: #2f7a52; }
 .agx-p1-card:hover .agx-p1-chip { border-color: #dbe5df; box-shadow: 0 3px 8px -4px rgba(13, 38, 29, .12); }
+.agx-p1-card .agx-p1-stats { margin-bottom: 0; }
+.agx-p1-card { padding-bottom: 14px; }
+
+/* Floating WhatsApp button (replaces the Ask AI launcher). */
+.wa-float { position: fixed; z-index: 70; right: max(14px, calc(env(safe-area-inset-right, 0px) + 14px)); bottom: max(14px, calc(env(safe-area-inset-bottom, 0px) + 14px)); display: inline-flex; align-items: center; gap: 10px; height: 56px; padding: 6px 18px 6px 6px; border-radius: 999px; background: linear-gradient(135deg, #2fe079 0%, #1fb855 55%, #128c4a 100%); color: #fff; text-decoration: none; box-shadow: 0 14px 30px -12px rgba(18, 140, 74, .7), inset 0 1px 0 rgba(255, 255, 255, .28); transition: transform .2s ease, box-shadow .2s ease; }
+.wa-float:hover { transform: translateY(-2px); box-shadow: 0 18px 34px -12px rgba(18, 140, 74, .8), inset 0 1px 0 rgba(255, 255, 255, .3); }
+.wa-float:focus-visible { outline: 3px solid #bbf7d0; outline-offset: 3px; }
+.wa-float-icon { position: relative; display: grid; place-items: center; width: 44px; height: 44px; flex: 0 0 44px; border-radius: 50%; background: #fff; color: #1fb855; box-shadow: 0 2px 6px rgba(0, 0, 0, .12); }
+.wa-float-svg { position: relative; width: 26px; height: 26px; }
+.wa-float-pulse { position: absolute; inset: 0; border-radius: 50%; box-shadow: 0 0 0 0 rgba(255, 255, 255, .7); animation: wa-float-pulse 2.4s ease-out infinite; }
+@keyframes wa-float-pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, .65); } 70%, 100% { box-shadow: 0 0 0 12px rgba(255, 255, 255, 0); } }
+.wa-float-copy { display: flex; flex-direction: column; gap: 2px; line-height: 1.1; }
+.wa-float-title { font-family: var(--font-sans); font-size: .9rem; font-weight: 750; letter-spacing: -.01em; }
+.wa-float-subtitle { font-size: .7rem; font-weight: 500; opacity: .9; }
+@media (min-width: 1024px) { .wa-float { right: 24px; bottom: 24px; } }
+@media (max-width: 639px) {
+  .wa-float { height: 52px; padding: 5px 15px 5px 5px; gap: 8px; }
+  .wa-float-icon { width: 42px; height: 42px; flex-basis: 42px; }
+  .wa-float-subtitle { display: none; }
+}
+/* Property pages pin their own Call / WhatsApp bar on phones. */
+@media (max-width: 1023px) { .wa-float[data-sticky-bar="true"] { display: none; } }
+@media (prefers-reduced-motion: reduce) { .wa-float, .wa-float-pulse { animation: none; transition: none; } }
+@media (max-width: 640px) {
+  .agx-p1-rail > .agx-p1-card { width: 84%; }
+  .agx-p1-stats { gap: 6px; }
+  .agx-p1-chip { gap: 4px; padding: 4px 8px 4px 6px; }
+  .agx-p1-chip-icon { width: 12px; height: 12px; flex-basis: 12px; }
+  .agx-p1-chip b { font-size: .78rem; }
+  .agx-p1-chip span { font-size: .68rem; }
+}
