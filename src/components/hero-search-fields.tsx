@@ -4,6 +4,9 @@ import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent, ty
 import { useLanguage } from "@/components/language-provider";
 import { budgetRangeLabel, formatBudgetDigits, formatBudgetShort, parseBudget } from "@/lib/budget";
 import type { LocationSuggestion } from "@/lib/location-suggest";
+import type { NearMeResult } from "@/lib/near-me";
+
+export type LocatedPlace = Extract<NearMeResult, { status: "near" | "city" }>;
 
 /* ------------------------------------------------------------------ */
 /* Icons                                                               */
@@ -43,6 +46,14 @@ const GridIcon = ({ className }: { className?: string }) => (
 const ChevronIcon = ({ className }: { className?: string }) => (
   <Svg className={className}>
     <path d="m6.5 9.5 5.5 5.5 5.5-5.5" />
+  </Svg>
+);
+/** GPS "locate me" crosshair. */
+const LocateIcon = ({ className }: { className?: string }) => (
+  <Svg className={className}>
+    <circle cx="12" cy="12" r="6.2" />
+    <circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none" />
+    <path d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3" />
   </Svg>
 );
 const CloseIcon = ({ className }: { className?: string }) => (
@@ -90,14 +101,27 @@ function Highlight({ label, query }: { label: string; query: string }) {
 /* Location field with live suggestions                                */
 /* ------------------------------------------------------------------ */
 
+const GEO_MESSAGES = {
+  denied: "Location access is blocked. Allow it from your browser's address bar, or type an area.",
+  failed: "We couldn't detect your location. Please try again or type an area.",
+  unsupported: "Your browser can't share its location. Please type a city or area.",
+  outside: "You seem to be outside Pakistan. Type a city or area to search.",
+  empty: "No listings are live right now. Please try again later.",
+} as const;
+
 export function HeroLocationField({
   value,
   onChange,
   onPick,
+  purpose,
+  onLocate,
 }: {
   value: string;
   onChange: (value: string) => void;
   onPick: (suggestion: LocationSuggestion | null) => void;
+  /** Sent to the near-me resolver so the radius is sized for sale or rent listings. */
+  purpose: string;
+  onLocate: (place: LocatedPlace) => void;
 }) {
   const { t } = useLanguage();
   const id = useId();
@@ -108,6 +132,12 @@ export function HeroLocationField({
   const [items, setItems] = useState<LocationSuggestion[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
+  /** Query the current `items` belong to ("" = the popular list). */
+  const [itemsQuery, setItemsQuery] = useState("");
+  const [locating, setLocating] = useState(false);
+  const [note, setNote] = useState("");
+  /** Latest typed text, read by handlers that can fire before React re-renders. */
+  const valueRef = useRef(value);
   const timer = useRef<number | null>(null);
   const controller = useRef<AbortController | null>(null);
 
@@ -119,6 +149,7 @@ export function HeroLocationField({
     const cached = cache.current.get(key);
     if (cached) {
       setItems(cached);
+      setItemsQuery(key);
       setActive(-1);
       return;
     }
@@ -131,6 +162,7 @@ export function HeroLocationField({
         const results = data.results ?? [];
         cache.current.set(key, results);
         setItems(results);
+        setItemsQuery(key);
         setActive(-1);
       } catch {
         /* aborted or offline — keep the previous list */
@@ -158,8 +190,46 @@ export function HeroLocationField({
     };
   }, []);
 
+  /** Browser geolocation → nearest named area + a radius that has listings. */
+  const locate = useCallback(() => {
+    setOpen(false);
+    setNote("");
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setNote(GEO_MESSAGES.unsupported);
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const response = await fetch(
+            `/api/locations/near?lat=${latitude.toFixed(5)}&lng=${longitude.toFixed(5)}&purpose=${encodeURIComponent(purpose)}`,
+          );
+          const result = (await response.json()) as NearMeResult;
+          if (result.status === "near" || result.status === "city") {
+            valueRef.current = result.label;
+            onLocate(result);
+          } else {
+            setNote(result.status === "outside" ? GEO_MESSAGES.outside : result.status === "empty" ? GEO_MESSAGES.empty : GEO_MESSAGES.failed);
+          }
+        } catch {
+          setNote(GEO_MESSAGES.failed);
+        } finally {
+          setLocating(false);
+        }
+      },
+      (error) => {
+        setLocating(false);
+        setNote(error.code === error.PERMISSION_DENIED ? GEO_MESSAGES.denied : GEO_MESSAGES.failed);
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 300000 },
+    );
+  }, [onLocate, purpose]);
+
   const pick = useCallback(
     (suggestion: LocationSuggestion) => {
+      valueRef.current = suggestion.label;
       onChange(suggestion.label);
       onPick(suggestion);
       setOpen(false);
@@ -171,7 +241,7 @@ export function HeroLocationField({
   function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (!open && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
       setOpen(true);
-      request(value);
+      request(valueRef.current);
       return;
     }
     if (!open) return;
@@ -189,8 +259,8 @@ export function HeroLocationField({
     }
   }
 
-  const showList = open && items.length > 0;
-  const heading = value.trim() ? t("Suggestions") : t("Popular locations");
+  const showList = open && (items.length > 0 || !itemsQuery);
+  const heading = itemsQuery ? t("Suggestions") : t("Popular locations");
 
   return (
     <div ref={wrapRef} className="pkr-field pkr-field--location hs-wrap">
@@ -204,17 +274,20 @@ export function HeroLocationField({
           type="text"
           value={value}
           onChange={(event) => {
+            valueRef.current = event.target.value;
             onChange(event.target.value);
             onPick(null);
             request(event.target.value);
+            setNote("");
             setOpen(true);
           }}
           onFocus={() => {
             setOpen(true);
-            request(value);
+            request(valueRef.current);
           }}
           onKeyDown={onKeyDown}
-          placeholder={t("Enter city or area")}
+          placeholder={locating ? t("Detecting your location…") : t("Enter city or area")}
+          aria-busy={locating}
           autoComplete="off"
           spellCheck={false}
           role="combobox"
@@ -223,29 +296,70 @@ export function HeroLocationField({
           aria-autocomplete="list"
           aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
         />
-        {value ? (
+        <span className="hs-field-actions">
+          {value ? (
+            <button
+              type="button"
+              className="hs-clear"
+              aria-label={t("Clear location")}
+              // Keep focus in the input so its onFocus doesn't re-run with the old text.
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => {
+                valueRef.current = "";
+                onChange("");
+                onPick(null);
+                request("");
+                setNote("");
+                setOpen(true);
+                inputRef.current?.focus();
+              }}
+            >
+              <CloseIcon className="h-3.5 w-3.5" />
+            </button>
+          ) : (
+            <PinIcon className="pkr-field-icon hs-field-pin" />
+          )}
           <button
             type="button"
-            className="hs-clear"
-            aria-label={t("Clear location")}
-            onClick={() => {
-              onChange("");
-              onPick(null);
-              request("");
-              setOpen(true);
-              inputRef.current?.focus();
-            }}
+            className={`hs-locate${locating ? " is-busy" : ""}`}
+            onClick={locate}
+            disabled={locating}
+            aria-label={t("Use my current location")}
+            title={t("Use my current location")}
           >
-            <CloseIcon className="h-3.5 w-3.5" />
+            {locating ? <span className="hs-spinner" aria-hidden="true" /> : <LocateIcon className="hs-locate-icon" />}
           </button>
-        ) : (
-          <PinIcon className="pkr-field-icon" />
-        )}
+        </span>
       </span>
+
+      {note && (
+        <p className="hs-note" role="alert">
+          <span>{t(note)}</span>
+          <button type="button" aria-label={t("Dismiss")} onClick={() => setNote("")}>
+            <CloseIcon className="h-3 w-3" />
+          </button>
+        </p>
+      )}
 
       {showList && (
         <div className="hs-panel hs-panel--location">
-          <p className="hs-panel-title">{heading}</p>
+          {!itemsQuery && (
+            <button
+              type="button"
+              className="hs-near-opt"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={locate}
+            >
+              <span className="hs-near-icon">
+                <LocateIcon className="h-[1.05rem] w-[1.05rem]" />
+              </span>
+              <span className="hs-opt-text">
+                <span className="hs-opt-label">{t("Use my current location")}</span>
+                <span className="hs-opt-detail">{t("Show properties near me")}</span>
+              </span>
+            </button>
+          )}
+          {items.length > 0 && <p className="hs-panel-title">{heading}</p>}
           <ul id={listId} role="listbox" aria-label={heading} className="hs-options">
             {items.map((item, index) => (
               <li

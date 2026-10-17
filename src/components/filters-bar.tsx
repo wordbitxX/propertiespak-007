@@ -7,7 +7,7 @@ import { BUDGETS_BUY, BUDGETS_RENT, SORT_OPTIONS } from "@/lib/constants";
 import { beginRecentSearch } from "@/lib/recent-properties";
 import { NavigationDialog } from "@/components/navigation-dialog";
 import { PropertySearchFilters } from "@/components/property-search-filters";
-import { propertySearchFromParams, propertySearchHref, SEARCH_FILTER_KEYS } from "@/lib/property-search";
+import { NEAR_RADII, parseNear, parseRadius, propertySearchFromParams, propertySearchHref, SEARCH_FILTER_KEYS } from "@/lib/property-search";
 
 type Option = { label: string; value: string };
 export type TownGroup = { citySlug: string; cityName: string; towns: Option[] };
@@ -91,7 +91,10 @@ export function FiltersBar({
     [selectedCity, townGroups],
   );
 
-  const activeCount = SEARCH_FILTER_KEYS.filter((key) => !["page", "sort", "areaUnit", "townExact"].includes(key)).filter(
+  const near = parseNear(searchParams.get("near"));
+  const radius = parseRadius(searchParams.get("radius"));
+
+  const activeCount = SEARCH_FILTER_KEYS.filter((key) => !["page", "sort", "areaUnit", "townExact", "radius"].includes(key)).filter(
     (key) => searchParams.get(key),
   ).length;
 
@@ -296,9 +299,10 @@ export function FiltersBar({
         <select
           id="filter-sort"
           className="field mt-2"
-          value={searchParams.get("sort") ?? "newest"}
+          value={searchParams.get("sort") ?? (near ? "nearest" : "newest")}
           onChange={(event) => update("sort", event.target.value)}
         >
+          {near && <option value="nearest">Nearest first</option>}
           {SORT_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
@@ -345,6 +349,37 @@ export function FiltersBar({
         </button>
         </div>
       </div>
+      {near && (
+        <div className="near-me-bar" role="group" aria-label="Distance from your location">
+          <span className="near-me-bar__label">
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
+              <circle cx="12" cy="12" r="6.2" />
+              <circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none" />
+              <path d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3" />
+            </svg>
+            <span>
+              <b>Near your location</b>
+              <small>Within {radius} km · nearest first</small>
+            </span>
+          </span>
+          <span className="near-me-bar__radii">
+            {NEAR_RADII.map((km) => (
+              <button
+                key={km}
+                type="button"
+                aria-pressed={km === radius}
+                className={km === radius ? "is-active" : ""}
+                onClick={() => update("radius", String(km))}
+              >
+                {km} km
+              </button>
+            ))}
+          </span>
+          <button type="button" className="near-me-bar__clear" onClick={() => update("near", "", { radius: "", sort: "" })}>
+            <IconClose className="h-3.5 w-3.5" /> Remove
+          </button>
+        </div>
+      )}
       <div className={`${mobileOpen ? "mt-4 block" : "hidden"} xl:mt-4 xl:block`}>{fields}</div>
       {advancedOpen && <NavigationDialog label="Search properties" className="property-filter-dialog" onDismiss={() => setAdvancedOpen(false)}>
         <PropertySearchFilters initialState={{ ...propertySearchFromParams(searchParams, purposeKind === "rent" ? "rent" : "buy"),

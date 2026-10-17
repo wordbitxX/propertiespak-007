@@ -4,12 +4,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useLanguage } from "@/components/language-provider";
-import { HeroBudgetField, HeroLocationField } from "@/components/hero-search-fields";
+import { HeroBudgetField, HeroLocationField, type LocatedPlace } from "@/components/hero-search-fields";
 import type { LocationSuggestion } from "@/lib/location-suggest";
 import { BUDGETS_BUY, BUDGETS_RENT } from "@/lib/constants";
 import {
   COMMERCIAL_SEARCH_TYPES,
   defaultPropertySearch,
+  formatNear,
   HOME_SEARCH_TYPES,
   PLOT_SEARCH_TYPES,
   propertySearchHref,
@@ -87,6 +88,19 @@ export function Hero({ stats }: { stats: HeroStats }) {
     setTab(next);
     setMinPrice("");
     setMaxPrice("");
+  }
+
+  /** "Use my current location": straight to listings around the visitor. */
+  function onLocate(found: LocatedPlace) {
+    setLocation(found.label);
+    setPlace(null);
+    if (tab === "sell") return;
+    const base = { ...defaultPropertySearch(tab), type, minPrice, maxPrice };
+    const state =
+      found.status === "near"
+        ? { ...base, near: formatNear(found.lat, found.lng), radius: String(found.radiusKm), sort: "nearest" }
+        : { ...base, city: found.city };
+    router.push(propertySearchHref(state));
   }
 
   function submit(event: FormEvent) {
@@ -168,7 +182,7 @@ export function Hero({ stats }: { stats: HeroStats }) {
             ))}
           </div>
           <div className="pkr-search-card">
-            <HeroLocationField value={location} onChange={setLocation} onPick={setPlace} />
+            <HeroLocationField value={location} onChange={setLocation} onPick={setPlace} purpose={tab === "rent" ? "rent" : "buy"} onLocate={onLocate} />
             <label className="pkr-field">
               <span className="pkr-field-label">{t("Property type")}</span>
               <span className="pkr-field-control">
