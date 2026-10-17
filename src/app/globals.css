@@ -5410,64 +5410,88 @@ html[data-header-solid] .site-header .header-utility-bar {
 }
 
 /* ===================================================================
-   Header: Maps / Tools dropdowns + icon-only account button
+   Header: Maps / Tools dropdowns (Pakistan Property Services style)
+   + transparent icon-only account button
    =================================================================== */
 .header-dropdown { position: relative; display: flex; align-items: center; }
 .header-desktop-nav .header-dropdown-trigger {
   display: inline-flex; align-items: center; gap: 4px; min-height: 44px;
-  border: 0; background: none; cursor: pointer; line-height: inherit;
+  border: 0; background: none; cursor: pointer; line-height: inherit; white-space: nowrap;
 }
 .header-dropdown-chevron { transition: transform .2s ease; }
 .header-dropdown[data-open="true"] .header-dropdown-chevron { transform: rotate(180deg); }
 .header-dropdown-panel {
-  position: absolute; top: 100%; inset-inline-start: -14px; z-index: 60;
-  min-width: 268px; margin-top: 6px; padding: 8px;
-  border: 1px solid #e4e8e5; border-radius: 14px; background: #ffffff;
-  color: #0c261d; box-shadow: var(--shadow-panel);
+  position: absolute; top: calc(100% + 12px); inset-inline-start: -22px; z-index: 60;
+  min-width: 250px; padding: 0; border-radius: 6px; background: #ffffff; color: #1c1c1c;
+  box-shadow: 0 18px 44px -12px rgba(0, 0, 0, .35), 0 2px 8px rgba(0, 0, 0, .08);
   animation: header-dropdown-in .16s ease-out;
 }
-.header-dropdown-panel::before { content: ""; position: absolute; inset-inline: 0; top: -10px; height: 10px; }
-.header-dropdown-panel[data-layout="grid"] { width: 580px; inset-inline-start: -230px; }
-.header-dropdown-panel[data-layout="grid"] .header-dropdown-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 6px; }
+/* hover bridge between the trigger and the panel */
+.header-dropdown-panel::before { content: ""; position: absolute; inset-inline: 0; top: -16px; height: 16px; }
+/* small pointer under the trigger */
+.header-dropdown-panel::after {
+  content: ""; position: absolute; top: -7px; inset-inline-start: 34px; width: 14px; height: 14px;
+  background: #ffffff; transform: rotate(45deg); border-radius: 2px;
+}
 @keyframes header-dropdown-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
-.header-dropdown-list { margin: 0; padding: 0; list-style: none; }
-.header-dropdown-parent { position: relative; }
+.header-dropdown-list { position: relative; z-index: 1; margin: 0; padding: 6px 0; list-style: none; border-radius: 6px; background: #ffffff; }
+.header-dropdown-list > li, .header-flyout > li { position: relative; }
+.header-dropdown-list > li + li > .header-dropdown-item,
+.header-flyout > li + li > .header-dropdown-item { border-top: 1px solid #eeeeee; }
+.header-dropdown-panel[data-layout="grid"] { width: 520px; inset-inline-start: -200px; }
+.header-dropdown-panel[data-layout="grid"]::after { inset-inline-start: 222px; }
+.header-dropdown-panel[data-layout="grid"] .header-dropdown-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 0; }
+.header-dropdown-panel[data-layout="grid"] .header-dropdown-list > li > .header-dropdown-item { border-top: 1px solid #eeeeee; }
+.header-dropdown-panel[data-layout="grid"] .header-dropdown-list > li:nth-child(-n+2) > .header-dropdown-item { border-top: 0; }
 .header-dropdown-item {
-  display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px;
-  min-height: 40px; padding: 8px 12px; border: 0; border-radius: 9px; background: none;
-  color: #0c261d; font-family: var(--font-sans); font-size: .845rem; font-weight: 600;
-  text-align: start; cursor: pointer; transition: background-color .15s ease, color .15s ease;
+  display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px;
+  min-height: 48px; padding: 12px 26px; border: 0; border-radius: 0; background: none;
+  color: #1c1c1c; font-family: var(--font-sans); font-size: .9rem; font-weight: 500; line-height: 1.35;
+  text-align: start; cursor: pointer; transition: color .15s ease;
 }
 .header-dropdown-item:hover, .header-dropdown-item:focus-visible,
-.header-dropdown-parent:has(> .header-flyout:not([hidden])) > .header-dropdown-item { background: #eef6f1; color: #0e3b2c; }
-.header-dropdown-item[data-active="true"] { color: #15803d; }
-.header-dropdown-item:focus-visible { outline: 2px solid #22c55e; outline-offset: -2px; }
-.header-dropdown-item-text { display: flex; min-width: 0; flex-direction: column; gap: 1px; }
-.header-dropdown-item-desc { color: var(--color-ink-muted); font-size: .72rem; font-weight: 500; line-height: 1.35; }
-.header-dropdown-caret { flex-shrink: 0; transform: rotate(-90deg); color: #0e3b2c; }
+.header-dropdown-item[data-active="true"],
+.header-dropdown-parent:has(> .header-flyout:not([hidden])) > .header-dropdown-item { color: #15803d; }
+.header-dropdown-item:focus-visible { outline: 2px solid #22c55e; outline-offset: -3px; }
+.header-dropdown-item-text { display: flex; min-width: 0; flex-direction: column; }
+.header-dropdown-caret { flex-shrink: 0; transform: rotate(-90deg); color: #1c1c1c; }
+.header-dropdown-item:hover .header-dropdown-caret,
+.header-dropdown-parent:has(> .header-flyout:not([hidden])) .header-dropdown-caret { color: #15803d; }
 [dir="rtl"] .header-dropdown-caret { transform: rotate(90deg); }
 .header-flyout {
-  position: absolute; top: -8px; inset-inline-start: calc(100% + 14px); z-index: 61;
-  min-width: 236px; margin: 0; padding: 8px; list-style: none;
-  border: 1px solid #e4e8e5; border-radius: 14px; background: #ffffff; box-shadow: var(--shadow-panel);
+  position: absolute; top: 0; inset-inline-start: 100%; z-index: 61;
+  min-width: 240px; max-width: 280px; margin: 0; padding: 6px 0; list-style: none;
+  border-radius: 6px; background: #ffffff;
+  box-shadow: 0 18px 44px -12px rgba(0, 0, 0, .35), 0 2px 8px rgba(0, 0, 0, .08);
 }
-.header-flyout::before { content: ""; position: absolute; top: 0; bottom: 0; inset-inline-start: -16px; width: 16px; }
 .header-dropdown-footer {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  margin-top: 6px; padding: 10px 12px 4px; border-top: 1px solid #eef1ef;
-  color: #15803d; font-size: .8rem; font-weight: 650;
+  padding: 12px 26px; border-top: 1px solid #eeeeee; border-radius: 0 0 6px 6px; background: #f6f8f7;
+  color: #15803d; font-size: .82rem; font-weight: 600; position: relative; z-index: 1;
 }
 .header-dropdown-footer:hover { color: #0e3b2c; }
 [dir="rtl"] .header-dropdown-footer svg { transform: scaleX(-1); }
 
-/* Account: compact round icon instead of the "Sign In / Register" text */
+/* Account: transparent round icon (no filled button) */
 .site-header .header-account,
 html[data-header-solid] .site-header .header-account {
   width: 40px; min-width: 40px; height: 40px; min-height: 40px;
-  padding: 0; margin-inline-start: 8px; border-radius: 999px;
+  padding: 0; margin-inline-start: 6px; border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .28); background: transparent; box-shadow: none;
+  color: rgba(255, 255, 255, .92) !important;
+}
+.site-header .header-account:hover,
+html[data-header-solid] .site-header .header-account:hover {
+  background: rgba(255, 255, 255, .1) !important; border-color: #4ade80; color: #4ade80 !important; filter: none;
 }
 .site-header .header-account svg { flex-shrink: 0; }
-.site-header .header-account:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
+.site-header .header-account:focus-visible { outline: 2px solid #4ade80; outline-offset: 2px; }
+
+/* Search + Saved live in the top bar (visible from 768px), so drop the duplicate header icons there. */
+@media (min-width: 768px) {
+  .site-header .header-actions .header-search-action,
+  .site-header .header-actions .header-saved-action { display: none !important; }
+}
 
 /* Mobile drawer accordions */
 .mobile-nav-submenu { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; padding: 10px; border-radius: 12px; background: #f4f7f5; }

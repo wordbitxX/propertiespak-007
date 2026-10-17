@@ -194,7 +194,6 @@ export function HeaderDropdown({
                 >
                   <span className="header-dropdown-item-text">
                     <span className="header-dropdown-item-label">{t(item.label)}</span>
-                    {item.description && <span className="header-dropdown-item-desc">{t(item.description)}</span>}
                   </span>
                 </Link>
               </li>
