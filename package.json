@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "@playwright/test": "^1.63.0",
     "@types/leaflet": "^1.9.12",
     "@vercel/functions": "^3.9.9",

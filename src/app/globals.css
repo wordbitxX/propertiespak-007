@@ -7013,6 +7013,28 @@ body.lux-theme footer a:hover { color: var(--lux-gold-soft); }
   .pkr-hero--home .pkr-stats small { font-size: .72rem; line-height: 1.25; }
 }
 
-/* Explore more: redrawn 24px icon set, sized to fill the tile properly */
-.explore-more-glyph { position: relative; z-index: 1; width: 34px; height: 34px; }
-@media (max-width: 767px) { .explore-more-glyph { width: 31px; height: 31px; } }
+/* Explore more: light-green tiles with Phosphor duotone icons */
+.home-explore-more .explore-more-icon {
+  width: 60px;
+  height: 60px;
+  flex-basis: 60px;
+  border-radius: 16px;
+  background: linear-gradient(150deg, #f3faf5 0%, #e3f2e8 100%) !important;
+  color: #1b6a45 !important;
+  box-shadow: inset 0 0 0 1px #cfe6d7, inset 0 1px 0 #ffffff, 0 8px 18px -14px rgba(23, 60, 45, .45);
+  transition: background .25s ease, color .25s ease, box-shadow .25s ease, transform .25s ease;
+}
+.home-explore-more .explore-more-icon::after { background: linear-gradient(180deg, rgba(255, 255, 255, .5), transparent); }
+.home-explore-more .explore-more-card:hover .explore-more-icon,
+.home-explore-more .explore-more-card:focus-visible .explore-more-icon {
+  background: linear-gradient(150deg, #1f5a40 0%, #173c2d 100%) !important;
+  color: #e5cd9d !important;
+  box-shadow: inset 0 0 0 1px rgba(223, 190, 120, .45), 0 12px 22px -14px rgba(6, 34, 25, .6);
+  transform: translateY(-1px);
+}
+.home-explore-more .explore-more-card:hover .explore-more-icon::after { background: linear-gradient(180deg, rgba(255, 255, 255, .1), transparent); }
+.explore-more-glyph { position: relative; z-index: 1; width: 32px; height: 32px; }
+@media (max-width: 767px) {
+  .home-explore-more .explore-more-icon { width: 56px; height: 56px; flex-basis: 56px; border-radius: 15px; }
+  .explore-more-glyph { width: 30px; height: 30px; }
+}
