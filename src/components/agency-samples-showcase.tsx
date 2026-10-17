@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { IconArrowRight, IconPin } from "@/components/icons";
 import { BlueTick } from "@/components/verified-badge";
+import { AgencyLogoMark } from "@/components/agency-logo-mark";
 import type { DealerProfile } from "@/lib/queries";
 
 /**
@@ -29,7 +30,8 @@ function toAgencies(dealers: DealerProfile[]): Agency[] {
     id: `${dealer.id}-${index}`,
     name: dealer.agency?.trim() || dealer.name?.trim() || "Property Advisor",
     city: dealer.cityName || "Pakistan",
-    logo: dealer.companyLogo || dealer.avatarUrl || null,
+    // Agencies show their company logo; without one they get a generated real-estate logo mark.
+    logo: dealer.companyLogo || null,
     href: dealer.slug ? `/dealers/${dealer.slug}` : "/dealers",
     verified: Boolean(dealer.isVerified),
     listings: dealer.listings ?? 0,
@@ -38,29 +40,20 @@ function toAgencies(dealers: DealerProfile[]): Agency[] {
   }));
 }
 
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter((word) => /[A-Za-z]/.test(word[0] ?? ""))
-    .slice(0, 2)
-    .map((word) => word[0]!.toUpperCase())
-    .join("") || "PP";
-}
-
 /** Agency logo in a circle; falls back to a platinum monogram when there is no image or it fails. */
 function AgencyLogo({ agency, size = 88, tone = "light" }: { agency: Agency; size?: number; tone?: "light" | "dark" }) {
   const [failed, setFailed] = useState(false);
   const showImage = agency.logo && !failed;
   return (
     <span
-      className={`agx-logo ${tone === "dark" ? "agx-logo--dark" : ""}`}
+      className={`agx-logo ${showImage ? "" : "agx-logo--mark"} ${tone === "dark" ? "agx-logo--dark" : ""}`}
       style={{ width: size, height: size, fontSize: Math.round(size * 0.32) }}
     >
       {showImage ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={agency.logo!} alt={`${agency.name} logo`} loading="lazy" draggable={false} onError={() => setFailed(true)} />
       ) : (
-        <span aria-hidden="true">{initials(agency.name)}</span>
+        <AgencyLogoMark name={agency.name} className="h-full w-full" />
       )}
     </span>
   );
@@ -155,22 +148,19 @@ function SampleClassic({ agencies }: { agencies: Agency[] }) {
       </div>
       <div className="agx-rail agx-p1-rail" {...bind} tabIndex={0} aria-label="Verified agencies">
         {agencies.map((agency) => (
-          <article key={agency.id} className="agx-p1-card">
-            <Link href={agency.href} className="agx-p1-link" aria-label={`${agency.name} — view agency`}>
-              <AgencyLogo agency={agency} size={92} />
-              <p className="agx-p1-name">
-                <span className="truncate">{agency.name}</span>
-                {agency.verified && <BlueTick className="h-4 w-4 shrink-0" />}
-              </p>
-              <p className="agx-p1-city">{agency.city}</p>
-            </Link>
-            <div className="agx-p3-stats agx-p1-stats">
-              <div><b>{agency.listings}</b><span>Listings</span></div>
-              <div><b>{agency.verifiedListings}</b><span>Verified</span></div>
-              <div><b>{agency.verified ? "Yes" : "—"}</b><span>KYC</span></div>
-            </div>
-            <Link href={agency.href} className="agx-p3-cta agx-p1-cta">View agency</Link>
-          </article>
+          <Link key={agency.id} href={agency.href} className="agx-p1-card" aria-label={`${agency.name}, ${agency.city} — view agency`}>
+            <AgencyLogo agency={agency} size={104} />
+            <p className="agx-p1-name">
+              <span className="truncate">{agency.name}</span>
+              {agency.verified && <BlueTick className="h-4 w-4 shrink-0" />}
+            </p>
+            <p className="agx-p1-city">{agency.city}</p>
+            <p className="agx-p1-meta">
+              <span><b>{agency.listings}</b> Listings</span>
+              <span className="agx-p1-dot" aria-hidden="true" />
+              <span><b>{agency.verifiedListings}</b> Verified</span>
+            </p>
+          </Link>
         ))}
       </div>
     </section>

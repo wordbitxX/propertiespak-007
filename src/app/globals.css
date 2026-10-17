@@ -5866,3 +5866,16 @@ html body .site-header .header-list-property.header-list-property:focus-visible 
 .home-page .home-verified-agencies { padding: clamp(28px, 4vw, 44px) 0; }
 .home-page .home-verified-agencies .agx-p1 { box-shadow: 0 10px 30px -24px rgba(8, 34, 26, .35); }
 .home-page .home-verified-agencies .agx-serif { color: #0d261d; }
+
+/* Verified Agencies v2 — shorter section, wider boxes, bigger logos, whole card clickable */
+.agx-logo--mark { background: transparent; box-shadow: 0 8px 20px -12px rgba(15, 30, 40, .55); }
+.agx-p1 { padding: 24px 28px 18px; }
+.agx-p1 .agx-head { margin-bottom: 16px; }
+.agx-p1-rail > .agx-p1-card { width: 262px; }
+.agx-p1-card { gap: 2px; padding: 20px 16px 16px; cursor: pointer; }
+.agx-p1-card .agx-logo { margin-bottom: 10px; }
+.agx-p1-meta { display: inline-flex; align-items: center; gap: 8px; margin: 8px 0 0; padding: 4px 12px; border-radius: 999px; background: #f2f6f4; color: #5b6d64; font-size: .76rem; white-space: nowrap; }
+.agx-p1-meta b { color: #0d382a; font-weight: 800; }
+.agx-p1-dot { width: 3px; height: 3px; border-radius: 999px; background: #a3b3ab; }
+.home-page .home-verified-agencies { padding: clamp(18px, 2.6vw, 30px) 0; }
+@media (max-width: 640px) { .agx-p1-rail > .agx-p1-card { width: 72%; } }
