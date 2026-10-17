@@ -3,6 +3,7 @@ import { breadcrumbJsonLd, buildMetadata, collectionPageJsonLd, faqJsonLd } from
 import { SITE } from "@/lib/constants";
 import { SOCIETY_MAP_CITIES, SOCIETY_PDF_MAPS } from "@/lib/society-pdf-maps";
 import { MapsExplorer } from "@/components/maps-explorer";
+import { RelatedGuides } from "@/components/related-guides";
 import { getMapProperties } from "@/lib/queries";
 import { IconArrowRight, IconPin, IconShield, IconSpark } from "@/components/icons";
 
@@ -404,6 +405,7 @@ export default async function SocietyMapsPage() {
           </div>
         </div>
       </section>
+      <RelatedGuides categories={["Maps", "Guides"]} title="Map & plot guides" />
     </div>
   );
 }

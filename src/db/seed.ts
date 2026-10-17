@@ -10,6 +10,7 @@ import { agentSeed, citySeed, postSeed, projectSeed, propertySeed, testimonialSe
 import { extraPropertySeed } from "@/db/seed-data-extra";
 import { dhaPropertySeed } from "@/db/seed-data-dha";
 import { EXTRA_POSTS, POST_LINKS } from "@/db/seed-content";
+import { BLOG_POSTS_2026 } from "@/lib/blog-content-2026";
 import { assignSeedGalleries } from "@/db/seed-gallery";
 import type { SeedProperty } from "@/db/seed-data";
 import { HERO_PHOTO_ID, photo, photos, sectionPhotos, submissionFallbackPhotos } from "@/lib/images";
@@ -386,7 +387,33 @@ async function refreshReferenceContent(q: Executor) {
     publishedAt: new Date(Date.now() - (basePosts.length + index + 1) * 86_400_000 * 5),
   }));
 
-  const postRows = [...basePosts, ...extraPosts];
+  // October 2026 editorial cluster (malls, maps, cities) — fixed publish dates.
+  const clusterPosts = BLOG_POSTS_2026.map((post) => ({
+    slug: post.slug,
+    title: post.title,
+    category: post.category,
+    excerpt: post.excerpt,
+    body: post.body,
+    coverImage: post.cover,
+    author: post.author,
+    readMinutes: post.readMinutes,
+    tags: post.tags,
+    links: post.links,
+    publishedAt: new Date(post.publishedAt),
+  }));
+
+  // Articles that are already live (and indexed) keep their original publish
+  // date when the seed refreshes, so search engines never see dates jump.
+  const legacyRows = [...basePosts, ...extraPosts];
+  const existing = await q
+    .select({ slug: posts.slug, publishedAt: posts.publishedAt })
+    .from(posts)
+    .where(inArray(posts.slug, legacyRows.map((post) => post.slug)));
+  const existingDates = new Map(existing.map((row) => [row.slug, row.publishedAt]));
+  const postRows = [
+    ...legacyRows.map((post) => ({ ...post, publishedAt: existingDates.get(post.slug) ?? post.publishedAt })),
+    ...clusterPosts,
+  ];
   await q.delete(posts).where(inArray(posts.slug, postRows.map((post) => post.slug)));
   await q.insert(posts).values(postRows);
 
@@ -693,6 +720,7 @@ export const SEED_VERSION = createHash("sha256")
       postSeed,
       EXTRA_POSTS,
       POST_LINKS,
+      BLOG_POSTS_2026,
       testimonialSeed,
       dealerSeed,
       seedListings,

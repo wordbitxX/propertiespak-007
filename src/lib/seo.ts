@@ -12,6 +12,7 @@ type MetaInput = {
   keywords?: string[];
   type?: "website" | "article";
   publishedTime?: string;
+  modifiedTime?: string;
   robots?: Metadata["robots"];
   /** Short context label rendered on the generated social card. */
   ogKicker?: string;
@@ -36,6 +37,7 @@ export function buildMetadata({
   keywords,
   type = "website",
   publishedTime,
+  modifiedTime,
   robots,
   ogKicker,
   ogSubtitle,
@@ -63,6 +65,7 @@ export function buildMetadata({
       locale: SITE.locale,
       type,
       publishedTime,
+      ...(modifiedTime ? { modifiedTime } : {}),
       images: [{ url: og, width: 1200, height: 630, alt: title }],
     },
     twitter: {
@@ -358,20 +361,32 @@ export function projectJsonLd(project: Project) {
   };
 }
 
-export function articleJsonLd(post: Post) {
+export function articleJsonLd(
+  post: Post,
+  extras: { updatedAt?: string; wordCount?: number; about?: string[] } = {},
+) {
+  const url = `${SITE.url}/blog/${post.slug}`;
+  const published = post.publishedAt instanceof Date ? post.publishedAt.toISOString() : undefined;
+  const image = /^https?:\/\//.test(post.coverImage) ? post.coverImage : `${SITE.url}${post.coverImage}`;
   return {
     "@context": "https://schema.org",
-    "@type": "Article",
-    "@id": `${SITE.url}/blog/${post.slug}#article`,
+    "@type": "BlogPosting",
+    "@id": `${url}#article`,
     headline: post.title,
     description: post.excerpt,
-    image: [post.coverImage],
+    image: [image],
     author: { "@type": "Organization", name: post.author, url: `${SITE.url}/about` },
     publisher: { "@id": `${SITE.url}/#organization` },
-    datePublished: post.publishedAt instanceof Date ? post.publishedAt.toISOString() : undefined,
+    datePublished: published,
+    dateModified: extras.updatedAt ?? published,
+    articleSection: post.category,
+    keywords: post.tags.join(", "),
+    ...(extras.wordCount ? { wordCount: extras.wordCount } : {}),
+    ...(extras.about?.length ? { about: extras.about.map((name) => ({ "@type": "Thing", name })) } : {}),
     inLanguage: SITE.language,
+    isAccessibleForFree: true,
     isPartOf: { "@id": `${SITE.url}/#website` },
-    mainEntityOfPage: `${SITE.url}/blog/${post.slug}`,
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
   };
 }
 

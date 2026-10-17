@@ -6,6 +6,7 @@ import { getAllKeywordLandingSlugs } from "@/lib/keyword-landings";
 import { TOWNS, getAllTownSlugs } from "@/lib/towns";
 import { getAllMallSlugs } from "@/lib/malls";
 import { DEEP_ZOOM_MAPS, DHA_SOCIETY_MAPS } from "@/lib/map-library";
+import { BLOG_POSTS_2026_BY_SLUG } from "@/lib/blog-content-2026";
 
 export const dynamic = "force-dynamic";
 
@@ -123,11 +124,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: "weekly" as const,
         priority: 0.7,
       })),
-      ...posts.map((item) => ({
-        url: `${SITE.url}/blog/${item.slug}`,
-        changeFrequency: "monthly" as const,
-        priority: 0.6,
-      })),
+      ...posts.map((item) => {
+        const updated = BLOG_POSTS_2026_BY_SLUG.get(item.slug)?.updatedAt;
+        return {
+          url: `${SITE.url}/blog/${item.slug}`,
+          changeFrequency: "monthly" as const,
+          priority: 0.6,
+          ...(updated ? { lastModified: new Date(updated) } : {}),
+        };
+      }),
       ...dealers
         .filter((dealer) => dealer.slug)
         .map((dealer) => ({

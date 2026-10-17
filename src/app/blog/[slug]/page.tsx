@@ -11,7 +11,9 @@ import { Section, SectionHeading } from "@/components/section";
 import { formatDate } from "@/lib/format";
 import { getPostBySlug, getPosts } from "@/lib/queries";
 import { keywordsForTags } from "@/lib/keyword-catalog";
-import { articleJsonLd, buildMetadata } from "@/lib/seo";
+import { articleJsonLd, buildMetadata, faqJsonLd } from "@/lib/seo";
+import { ArticleBody, countWords, extractHeadings } from "@/components/article-body";
+import { getBlogExtras } from "@/lib/blog-content-2026";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -25,13 +27,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       path: "/blog",
     });
   }
+  const extras = getBlogExtras(post.slug);
   return buildMetadata({
-    title: post.title,
+    title: extras?.seoTitle ?? post.title,
     description: post.excerpt,
     path: `/blog/${post.slug}`,
     image: post.coverImage,
     type: "article",
     publishedTime: post.publishedAt instanceof Date ? post.publishedAt.toISOString() : undefined,
+    modifiedTime: extras?.updatedAt ? new Date(extras.updatedAt).toISOString() : undefined,
     keywords: post.tags,
   });
 }
@@ -41,7 +45,27 @@ export default async function BlogPostPage({ params }: PageProps) {
   const post = await getPostBySlug(slug);
   if (!post) notFound();
 
-  const related = (await getPosts(4)).filter((item) => item.slug !== post.slug).slice(0, 3);
+  const extras = getBlogExtras(post.slug);
+  // Show "Updated" only for a real edit made after the publish day.
+  const updatedAt =
+    extras?.updatedAt && post.publishedAt instanceof Date && new Date(extras.updatedAt).getTime() - post.publishedAt.getTime() > 86_400_000
+      ? new Date(extras.updatedAt)
+      : null;
+  const headings = extractHeadings(post.body);
+  const tagSet = new Set(post.tags.map((tag) => tag.toLowerCase()));
+  // Related articles: same category first, then shared tags, then newest.
+  const related = (await getPosts(60))
+    .filter((item) => item.slug !== post.slug)
+    .map((item, index) => ({
+      item,
+      score:
+        (item.category === post.category ? 3 : 0) +
+        item.tags.filter((tag) => tagSet.has(tag.toLowerCase())).length -
+        index / 1000,
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map(({ item }) => item);
 
   return (
     <>
@@ -63,7 +87,16 @@ export default async function BlogPostPage({ params }: PageProps) {
             <p className="lede mt-5 text-white/70">{post.excerpt}</p>
             <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-[0.8125rem] text-white/55">
               <span>{post.author}</span>
-              <span>{formatDate(post.publishedAt)}</span>
+              <span>
+                <time dateTime={post.publishedAt instanceof Date ? post.publishedAt.toISOString() : undefined}>
+                  {formatDate(post.publishedAt)}
+                </time>
+              </span>
+              {updatedAt && (
+                <span>
+                  Updated <time dateTime={updatedAt.toISOString()}>{formatDate(updatedAt)}</time>
+                </span>
+              )}
               <span>{post.readMinutes} min read</span>
             </div>
           </div>
@@ -84,12 +117,61 @@ export default async function BlogPostPage({ params }: PageProps) {
                 className="h-[280px] w-full object-cover lg:h-[420px]"
               />
             </div>
-            <div className="mt-8 space-y-5">
-              {post.body.map((paragraph) => (
-                <p key={paragraph.slice(0, 32)} className="text-[1.0125rem] leading-[1.8] text-ink">
-                  {paragraph}
+            {extras && extras.keyTakeaways.length > 0 && (
+              <div className="article-takeaways mt-8" aria-labelledby="key-takeaways">
+                <h2 id="key-takeaways" className="font-sans text-[1.05rem] font-semibold text-navy-900">
+                  Key takeaways
+                </h2>
+                <ul className="mt-3 space-y-2">
+                  {extras.keyTakeaways.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {headings.length >= 3 && (
+              <nav className="article-toc mt-6" aria-label="In this article">
+                <p className="font-sans text-[0.8125rem] font-semibold uppercase tracking-[0.12em] text-ink-muted">
+                  In this article
                 </p>
-              ))}
+                <ol className="mt-3 grid gap-1.5 sm:grid-cols-2">
+                  {headings.map((heading) => (
+                    <li key={heading.id}>
+                      <a href={`#${heading.id}`}>{heading.text}</a>
+                    </li>
+                  ))}
+                </ol>
+              </nav>
+            )}
+            <ArticleBody body={post.body} />
+            {extras && extras.faqs.length > 0 && (
+              <section className="mt-12" aria-labelledby="faqs">
+                <h2 id="faqs" className="article-h2">
+                  Frequently asked questions
+                </h2>
+                <div className="mt-5 divide-y divide-soft rounded-panel border border-soft bg-white">
+                  {extras.faqs.map((faq) => (
+                    <details key={faq.question} className="article-faq group px-5 py-4">
+                      <summary className="cursor-pointer list-none font-sans text-[0.98rem] font-semibold text-navy-900">
+                        {faq.question}
+                      </summary>
+                      <p className="mt-3 text-[0.95rem] leading-relaxed text-ink">{faq.answer}</p>
+                    </details>
+                  ))}
+                </div>
+              </section>
+            )}
+            <div className="article-author mt-10">
+              <span className="article-author-mark" aria-hidden="true">PP</span>
+              <div>
+                <p className="font-sans text-[0.95rem] font-semibold text-navy-900">{post.author}</p>
+                <p className="mt-1 text-[0.85rem] leading-relaxed text-ink-muted">
+                  Researched and reviewed by the Properties Pak editorial desk in Lahore. Facts are checked against
+                  our live listings, society maps and mall directory, and articles are updated when rules or projects
+                  change. <Link href="/about#how-we-work" className="article-link">How we research</Link> ·{" "}
+                  <Link href="/contact" className="article-link">Report a correction</Link>
+                </p>
+              </div>
             </div>
             <div className="mt-8 flex flex-wrap gap-2">
               {post.tags.map((tag) => (
@@ -177,7 +259,14 @@ export default async function BlogPostPage({ params }: PageProps) {
         </Section>
       )}
 
-      <JsonLd data={articleJsonLd(post)} />
+      <JsonLd
+        data={articleJsonLd(post, {
+          updatedAt: extras?.updatedAt ? new Date(extras.updatedAt).toISOString() : undefined,
+          wordCount: countWords(post.body),
+          about: post.tags,
+        })}
+      />
+      {extras && extras.faqs.length > 0 && <JsonLd data={faqJsonLd(extras.faqs)} />}
     </>
   );
 }

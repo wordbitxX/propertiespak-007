@@ -5,6 +5,7 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { JsonLd } from "@/components/json-ld";
 import { MallCard, MallsExplorer } from "@/components/malls-explorer";
 import { Section, SectionHeading } from "@/components/section";
+import { RelatedGuides } from "@/components/related-guides";
 import { getAllMalls, getMallCities } from "@/lib/malls";
 import { breadcrumbJsonLd, buildMetadata, collectionPageJsonLd, faqJsonLd, itemListJsonLd } from "@/lib/seo";
 
@@ -282,6 +283,7 @@ export default function MallsPage() {
           </div>
         </div>
       </Section>
+      <RelatedGuides categories={["Malls"]} title="Shopping mall guides" />
     </>
   );
 }

@@ -8,6 +8,9 @@ import { Section, SectionHeading } from "@/components/section";
 import { SITE } from "@/lib/constants";
 import { getCities, getPlatformStats } from "@/lib/queries";
 import { buildMetadata, faqJsonLd } from "@/lib/seo";
+import { MALLS } from "@/lib/malls";
+import { DEEP_ZOOM_MAPS, DHA_SOCIETY_MAPS, TOOLS_MENU } from "@/lib/map-library";
+import { SOCIETY_PDF_MAPS } from "@/lib/society-pdf-maps";
 import { ResilientImage } from "@/components/resilient-image";
 
 export const metadata: Metadata = buildMetadata({
@@ -105,6 +108,72 @@ const FAQS = [
     answer:
       "Properties Pak is developed and run by WordbitX Software Company. WordbitX runs a group of companies and live digital portals across real estate, automotive, healthcare, education, e-commerce, hospitality and beauty, alongside its software, SEO and marketing services.",
   },
+  {
+    question: "Where is Properties Pak based?",
+    answer:
+      "Properties Pak is headquartered in Lahore, Pakistan, with advisory desks serving Islamabad and Multan and an international desk for overseas Pakistanis in New York.",
+  },
+  {
+    question: "Is Properties Pak free to use?",
+    answer:
+      "Yes. Searching listings, society maps, the mall directory, guides and every calculator is free for buyers and tenants, and owners can submit a property listing for review at no cost.",
+  },
+  {
+    question: "How are dealers verified on Properties Pak?",
+    answer:
+      "Before a dealer or agency gets the verified badge, the Properties Pak desk confirms their identity, agency details and working phone and WhatsApp contact. Verification confirms who you are dealing with; it is not a guarantee of any property's title.",
+  },
+  {
+    question: "Where do the society maps come from?",
+    answer:
+      "Society PDF maps are collected from published society master plans, DHA maps are presented in HD with sector and plot layouts, and the zoomable maps of Bahria Town Lahore, Bahria Orchard, LDA Avenue, Lake City and Al Kabir Town are high-resolution plot maps. Maps show the plan; always confirm a plot's status with the society office.",
+  },
+  {
+    question: "How can I report a wrong listing or correct information?",
+    answer:
+      "Use the Report a listing option on the contact page or message the desk on WhatsApp with the listing link. Reported listings are reviewed and corrected or removed, and article corrections are made as soon as they are verified.",
+  },
+];
+
+const HOW_WE_WORK = [
+  {
+    step: "01",
+    title: "Listings are reviewed before they go live",
+    copy: "Every submission is checked for owner or dealer contact, location, size and price consistency. Listings that fail the check are returned or rejected.",
+  },
+  {
+    step: "02",
+    title: "Dealers are verified, not just registered",
+    copy: "The verified badge is given only after the desk confirms identity, agency and working contact details — and it can be withdrawn after complaints.",
+  },
+  {
+    step: "03",
+    title: "Maps come from published plans",
+    copy: "Society PDF maps, DHA HD maps and zoomable plot maps are sourced from published master plans and kept up to date as societies release revisions.",
+  },
+  {
+    step: "04",
+    title: "Prices are indicators, clearly labelled",
+    copy: "The Pakistan Property Price Index and per-square-foot figures are built from asking prices on the platform. They show direction and comparison, not a valuation.",
+  },
+  {
+    step: "05",
+    title: "Guides are researched and corrected",
+    copy: "Articles are written by the Properties Pak research desk, checked against our listings, maps and mall directory, and updated when rules or projects change.",
+  },
+];
+
+const SERVICES = [
+  { title: "Buy property", copy: "Houses, flats and plots for sale across Pakistan.", href: "/properties?purpose=sale" },
+  { title: "Rent property", copy: "Homes, apartments and offices for rent.", href: "/properties?purpose=rent" },
+  { title: "New projects", copy: "Developments, payment plans and possession timelines.", href: "/projects" },
+  { title: "Commercial", copy: "Shops, offices and commercial plots.", href: "/commercial" },
+  { title: "Society maps", copy: "PDF, DHA HD and zoomable plot maps.", href: "/maps" },
+  { title: "Shopping malls", copy: "Pakistan's mall directory, open and upcoming.", href: "/malls" },
+  { title: "Verified dealers", copy: "Agencies checked by the Properties Pak desk.", href: "/dealers" },
+  { title: "Price index", copy: "Asking-price trends by city and society.", href: "/pakistan-property-price-index" },
+  { title: "Property tools", copy: "Converters and investment calculators.", href: "/tools" },
+  { title: "Guides", copy: "Malls, maps, cities and buying checklists.", href: "/blog" },
 ];
 
 export default async function AboutPage() {
@@ -185,6 +254,82 @@ export default async function AboutPage() {
               </p>
             </div>
           </div>
+        </div>
+      </Section>
+
+      <Section tone="mist" id="at-a-glance">
+        <div className="ui-container grid gap-10 lg:grid-cols-[1fr_1.15fr] lg:items-start">
+          <div>
+            <p className="eyebrow text-forest-700">
+              <span className="h-[1px] w-6 bg-current opacity-70" />
+              At a glance
+            </p>
+            <h2 className="display-3 mt-3 text-navy-900">Properties Pak in one paragraph</h2>
+            <p className="lede mt-4">
+              Properties Pak (propertiespak.com) is a Pakistan property marketplace operated by {SITE.company} from Lahore. It
+              brings together reviewed sale and rental listings, verified dealers, new projects, society maps, a shopping-mall
+              directory, a property price index and free calculators for buyers, tenants, owners and overseas Pakistanis — in
+              English and Urdu.
+            </p>
+          </div>
+          <dl className="about-facts">
+            {[
+              { label: "Operated by", value: SITE.company },
+              { label: "Headquarters", value: "Lahore, Pakistan" },
+              { label: "Cities covered", value: `${cities.length} cities` },
+              { label: "Society maps", value: `${SOCIETY_PDF_MAPS.length} PDF · ${DHA_SOCIETY_MAPS.length} DHA HD · ${DEEP_ZOOM_MAPS.length} zoomable` },
+              { label: "Mall directory", value: `${MALLS.length} malls & projects` },
+              { label: "Free tools", value: `${TOOLS_MENU.length} calculators & converters` },
+              { label: "Languages", value: "English & Urdu" },
+              { label: "Contact", value: SITE.companyPhone },
+            ].map((fact) => (
+              <div key={fact.label}>
+                <dt>{fact.label}</dt>
+                <dd>{fact.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </Section>
+
+      <Section tone="light" id="how-we-work">
+        <div className="ui-container">
+          <SectionHeading
+            eyebrow="How we work"
+            title="How listings, dealers, maps and guides are checked"
+            description="The standards behind every page on Properties Pak — what we check, where information comes from and how corrections are handled."
+          />
+          <ol className="mt-9 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+            {HOW_WE_WORK.map((item) => (
+              <li key={item.step} className="about-step">
+                <span className="about-step-num">{item.step}</span>
+                <h3 className="mt-4 font-sans text-[1rem] font-semibold leading-snug text-navy-900">{item.title}</h3>
+                <p className="mt-2 text-[0.875rem] leading-relaxed text-ink-muted">{item.copy}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </Section>
+
+      <Section tone="dark" id="services" className="about-services-band">
+        <div className="ui-container">
+          <SectionHeading
+            tone="dark"
+            eyebrow="Services"
+            title="Everything Properties Pak offers"
+            description="Start from the service you need — every section below is free to use."
+          />
+          <ul className="mt-9 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-5">
+            {SERVICES.map((service) => (
+              <li key={service.title}>
+                <Link href={service.href} className="about-service group">
+                  <span className="font-sans text-[0.98rem] font-semibold text-navy-900">{service.title}</span>
+                  <span className="mt-1.5 block text-[0.8125rem] leading-relaxed text-ink-muted">{service.copy}</span>
+                  <IconArrowRight className="about-service-arrow h-4 w-4" />
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       </Section>
 
@@ -453,6 +598,21 @@ export default async function AboutPage() {
 
       <CtaSection />
       <JsonLd data={faqJsonLd(FAQS)} />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "AboutPage",
+          "@id": `${SITE.url}/about#webpage`,
+          url: `${SITE.url}/about`,
+          name: "About Properties Pak",
+          description:
+            "Properties Pak is a property marketplace for Pakistan built by WordbitX Software Company — reviewed listings, verified dealers, society maps, a mall directory and free property tools.",
+          inLanguage: SITE.language,
+          isPartOf: { "@id": `${SITE.url}/#website` },
+          about: { "@id": `${SITE.url}/#organization` },
+          mainEntity: { "@id": `${SITE.url}/#organization` },
+        }}
+      />
     </>
   );
 }
