@@ -81,7 +81,8 @@ export const SOCIETY_MAPS: SocietyMapDef[] = [
     zoom: null,
     match: /(dha|defence)[\s-]*(phase[\s-]*)?1\b(?![\s-]*(?:ex|ivy|park|air|town|prism))/i,
     layers: [
-      { name: "Sector A", tiles: "https://maps-cdn.bahriaplus.com/global/dha/lhr/phase1/{z}/{x}/{y}.png", bounds: [31.49088142, 74.40855503, 31.469923911446, 74.379587173462], minZoom: 12, maxZoom: 19 },
+      // Current DHA Plus tileset (verified on dhaplus.com sector pages, Oct 2026); bounds padded slightly.
+      { name: "DHA Phase 1", tiles: "https://maps-cdn.bahriaplus.com/global/lahore/dha-phase-1-lahore/{z}/{x}/{y}.png", bounds: [31.49388142, 74.41155503, 31.46692391, 74.37658717], minZoom: 12, maxZoom: 19 },
     ],
   },
   {
@@ -129,7 +130,8 @@ export const SOCIETY_MAPS: SocietyMapDef[] = [
     zoom: null,
     match: /(dha|defence)[\s-]*(phase[\s-]*)?2\b(?![\s-]*(?:ex|ivy|park|air|town|prism))/i,
     layers: [
-      { name: "Sector Q", tiles: "https://maps-cdn.bahriaplus.com/global/dha/lhr/phase2/{z}/{x}/{y}.png", bounds: [31.48533255, 74.41353321, 31.46787411475, 74.388942718506], minZoom: 12, maxZoom: 19 },
+      // Current DHA Plus tileset (verified on dhaplus.com sector pages, Oct 2026); bounds padded slightly.
+      { name: "DHA Phase 2", tiles: "https://maps-cdn.bahriaplus.com/global/lahore/dha-phase-2-lahore/{z}/{x}/{y}.png", bounds: [31.48833255, 74.41653321, 31.46487411, 74.38594272], minZoom: 12, maxZoom: 19 },
     ],
   },
   {
@@ -140,7 +142,8 @@ export const SOCIETY_MAPS: SocietyMapDef[] = [
     zoom: null,
     match: /(dha|defence)[\s-]*(phase[\s-]*)?3\b(?![\s-]*(?:ex|ivy|park|air|town|prism))/i,
     layers: [
-      { name: "Sector W", tiles: "https://maps-cdn.bahriaplus.com/global/dha/lhr/phase3/{z}/{x}/{y}.png", bounds: [31.48449082, 74.38907146, 31.462786032563, 74.355683326721], minZoom: 12, maxZoom: 19 },
+      // Current DHA Plus tileset (verified on dhaplus.com sector pages, Oct 2026); bounds padded slightly.
+      { name: "DHA Phase 3", tiles: "https://maps-cdn.bahriaplus.com/global/lahore/dha-phase-3-lahore/{z}/{x}/{y}.png", bounds: [31.48749082, 74.39207146, 31.45978603, 74.35268333], minZoom: 12, maxZoom: 19 },
     ],
   },
   {
@@ -162,8 +165,8 @@ export const SOCIETY_MAPS: SocietyMapDef[] = [
     zoom: null,
     match: /(dha|defence)[\s-]*(phase[\s-]*)?4\b(?![\s-]*(?:ex|ivy|park|air|town|prism))/i,
     layers: [
-      { name: "Sector AA", tiles: "https://maps-cdn.bahriaplus.com/global/dha/lhr/phase4/{z}/{x}/{y}.png", bounds: [31.47050956, 74.39370632, 31.451863109428, 74.365553855896], minZoom: 12, maxZoom: 19 },
-      { name: "Sector KK", tiles: "https://maps-cdn.bahriaplus.com/global/lahore/dha-phase-4-kk/{z}/{x}/{y}.png", bounds: [31.46221864, 74.38497305, 31.453981899172, 74.377527236938], minZoom: 12, maxZoom: 19 },
+      // Current DHA Plus tileset (verified on dhaplus.com sector pages, Oct 2026); bounds padded slightly.
+      { name: "DHA Phase 4 (incl. KK)", tiles: "https://maps-cdn.bahriaplus.com/global/lahore/dha-phase-4-lahore/{z}/{x}/{y}.png", bounds: [31.47350956, 74.39670632, 31.44886311, 74.36255386], minZoom: 12, maxZoom: 19 },
     ],
   },
   {
