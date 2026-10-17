@@ -5,14 +5,7 @@ import { SearchPanel } from "@/components/search-panel";
 export default function NotFound() {
   return (
     <section className="relative isolate overflow-hidden bg-navy-950 pb-24 pt-32 lg:pt-40">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-60"
-        style={{
-          backgroundImage:
-            "radial-gradient(700px 400px at 12% 0%, rgba(16,164,86,0.22), transparent 62%), radial-gradient(600px 380px at 88% 20%, rgba(19,80,127,0.5), transparent 60%)",
-        }}
-      />
+      <div aria-hidden="true" className="inner-hero-photo pointer-events-none absolute inset-0" />
       <div className="ui-container relative z-10">
         <p className="eyebrow text-forest-400">
           <span className="h-[1px] w-6 bg-current opacity-70" />

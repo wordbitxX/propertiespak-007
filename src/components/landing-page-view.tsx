@@ -23,14 +23,7 @@ export async function LandingPageView({ content }: { content: LandingContent }) 
     <>
       {/* Intro band */}
       <section className="relative isolate overflow-hidden bg-navy-950 pb-16 pt-28 lg:pb-20 lg:pt-36">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-60"
-          style={{
-            backgroundImage:
-              "radial-gradient(820px 420px at 10% -12%, rgba(16,164,86,0.24), transparent 62%), radial-gradient(760px 420px at 90% 6%, rgba(19,80,127,0.5), transparent 62%)",
-          }}
-        />
+        <div aria-hidden="true" className="inner-hero-photo pointer-events-none absolute inset-0" />
         <div className="ui-container relative z-10">
           <nav aria-label="Breadcrumb" className="text-[0.8125rem] text-white/60">
             <ol className="flex flex-wrap items-center gap-2">

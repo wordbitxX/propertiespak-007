@@ -120,8 +120,18 @@ export function Hero({ stats }: { stats: HeroStats }) {
           )}
         </h1>
         <p className="pkr-hero-sub">
-          {t(
-            "Discover homes, apartments, plots, commercial properties and new projects across Lahore, Islamabad, Karachi and Pakistan’s major markets.",
+          {locale === "en" ? (
+            <>
+              Discover homes, apartments, plots, commercial properties and new projects across{" "}
+              <Link href="/city/lahore" className="pkr-hero-city">Lahore</Link>,{" "}
+              <Link href="/city/islamabad" className="pkr-hero-city">Islamabad</Link>,{" "}
+              <Link href="/city/karachi" className="pkr-hero-city">Karachi</Link> and{" "}
+              <Link href="/properties" className="pkr-hero-city">Pakistan’s major markets</Link>.
+            </>
+          ) : (
+            t(
+              "Discover homes, apartments, plots, commercial properties and new projects across Lahore, Islamabad, Karachi and Pakistan’s major markets.",
+            )
           )}
         </p>
         <div className="pkr-hero-links">

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { IconArrowRight, IconBuilding, IconPin } from "@/components/icons";
-import { BlueTick, UnverifiedChip, initialsFor } from "@/components/verified-badge";
+import { DealerLogo } from "@/components/dealer-logo";
+import { agencyDisplayName } from "@/lib/agency-name";
+import { BlueTick, UnverifiedChip } from "@/components/verified-badge";
 import type { DealerProfile } from "@/lib/queries";
 import { formatDate } from "@/lib/format";
 
@@ -15,9 +17,7 @@ export function DealerCard({ dealer, compact = false }: { dealer: DealerProfile;
   return (
     <article className="flex h-full min-w-0 flex-col rounded-panel border border-soft bg-white p-5 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-navy-100 hover:shadow-card">
       <div className="flex items-start gap-4">
-        <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-navy-900 font-sans text-[1.0625rem] font-bold text-white">
-          {initialsFor(dealer.name)}
-        </span>
+        <DealerLogo name={agencyDisplayName(dealer)} logo={dealer.companyLogo || dealer.avatarUrl} size={56} />
         <div className="min-w-0">
           <h3 className="flex min-w-0 flex-wrap items-center gap-2 font-sans text-[1.0625rem] font-semibold text-navy-900">
             <Link href={href} className="truncate transition-colors hover:text-forest-700">

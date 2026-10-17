@@ -34,6 +34,8 @@ import { Section, SectionHeading } from "@/components/section";
 import { formatArea, formatDate, formatNumber, formatPrice } from "@/lib/format";
 import { getAgentBySlug, getLeadDealerForProperty, getPropertyBySlug, getSimilarProperties, getNearbyProperties } from "@/lib/queries";
 import { BlueTick, initialsFor } from "@/components/verified-badge";
+import { DealerLogo } from "@/components/dealer-logo";
+import { agencyDisplayName } from "@/lib/agency-name";
 import { buildMetadata, faqJsonLd, propertyJsonLd } from "@/lib/seo";
 import { SITE } from "@/lib/constants";
 
@@ -392,7 +394,11 @@ export default async function PropertyDetailPage({ params }: PageProps) {
               <div className="rounded-panel border border-soft bg-white p-6 shadow-card">
                 <div className="flex items-center gap-3.5">
                   <span className="relative grid h-12 w-12 shrink-0 place-items-center rounded-full bg-navy-800 font-sans text-[0.9375rem] font-bold text-white">
-                    {initialsFor(contactName)}
+                    {dealer && (!isOwnerListing || property.listedByName?.trim() === dealer.name?.trim()) ? (
+                      <DealerLogo name={agencyDisplayName(dealer)} logo={dealer.companyLogo || dealer.avatarUrl} size={48} />
+                    ) : (
+                      initialsFor(contactName)
+                    )}
                     {dealerVerified && (
                       <span className="absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full border-2 border-white bg-white">
                         <BlueTick className="h-4 w-4" />

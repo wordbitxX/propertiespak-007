@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { JsonLd } from "@/components/json-ld";
-import { DealerCard } from "@/components/dealer-card";
+import { AgencyDirectoryCard } from "@/components/agency-directory-card";
 import { PageHero } from "@/components/page-hero";
-import { Section, SectionHeading } from "@/components/section";
-import { BlueTick, UnverifiedChip } from "@/components/verified-badge";
+import { BlueTick } from "@/components/verified-badge";
 import { getCities, getDealerCount, getDealers } from "@/lib/queries";
 import { buildMetadata, breadcrumbJsonLd, collectionPageJsonLd, itemListJsonLd } from "@/lib/seo";
 import { SITE } from "@/lib/constants";
@@ -32,14 +31,33 @@ export default async function DealersPage({
   searchParams: Promise<{ city?: string }>;
 }) {
   const { city } = await searchParams;
-  const [allDealers, cities, dealerCount] = await Promise.all([
-    getDealers({ city, limit: 48 }),
+  const [everyDealer, cities, dealerCount] = await Promise.all([
+    getDealers({ limit: 60 }),
     getCities(),
     getDealerCount(),
   ]);
+  const allDealers = city ? await getDealers({ city, limit: 48 }) : everyDealer;
 
-  const featuredDealers = allDealers.filter((dealer) => dealer.isVerified);
-  const citiesWithDealers = new Set(allDealers.map((dealer) => dealer.citySlug));
+  const verifiedTotal = everyDealer.filter((dealer) => dealer.isVerified).length;
+  const listingTotal = everyDealer.reduce((sum, dealer) => sum + (dealer.listings ?? 0), 0);
+  const verifiedListingTotal = everyDealer.reduce((sum, dealer) => sum + (dealer.verifiedListings ?? 0), 0);
+  const dealersPerCity = new Map<string, number>();
+  for (const dealer of everyDealer) {
+    if (dealer.citySlug) dealersPerCity.set(dealer.citySlug, (dealersPerCity.get(dealer.citySlug) ?? 0) + 1);
+  }
+  const cityPills = cities
+    .filter((item) => dealersPerCity.has(item.slug))
+    .map((item) => ({ slug: item.slug, name: item.name, count: dealersPerCity.get(item.slug) ?? 0 }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  const cityName = city ? (cities.find((item) => item.slug === city)?.name ?? city) : null;
+  const shownVerified = allDealers.filter((dealer) => dealer.isVerified).length;
+
+  const stats = [
+    { value: dealerCount, label: "Agencies & dealers" },
+    { value: verifiedTotal, label: "Blue-tick verified" },
+    { value: listingTotal, label: "Live listings" },
+    { value: verifiedListingTotal, label: "Verified listings" },
+  ];
 
   return (
     <>
@@ -73,128 +91,165 @@ export default async function DealersPage({
       <PageHero
         eyebrow="Dealer directory"
         title="Verified Property Dealers & Agencies"
-        description={`${dealerCount} accounts on Properties Pak have published property. Profiles carrying the blue tick have had their identity, agency and phone number checked by our team.`}
+        description={`${dealerCount} agencies and dealers publish property on Properties Pak. Profiles carrying the blue tick have had their identity, agency and phone number checked by our team.`}
         crumbs={[
           { name: "Home", href: "/" },
           { name: "Dealers", href: "/dealers" },
         ]}
-      />
+      >
+        <dl className="dlr-stats">
+          {stats.map((stat) => (
+            <div key={stat.label} className="dlr-stat">
+              <dt>{stat.label}</dt>
+              <dd>{stat.value.toLocaleString("en-PK")}</dd>
+            </div>
+          ))}
+        </dl>
+      </PageHero>
 
-      <Section tone="light">
+      <section className="dlr-directory" aria-labelledby="dealer-directory-heading">
         <div className="ui-container">
-          <SectionHeading
-            eyebrow="How verification works"
-            title="What the blue tick means on Properties Pak"
-            description="The tick is not a paid badge and it is not automatic. It is switched on from the admin workspace after our team has confirmed the account behind the listings."
-          />
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <div className="rounded-panel border border-soft bg-white p-5 shadow-soft">
-              <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#1D9BF0]/10">
-                <BlueTick className="h-5 w-5" />
+          <div className="agx-p1 dlr-panel">
+            <div className="dlr-head">
+              <div>
+                <p className="dlr-kicker">
+                  <BlueTick className="h-4 w-4" /> {shownVerified} verified {shownVerified === 1 ? "agency" : "agencies"}
+                  {cityName ? ` in ${cityName}` : ""}
+                </p>
+                <h2 id="dealer-directory-heading" className="agx-serif">
+                  {cityName ? `Verified Agencies in ${cityName}` : "Verified Agencies in Pakistan"}
+                </h2>
+              </div>
+              <nav className="dlr-filter" aria-label="Filter agencies by city">
+                <Link href="/dealers" className={`dlr-pill ${!city ? "is-active" : ""}`} aria-current={!city ? "page" : undefined}>
+                  All cities <span>{everyDealer.length}</span>
+                </Link>
+                {cityPills.map((item) => (
+                  <Link
+                    key={item.slug}
+                    href={`/dealers?city=${item.slug}`}
+                    className={`dlr-pill ${city === item.slug ? "is-active" : ""}`}
+                    aria-current={city === item.slug ? "page" : undefined}
+                  >
+                    {item.name} <span>{item.count}</span>
+                  </Link>
+                ))}
+              </nav>
+            </div>
+
+            {allDealers.length === 0 ? (
+              <div className="dlr-empty">
+                <h3>No agency profiles in this city yet</h3>
+                <p>
+                  Agency profiles appear here as soon as an account publishes its first property. Register, submit a listing
+                  and your profile becomes part of this directory.
+                </p>
+                <div className="mt-6 flex flex-wrap justify-center gap-3">
+                  <Link href="/list-property" className="btn btn-primary">
+                    List your property
+                  </Link>
+                  <Link href="/dealers" className="btn btn-outline">
+                    View all cities
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <ul className="dlr-grid" aria-label="Agency profiles">
+                {allDealers.map((dealer) => (
+                  <li key={dealer.id}>
+                    <AgencyDirectoryCard dealer={dealer} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="dlr-how" aria-labelledby="dealer-verification-heading">
+        <div className="ui-container">
+          <div className="dlr-how-head">
+            <p className="dlr-kicker dlr-kicker--gold">How verification works</p>
+            <h2 id="dealer-verification-heading" className="agx-serif">
+              What the blue tick means on Properties Pak
+            </h2>
+            <p>
+              The tick is not a paid badge and it is not automatic. It is switched on from the admin workspace after our
+              team has confirmed the account behind the listings.
+            </p>
+          </div>
+          <ol className="dlr-steps">
+            <li className="dlr-step">
+              <span className="dlr-step-no">01</span>
+              <span className="dlr-step-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 3.2 19 6v5.2c0 4.3-2.9 7.6-7 9.2-4.1-1.6-7-4.9-7-9.2V6z" />
+                  <path d="m8.8 12 2.2 2.2 4.3-4.4" />
+                </svg>
               </span>
-              <h3 className="mt-4 font-sans text-[0.9375rem] font-semibold text-navy-900">Identity &amp; contact confirmed</h3>
-              <p className="mt-2 text-[0.8125rem] leading-relaxed text-ink-muted">
+              <h3>Identity &amp; contact confirmed</h3>
+              <p>
                 We verify the name, agency and working phone number against the account before switching the tick on. The
                 same number is used for the listing&rsquo;s calls and WhatsApp enquiries.
               </p>
-            </div>
-            <div className="rounded-panel border border-soft bg-white p-5 shadow-soft">
-              <span className="grid h-9 w-9 place-items-center rounded-lg bg-mist">
-                <UnverifiedChip className="scale-[0.85]" />
+            </li>
+            <li className="dlr-step">
+              <span className="dlr-step-no">02</span>
+              <span className="dlr-step-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="8.2" />
+                  <path d="M12 7.6V12l3 2" />
+                </svg>
               </span>
-              <h3 className="mt-4 font-sans text-[0.9375rem] font-semibold text-navy-900">Unverified accounts stay visible</h3>
-              <p className="mt-2 text-[0.8125rem] leading-relaxed text-ink-muted">
+              <h3>New accounts marked &ldquo;In review&rdquo;</h3>
+              <p>
                 Any registered account that lists a property appears in this directory. Until our team verifies it, the
-                profile is clearly marked as not verified rather than silently removed.
+                profile is clearly marked as in review rather than silently removed.
               </p>
-            </div>
-            <div className="rounded-panel border border-soft bg-white p-5 shadow-soft">
-              <span className="grid h-9 w-9 place-items-center rounded-lg bg-forest-50 font-sans text-[0.75rem] font-bold text-forest-700">
-                3
+            </li>
+            <li className="dlr-step">
+              <span className="dlr-step-no">03</span>
+              <span className="dlr-step-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 10.4 12 4l8 6.4" />
+                  <path d="M6.4 9v10.4h11.2V9" />
+                  <path d="M12 12.2v4.4M9.8 14.4h4.4" />
+                </svg>
               </span>
-              <h3 className="mt-4 font-sans text-[0.9375rem] font-semibold text-navy-900">List, then get verified</h3>
-              <p className="mt-2 text-[0.8125rem] leading-relaxed text-ink-muted">
-                <Link href="/list-property" className="font-semibold text-forest-700 hover:underline">
-                  Publish a property
-                </Link>{" "}
-                with your account and our team reviews it. Approved listings and a confirmed phone number earn the blue tick
-                from the admin side.
+              <h3>List, then get verified</h3>
+              <p>
+                <Link href="/list-property">Publish a property</Link> with your account and our team reviews it. Approved
+                listings and a confirmed phone number earn the blue tick from the admin side.
               </p>
-            </div>
-          </div>
+            </li>
+          </ol>
         </div>
-      </Section>
+      </section>
 
-      <Section tone="mist">
+      <section className="dlr-cta-wrap">
         <div className="ui-container">
-          <SectionHeading
-            eyebrow="Browse"
-            title={city ? `Dealers in ${cities.find((item) => item.slug === city)?.name ?? city}` : "Dealers across Pakistan"}
-            description={`${featuredDealers.length} verified ${featuredDealers.length === 1 ? "profile" : "profiles"} shown first, followed by accounts still awaiting verification.`}
-            action={{ label: `All ${dealerCount} dealers`, href: "/dealers" }}
-          />
-          <div className="mt-6 flex flex-wrap gap-2">
-            <Link href="/dealers" className={`chip ${!city ? "chip-active" : ""}`}>
-              All cities
-            </Link>
-            {cities
-              .filter((item) => citiesWithDealers.has(item.slug))
-              .map((item) => (
-                <Link key={item.slug} href={`/dealers?city=${item.slug}`} className={`chip ${city === item.slug ? "chip-active" : ""}`}>
-                  {item.name}
-                </Link>
-              ))}
-          </div>
-
-          {allDealers.length === 0 ? (
-            <div className="mt-10 rounded-panel border border-soft bg-white p-10 text-center">
-              <h3 className="font-sans text-[1.1rem] font-semibold text-navy-900">No dealer profiles in this city yet</h3>
-              <p className="mx-auto mt-2 max-w-xl text-[0.875rem] leading-relaxed text-ink-muted">
-                Dealer profiles appear here as soon as an account publishes its first property. Register, submit a listing and
-                your profile becomes part of this directory.
+          <div className="dlr-cta">
+            <div aria-hidden="true" className="inner-hero-photo dlr-cta-photo" />
+            <div className="dlr-cta-inner">
+              <p className="dlr-kicker dlr-kicker--gold">For agencies</p>
+              <h2>Get your agency verified on Properties Pak</h2>
+              <p>
+                Publish your inventory under one account and your agency profile carries the blue tick across every listing,
+                search result and enquiry. Verification is free — it depends on a confirmed contact number and a clean
+                listing record, not on an advertising package.
               </p>
-              <div className="mt-6 flex flex-wrap justify-center gap-3">
-                <Link href="/list-property" className="btn btn-primary">
-                  List your property
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link href="/list-property" className="btn btn-green">
+                  Publish a listing
                 </Link>
-                <Link href="/login?mode=register" className="btn btn-outline">
-                  Create an account
+                <Link href="/contact" className="btn btn-ghost-light">
+                  Talk to {SITE.company}
                 </Link>
               </div>
             </div>
-          ) : (
-            <div className="mt-8 grid auto-rows-fr gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {allDealers.map((dealer) => (
-                <DealerCard key={dealer.id} dealer={dealer} />
-              ))}
-            </div>
-          )}
-        </div>
-      </Section>
-
-      <Section tone="light">
-        <div className="ui-container">
-          <div className="rounded-panel border border-soft bg-navy-950 p-7 text-white lg:p-10">
-            <p className="eyebrow text-forest-400">
-              <span className="h-px w-6 bg-current" /> For agencies
-            </p>
-            <h2 className="display-3 mt-3 text-white">Get your agency verified on Properties Pak</h2>
-            <p className="mt-3 max-w-2xl text-[0.9375rem] leading-relaxed text-white/70">
-              Publish your inventory under one account and your agency profile carries the blue tick across every listing,
-              search result and enquiry. Verification is free — it depends on a confirmed contact number and a clean listing
-              record, not on an advertising package.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/list-property" className="btn btn-green">
-                Publish a listing
-              </Link>
-              <Link href="/contact" className="btn btn-ghost-light">
-                Talk to {SITE.company}
-              </Link>
-            </div>
           </div>
         </div>
-      </Section>
+      </section>
     </>
   );
 }

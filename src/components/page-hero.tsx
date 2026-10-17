@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Breadcrumbs, type Crumb } from "@/components/breadcrumbs";
 
-/** Compact hero band used by every inner page: homepage photograph, graded for legible white text. */
+/** Compact hero band used by every inner page: the homepage night-villa photograph, graded for legible white text. */
 export function PageHero({
   eyebrow,
   title,
@@ -18,26 +18,9 @@ export function PageHero({
   align?: "left" | "center";
 }) {
   return (
-    <section className="relative isolate overflow-hidden bg-navy-950 pb-14 pt-28 lg:pb-20 lg:pt-36">
-      {/* Same photograph and colour grade as the homepage hero, so inner pages feel like one site. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage:
-            "linear-gradient(90deg, rgba(3,20,26,0.92) 0%, rgba(3,20,26,0.72) 45%, rgba(3,20,26,0.45) 100%), linear-gradient(180deg, rgba(3,20,26,0.2) 0%, rgba(3,20,26,0.8) 100%), url(/images/hero-premium.jpg)",
-          backgroundSize: "cover",
-          backgroundPosition: "62% 40%",
-        }}
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.55]"
-        style={{
-          backgroundImage:
-            "radial-gradient(900px 420px at 12% -10%, rgba(16,164,86,0.28), transparent 62%), radial-gradient(700px 380px at 88% 8%, rgba(19,80,127,0.55), transparent 60%)",
-        }}
-      />
+    <section className="relative isolate overflow-hidden bg-[#061610] pb-14 pt-28 lg:pb-20 lg:pt-36">
+      {/* Same night-villa photograph as the homepage hero, graded for legible white text. */}
+      <div aria-hidden="true" className="inner-hero-photo pointer-events-none absolute inset-0" />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-white/0"
