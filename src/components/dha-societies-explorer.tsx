@@ -3,14 +3,31 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { IconArrowRight, IconMap, IconPin, IconSearch } from "@/components/icons";
-import { DHA_SOCIETY_CITIES, dhaSocietyImageUrl, type DhaSocietyMap } from "@/lib/map-library";
+import { DHA_SOCIETY_CITIES, DHAPLUS_SOURCE, dhaSocietyImageUrl, type DhaSocietyMap } from "@/lib/map-library";
+import { SOCIETY_MAPS } from "@/lib/society-maps";
+
+const INTERACTIVE = new Set(SOCIETY_MAPS.map((society) => society.slug));
 
 type CityFilter = "All" | (typeof DHA_SOCIETY_CITIES)[number];
 
-export function DhaSocietiesExplorer({ societies }: { societies: DhaSocietyMap[] }) {
-  const [city, setCity] = useState<CityFilter>("All");
+export function DhaSocietiesExplorer({
+  societies,
+  initialCity,
+}: {
+  societies: DhaSocietyMap[];
+  initialCity?: CityFilter;
+}) {
+  const [city, setCity] = useState<CityFilter>(initialCity ?? "All");
   const [query, setQuery] = useState("");
-  const [failed, setFailed] = useState<Set<string>>(() => new Set());
+  // 1 = proxied image failed → try the original URL; 2 = both failed → placeholder.
+  const [failed, setFailed] = useState<Map<string, number>>(() => new Map());
+  const markFailed = (slug: string, attempt: number) =>
+    setFailed((current) => {
+      if ((current.get(slug) ?? 0) !== attempt) return current;
+      const next = new Map(current);
+      next.set(slug, attempt + 1);
+      return next;
+    });
 
   const counts = useMemo(() => {
     const map = new Map<string, number>();
@@ -61,7 +78,9 @@ export function DhaSocietiesExplorer({ societies }: { societies: DhaSocietyMap[]
       ) : (
         <ul className="dha-maps-grid" data-testid="dha-societies-grid">
           {visible.map((society) => {
-            const image = failed.has(society.slug) ? null : dhaSocietyImageUrl(society);
+            const attempts = failed.get(society.slug) ?? 0;
+            const image =
+              attempts === 0 ? dhaSocietyImageUrl(society) : attempts === 1 && society.image ? `${DHAPLUS_SOURCE.imageBase}${society.image}` : null;
             return (
               <li key={society.slug}>
                 <Link href={`/maps/dha-societies/${society.slug}`} className="dha-map-card group">
@@ -69,17 +88,19 @@ export function DhaSocietiesExplorer({ societies }: { societies: DhaSocietyMap[]
                     {image ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
+                        key={image}
                         src={image}
+                        referrerPolicy="no-referrer"
                         alt={`${society.name} map`}
                         loading="lazy"
                         decoding="async"
                         ref={(element) => {
                           // Images that failed before hydration never fire onError.
                           if (element?.complete && element.naturalWidth === 0) {
-                            queueMicrotask(() => setFailed((current) => new Set(current).add(society.slug)));
+                            queueMicrotask(() => markFailed(society.slug, attempts));
                           }
                         }}
-                        onError={() => setFailed((current) => new Set(current).add(society.slug))}
+                        onError={() => markFailed(society.slug, attempts)}
                       />
                     ) : (
                       <span className="dha-map-card-placeholder">
@@ -87,7 +108,7 @@ export function DhaSocietiesExplorer({ societies }: { societies: DhaSocietyMap[]
                         <span>{society.image ? "Open to view the HD map" : "HD map coming soon"}</span>
                       </span>
                     )}
-                    <span className="dha-map-card-badge">HD Map</span>
+                    <span className="dha-map-card-badge">{INTERACTIVE.has(society.slug) ? "Plot Map + HD" : "HD Map"}</span>
                   </span>
                   <span className="dha-map-card-body">
                     <span className="dha-map-card-title">{society.name}</span>

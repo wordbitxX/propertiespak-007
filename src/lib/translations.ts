@@ -381,6 +381,14 @@ const URDU: Record<string, string> = {
   "DHA Rahbar Phase 4 Map": "ڈی ایچ اے رہبر فیز 4 کا نقشہ",
   "LDA Avenue Map": "ایل ڈی اے ایونیو کا نقشہ",
   "Lake City Map": "لیک سٹی کا نقشہ",
+  "DHA Lahore Maps": "ڈی ایچ اے لاہور کے نقشے",
+  "DHA Islamabad Maps": "ڈی ایچ اے اسلام آباد کے نقشے",
+  "DHA Karachi Maps": "ڈی ایچ اے کراچی کے نقشے",
+  "DHA Multan Maps": "ڈی ایچ اے ملتان کے نقشے",
+  "DHA Bahawalpur Maps": "ڈی ایچ اے بہاولپور کے نقشے",
+  "DHA Gujranwala Maps": "ڈی ایچ اے گوجرانوالہ کے نقشے",
+  "DHA Quetta Maps": "ڈی ایچ اے کوئٹہ کے نقشے",
+  "DHA Peshawar Maps": "ڈی ایچ اے پشاور کے نقشے",
 };
 
 export function translate(text: string, locale: Locale): string {

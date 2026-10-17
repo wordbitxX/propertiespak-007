@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { PageHero } from "@/components/page-hero";
 import { Section } from "@/components/section";
 import { JsonLd } from "@/components/json-ld";
-import { SocietyMapViewer } from "@/components/society-map-viewer";
+import { DhaSocietyMapPanel } from "@/components/dha-society-map-panel";
 import { IconArrowRight, IconMap, IconPin } from "@/components/icons";
 import { buildMetadata, webPageJsonLd } from "@/lib/seo";
 import {
@@ -27,12 +27,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const society = getDhaSocietyMap(slug);
   if (!society) return {};
-  return buildMetadata({
+  return {
+    ...buildMetadata({
     title: `${society.name} Map — HD Society Map`,
     description: `HD zoomable map of ${society.name}${society.blocks ? ` with ${society.blocks} blocks` : ""}. Zoom into sectors, blocks and roads before you buy.`,
     path: `/maps/dha-societies/${society.slug}`,
     keywords: [`${society.name.toLowerCase()} map`, `${society.name.toLowerCase()} block map`, "dha society map"],
-  });
+    }),
+    referrer: "no-referrer",
+  };
 }
 
 export default async function DhaSocietyMapPage({ params }: PageProps) {
@@ -70,23 +73,14 @@ export default async function DhaSocietyMapPage({ params }: PageProps) {
       <Section tone="light">
         <div className="ui-container grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
           <div className="min-w-0">
-            {image ? (
-              <SocietyMapViewer
-                source={{ type: "image", url: image }}
-                title={`${society.name} map`}
-                sourceName={DHAPLUS_SOURCE.name}
-                sourceUrl={sourceUrl}
-              />
-            ) : (
-              <div className="society-map-empty">
-                <IconMap className="h-10 w-10 text-forest-700" aria-hidden="true" />
-                <p className="font-sans text-[1.05rem] font-semibold text-navy-900">The HD map for {society.name} is not published yet.</p>
-                <p className="text-[0.9rem] text-ink-muted">You can follow its progress on {DHAPLUS_SOURCE.name}.</p>
-                <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary mt-2">
-                  Open on {DHAPLUS_SOURCE.name}
-                </a>
-              </div>
-            )}
+            <DhaSocietyMapPanel
+              slug={society.slug}
+              name={society.name}
+              image={image}
+              directImage={society.image ? `${DHAPLUS_SOURCE.imageBase}${society.image}` : null}
+              sourceName={DHAPLUS_SOURCE.name}
+              sourceUrl={sourceUrl}
+            />
             <p className="mt-3 text-[0.78rem] leading-relaxed text-ink-muted">
               Map source:{" "}
               <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-forest-700 hover:underline">

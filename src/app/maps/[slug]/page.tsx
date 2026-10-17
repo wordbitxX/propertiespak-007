@@ -26,7 +26,6 @@ type PageProps = { params: Promise<{ slug: string }> };
 
 const GROUP_LABEL: Record<DeepZoomMapGroup, string> = {
   bahria: "Bahria Town Maps",
-  dha: "DHA Maps",
   other: "More Lahore society maps",
 };
 
@@ -34,12 +33,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const map = getDeepZoomMap(slug);
   if (!map) return {};
-  return buildMetadata({
+  return {
+    ...buildMetadata({
     title: `${map.title} — HD Zoomable Map (${new Date().getFullYear()})`,
     description: `${map.description} Zoom in to read block names and plot numbers.`,
     path: `/maps/${map.slug}`,
     keywords: [`${map.title.toLowerCase()}`, `${map.society.toLowerCase()} map`, `${map.society.toLowerCase()} plot map`, "society map lahore"],
-  });
+    }),
+    // Source map servers may reject hot-linked tiles that carry our referrer.
+    referrer: "no-referrer",
+  };
 }
 
 export default async function DeepZoomMapPage({ params }: PageProps) {
@@ -48,7 +51,7 @@ export default async function DeepZoomMapPage({ params }: PageProps) {
   if (!map) notFound();
 
   const related = deepZoomMapsInGroup(map.group).filter((item) => item.slug !== map.slug);
-  const otherGroups = (["dha", "bahria", "other"] as DeepZoomMapGroup[]).filter((group) => group !== map.group);
+  const otherGroups = (["bahria", "other"] as DeepZoomMapGroup[]).filter((group) => group !== map.group);
   const crumbs = [
     { name: "Home", href: "/" },
     { name: "Maps", href: "/maps" },
@@ -71,7 +74,7 @@ export default async function DeepZoomMapPage({ params }: PageProps) {
         <div className="ui-container grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
           <div className="min-w-0">
             <SocietyMapViewer
-              source={{ type: "dzi", url: deepZoomProxyUrl(map) }}
+              source={{ type: "dzi", url: deepZoomProxyUrl(map), direct: { base: PPS_SOURCE.deepZoomBase, name: map.dzi } }}
               title={map.title}
               sourceName={PPS_SOURCE.name}
               sourceUrl={map.sourceUrl}

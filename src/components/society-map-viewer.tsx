@@ -3,11 +3,95 @@
 import { useEffect, useRef, useState } from "react";
 import type OpenSeadragon from "openseadragon";
 
-export type SocietyMapSource = { type: "dzi"; url: string } | { type: "image"; url: string };
+export type SocietyMapSource =
+  /** `url` = our proxied .dzi; `direct` lets the browser load the source tiles itself if the proxy fails. */
+  | { type: "dzi"; url: string; direct?: { base: string; name: string } }
+  /** `url` = our proxied image; `direct` = the original image URL used as a browser-side fallback. */
+  | { type: "image"; url: string; direct?: string };
 
 type Status = "loading" | "ready" | "error";
 
 const ZOOM_STEP = 1.5;
+const PROBE_TIMEOUT = 15000;
+
+function loadImage(url: string): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.referrerPolicy = "no-referrer";
+    const timer = window.setTimeout(() => resolve(null), PROBE_TIMEOUT);
+    image.onload = () => {
+      window.clearTimeout(timer);
+      resolve(image.naturalWidth > 0 ? image : null);
+    };
+    image.onerror = () => {
+      window.clearTimeout(timer);
+      resolve(null);
+    };
+    image.src = url;
+  });
+}
+
+/** Largest n in [known, limit) for which exists(n) is true, given exists(known) === true. */
+async function lastExisting(known: number, limit: number, exists: (n: number) => Promise<boolean>) {
+  let lo = known;
+  let hi = lo + 1;
+  while (hi < limit && (await exists(hi))) {
+    lo = hi;
+    hi = Math.min(limit, hi * 2);
+  }
+  while (hi - lo > 1) {
+    const mid = Math.floor((lo + hi) / 2);
+    if (await exists(mid)) lo = mid;
+    else hi = mid;
+  }
+  return lo;
+}
+
+/**
+ * Rebuild a DeepZoom descriptor from the public tile pyramid alone (plain <img> loads, no CORS),
+ * so the map still opens when the .dzi file itself cannot be fetched.
+ */
+async function discoverDeepZoom(base: string, name: string) {
+  const root = `${base}${name}_files/`;
+  for (const format of ["jpg", "png", "jpeg"]) {
+    const tile = (level: number, x: number, y: number) => loadImage(`${root}${level}/${x}_${y}.${format}`);
+    if (!(await tile(0, 0, 0))) continue;
+    const maxLevel = await lastExisting(0, 21, async (level) => Boolean(await tile(level, 0, 0)));
+    const first = await tile(maxLevel, 0, 0);
+    if (!first) return null;
+    const cols = (await lastExisting(0, 4096, async (x) => Boolean(await tile(maxLevel, x, 0)))) + 1;
+    const rows = (await lastExisting(0, 4096, async (y) => Boolean(await tile(maxLevel, 0, y)))) + 1;
+
+    let overlap = 1;
+    if (cols >= 3) {
+      const second = await tile(maxLevel, 1, 0);
+      if (second) overlap = second.naturalWidth - first.naturalWidth;
+    } else if (rows >= 3) {
+      const second = await tile(maxLevel, 0, 1);
+      if (second) overlap = second.naturalHeight - first.naturalHeight;
+    }
+    overlap = Math.max(0, overlap);
+    const tileSize = cols > 1 ? first.naturalWidth - overlap : rows > 1 ? first.naturalHeight - overlap : Math.max(first.naturalWidth, first.naturalHeight);
+
+    const lastCol = cols > 1 ? await tile(maxLevel, cols - 1, 0) : first;
+    const lastRow = rows > 1 ? await tile(maxLevel, 0, rows - 1) : first;
+    if (!lastCol || !lastRow) return null;
+    const width = cols > 1 ? (cols - 1) * tileSize + lastCol.naturalWidth - overlap : first.naturalWidth;
+    const height = rows > 1 ? (rows - 1) * tileSize + lastRow.naturalHeight - overlap : first.naturalHeight;
+
+    return {
+      Image: {
+        xmlns: "http://schemas.microsoft.com/deepzoom/2008",
+        Url: root,
+        Format: format,
+        Overlap: String(overlap),
+        TileSize: String(tileSize),
+        Size: { Width: String(width), Height: String(height) },
+      },
+    };
+  }
+  return null;
+}
 
 /**
  * Pan & zoom viewer (OpenSeadragon) for high-resolution society maps.
@@ -44,6 +128,8 @@ export function SocietyMapViewer({
             ? source.url
             : ({ type: "image", url: source.url, buildPyramid: true } as unknown as OpenSeadragon.TileSourceOptions),
         crossOriginPolicy: false,
+        // The canvas drawer works with cross-origin tiles that send no CORS headers.
+        drawer: "canvas",
         showNavigationControl: false,
         showNavigator: true,
         navigatorPosition: "BOTTOM_RIGHT",
@@ -64,8 +150,23 @@ export function SocietyMapViewer({
       viewer.addHandler("open", () => {
         if (!cancelled) setStatus("ready");
       });
-      viewer.addHandler("open-failed", () => {
-        if (!cancelled) setStatus("error");
+      let triedDirect = false;
+      viewer.addHandler("open-failed", async () => {
+        if (cancelled) return;
+        if (triedDirect || !source.direct) {
+          setStatus("error");
+          return;
+        }
+        // Our proxy could not reach the source: let the visitor's browser load it directly.
+        triedDirect = true;
+        if (source.type === "image") {
+          viewer?.open({ tileSource: { type: "image", url: source.direct, buildPyramid: false } });
+          return;
+        }
+        const descriptor = await discoverDeepZoom(source.direct.base, source.direct.name);
+        if (cancelled) return;
+        if (descriptor) viewer?.open({ tileSource: descriptor });
+        else setStatus("error");
       });
       viewer.addHandler("full-page", (event) => {
         if (!cancelled) setFullPage(Boolean((event as unknown as { fullPage: boolean }).fullPage));
@@ -79,6 +180,7 @@ export function SocietyMapViewer({
       viewer?.destroy();
       viewerRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- re-open only when the map itself changes
   }, [source.type, source.url]);
 
   const zoom = (factor: number) => {

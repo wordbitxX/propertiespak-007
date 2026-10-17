@@ -5653,3 +5653,10 @@ html[data-header-solid] .site-header .header-account:hover {
 }
 .society-map-viewer .openseadragon-message { display: none !important; }
 .society-map-overlay--error { background: #f4f7f5; }
+
+/* DHA society page: Plot map / HD image tabs */
+.dha-map-tabs { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-bottom: 14px; padding: 4px; border-radius: 12px; background: #eef4f0; }
+.dha-map-tab { min-height: 38px; padding: 0 16px; border: 0; border-radius: 9px; background: transparent; color: var(--color-ink-muted); font-size: .84rem; font-weight: 600; cursor: pointer; }
+.dha-map-tab[aria-selected="true"] { background: #ffffff; color: var(--color-forest-800); box-shadow: 0 1px 4px rgba(6, 28, 51, .14); }
+.dha-plot-map { overflow: hidden; border: 1px solid var(--color-soft); border-radius: var(--radius-panel); box-shadow: var(--shadow-soft); }
+.dha-plot-map-loading { display: grid; height: 520px; place-items: center; background: #e8eee9; color: var(--color-ink-muted); font-size: .9rem; }

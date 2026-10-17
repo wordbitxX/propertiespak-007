@@ -4,9 +4,10 @@ import { Section } from "@/components/section";
 import { JsonLd } from "@/components/json-ld";
 import { DhaSocietiesExplorer } from "@/components/dha-societies-explorer";
 import { buildMetadata, collectionPageJsonLd } from "@/lib/seo";
-import { DHA_SOCIETY_MAPS, DHAPLUS_SOURCE, DEEP_ZOOM_MAPS } from "@/lib/map-library";
+import { DHA_SOCIETY_CITIES, DHA_SOCIETY_MAPS, DHAPLUS_SOURCE, DEEP_ZOOM_MAPS } from "@/lib/map-library";
 
-export const metadata = buildMetadata({
+export const metadata = {
+  ...buildMetadata({
   title: "DHA Society Maps — HD Maps of 37 DHA Phases in Lahore, Islamabad, Karachi & More",
   description:
     "Browse HD maps of every DHA society in Pakistan: DHA Lahore Phase 1 to 13, Rahbar, EME, Ivy Green, DHA Islamabad Phase 1 to 7, DHA City Karachi, DHA Multan, Bahawalpur, Gujranwala, Quetta and Peshawar.",
@@ -21,9 +22,14 @@ export const metadata = buildMetadata({
     "dha multan map",
     "dha bahawalpur map",
   ],
-});
+  }),
+  referrer: "no-referrer" as const,
+};
 
-export default function DhaSocietiesMapsPage() {
+export default async function DhaSocietiesMapsPage({ searchParams }: { searchParams: Promise<{ city?: string | string[] }> }) {
+  const { city: cityParam } = await searchParams;
+  const requested = Array.isArray(cityParam) ? cityParam[0] : cityParam;
+  const initialCity = DHA_SOCIETY_CITIES.find((city) => city.toLowerCase() === requested?.toLowerCase());
   const cities = new Set(DHA_SOCIETY_MAPS.map((society) => society.city)).size;
   return (
     <>
@@ -60,7 +66,7 @@ export default function DhaSocietiesMapsPage() {
 
       <Section tone="light">
         <div className="ui-container">
-          <DhaSocietiesExplorer societies={DHA_SOCIETY_MAPS} />
+          <DhaSocietiesExplorer key={initialCity ?? "all"} societies={DHA_SOCIETY_MAPS} initialCity={initialCity} />
           <p className="mt-8 text-[0.78rem] leading-relaxed text-ink-muted">
             Map source:{" "}
             <a href={DHAPLUS_SOURCE.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-forest-700 hover:underline">

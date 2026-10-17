@@ -25,7 +25,7 @@ export const DHAPLUS_SOURCE = {
   imageBase: "https://assets.dhaplus.com/map_imgs/",
 } as const;
 
-export type DeepZoomMapGroup = "bahria" | "dha" | "other";
+export type DeepZoomMapGroup = "bahria" | "other";
 
 export interface DeepZoomSocietyMap {
   /** Our URL slug: /maps/<slug>. Mirrors the source page slug. */
@@ -66,83 +66,6 @@ export const DEEP_ZOOM_MAPS: DeepZoomSocietyMap[] = [
     sourceUrl: "https://pakistanpropertyservices.com.pk/bahria-orchard-lahore-map/",
     description:
       "Zoomable high-resolution map of Bahria Orchard Lahore with phase boundaries, blocks and plot layout on Raiwind Road.",
-  },
-  {
-    slug: "dha-rahbar-ph-1-2-3-map",
-    label: "DHA Rahbar Phase 1, 2, 3 Map",
-    title: "DHA Rahbar Phase 1, 2 & 3 Map",
-    society: "DHA Rahbar (Phase 11)",
-    city: "Lahore",
-    group: "dha",
-    dzi: "DHA-RAHBAR-PH-1-2-3",
-    sourceUrl: "https://pakistanpropertyservices.com.pk/dha-rahbar-ph-1-2-3-map/",
-    description: "Zoomable plot-level map of DHA Rahbar Sectors 1, 2 and 3 (DHA Phase 11) Lahore with blocks and plot numbers.",
-  },
-  {
-    slug: "dha-rahbar-ph-4-map",
-    label: "DHA Rahbar Phase 4 Map",
-    title: "DHA Rahbar Phase 4 Map",
-    society: "DHA Rahbar (Phase 11)",
-    city: "Lahore",
-    group: "dha",
-    dzi: "DHARAHBAR-PH-4",
-    sourceUrl: "https://pakistanpropertyservices.com.pk/dha-rahbar-ph-4-map/",
-    description: "Zoomable plot-level map of DHA Rahbar Sector 4 (DHA Phase 11) Lahore.",
-  },
-  {
-    slug: "dha-1-to-5-map",
-    label: "DHA Phase 1 to 5 Map",
-    title: "DHA Lahore Phase 1 to 5 Map",
-    society: "DHA Lahore",
-    city: "Lahore",
-    group: "dha",
-    dzi: "DHA1TO5",
-    sourceUrl: "https://pakistanpropertyservices.com.pk/dha-1-to-5-map/",
-    description: "Zoomable map of DHA Lahore Phases 1, 2, 3, 4 and 5 with sectors, blocks and plot numbers.",
-  },
-  {
-    slug: "dha-6-7-9-map",
-    label: "DHA Phase 6, 7, 9 Map",
-    title: "DHA Lahore Phase 6, 7 & 9 Map",
-    society: "DHA Lahore",
-    city: "Lahore",
-    group: "dha",
-    dzi: "DHA6-7-9",
-    sourceUrl: "https://pakistanpropertyservices.com.pk/dha-6-7-9-map/",
-    description: "Zoomable map of DHA Lahore Phases 6, 7 and 9 with sectors, blocks and plot numbers.",
-  },
-  {
-    slug: "dha-ph-8-map",
-    label: "DHA Phase 8 Map",
-    title: "DHA Lahore Phase 8 Map",
-    society: "DHA Lahore",
-    city: "Lahore",
-    group: "dha",
-    dzi: "DHAPH-8",
-    sourceUrl: "https://pakistanpropertyservices.com.pk/dha-ph-8-map/",
-    description: "Zoomable map of DHA Lahore Phase 8 including Ex Air Avenue, Ex Park View and Ivy Green sectors.",
-  },
-  {
-    slug: "dha-9-town-map",
-    label: "DHA Phase 9 Town Map",
-    title: "DHA Lahore Phase 9 Town Map",
-    society: "DHA Lahore",
-    city: "Lahore",
-    group: "dha",
-    dzi: "DHA9TOWN",
-    sourceUrl: "https://pakistanpropertyservices.com.pk/dha-9-town-map/",
-    description: "Zoomable map of DHA Lahore Phase 9 Town with blocks A to E and plot numbers.",
-  },
-  {
-    slug: "dha-prism-9-map",
-    label: "DHA Phase 9 Prism Map",
-    title: "DHA Lahore Phase 9 Prism Map",
-    society: "DHA Lahore",
-    city: "Lahore",
-    group: "dha",
-    dzi: "DHAPRISM9",
-    sourceUrl: "https://pakistanpropertyservices.com.pk/dha-prism-9-map/",
-    description: "Zoomable map of DHA Lahore Phase 9 Prism with all blocks, plot numbers and commercial zones.",
   },
   {
     slug: "lda-avenue-map",
@@ -297,11 +220,19 @@ export interface NavMenuItem extends Partial<NavMenuLink> {
 const deepZoomLinks = (group: DeepZoomMapGroup): NavMenuLink[] =>
   deepZoomMapsInGroup(group).map((map) => ({ label: map.label, href: `/maps/${map.slug}` }));
 
+/** "DHA Maps" flyout: DHA Plus society maps grouped by city (dhaplus.com/maps). */
+function dhaCityLinks(): NavMenuLink[] {
+  return DHA_SOCIETY_CITIES.map((city) => ({
+    label: `DHA ${city} Maps`,
+    href: `/maps/dha-societies?city=${encodeURIComponent(city)}`,
+  }));
+}
+
 export const MAPS_MENU: NavMenuItem[] = [
   { label: "PDF Maps", href: "/maps", description: "57+ downloadable society PDF maps" },
   { label: "DHA Societies Maps", href: "/maps/dha-societies", description: "HD maps of 37 DHA societies" },
   { label: "Bahria Town Maps", children: deepZoomLinks("bahria") },
-  { label: "DHA Maps", children: deepZoomLinks("dha") },
+  { label: "DHA Maps", children: dhaCityLinks() },
   ...deepZoomLinks("other"),
 ];
 
