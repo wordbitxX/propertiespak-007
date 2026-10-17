@@ -6073,3 +6073,19 @@ html[data-header-solid] .site-header .header-language-mobile:hover { background:
 /* /sample · the previous homepage hero, parked for later. */
 .legacy-hero-sample .home-page .home-hero { padding-top: 56px; }
 .legacy-hero-sample .home-page { background: transparent; }
+
+/* Homepage: transparent header over the hero photograph until the page scrolls (then the solid green header returns). */
+html:not([data-header-solid]):has(.pkr-hero--home) .site-header.site-header--overlay {
+  background: transparent;
+  border-bottom-color: rgba(255, 255, 255, .1);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+html:not([data-header-solid]):has(.pkr-hero--home) .site-header.site-header--overlay .header-utility-bar {
+  background: transparent;
+  border-bottom-color: rgba(255, 255, 255, .1);
+}
+.site-header { transition: background-color .25s ease, box-shadow .25s ease, border-color .25s ease; }
+/* A soft top scrim keeps the white navigation readable on bright parts of the photo. */
+.pkr-hero--home .pkr-hero-shade::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 190px; background: linear-gradient(180deg, rgba(4, 16, 11, .55) 0%, rgba(4, 16, 11, 0) 100%); pointer-events: none; }
