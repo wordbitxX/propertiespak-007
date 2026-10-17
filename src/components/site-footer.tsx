@@ -35,6 +35,7 @@ const COLUMNS = [
       { label: "Rent property", href: "/properties/for-rent" },
       { label: "New projects", href: "/projects" },
       { label: "Commercial", href: "/commercial" },
+      { label: "Shopping malls in Pakistan", href: "/malls" },
       { label: "All properties", href: "/properties" },
       { label: "Towns & societies", href: "/towns" },
       { label: "Society PDF Maps", href: "/maps" },

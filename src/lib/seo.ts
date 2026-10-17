@@ -358,6 +358,34 @@ export function projectJsonLd(project: Project) {
   };
 }
 
+/**
+ * Schema.org ShoppingCenter block for mall landing pages.
+ */
+export function mallJsonLd(mall: {
+  name: string;
+  location: string;
+  cityName: string;
+  summary: string;
+  keywords: string[];
+  path: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ShoppingCenter",
+    name: mall.name,
+    description: mall.summary,
+    url: `${SITE.url}${mall.path}`,
+    keywords: mall.keywords.join(", "),
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: mall.location,
+      addressLocality: mall.cityName,
+      addressRegion: "Pakistan",
+      addressCountry: "PK",
+    },
+  };
+}
+
 export function articleJsonLd(post: Post) {
   return {
     "@context": "https://schema.org",

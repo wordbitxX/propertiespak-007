@@ -8,6 +8,7 @@ export function getSitemapRegistry(): SitemapDescriptor[] {
     { path: "/sitemap-index.xml", label: "Sitemap index (submit this first)", group: "primary" },
     { path: "/sitemap.xml", label: "Complete master sitemap", group: "primary" },
     { path: "/sitemaps/maps.xml", label: "Society PDF maps, plot maps & DHA/Bahria/Smart City hubs", group: "topic" },
+    { path: "/sitemaps/malls.xml", label: "Shopping malls in Pakistan — famous, new & coming soon", group: "topic" },
     { path: "/sitemaps/pages.xml", label: "Core pages, tools & city hubs", group: "topic" },
     { path: "/sitemaps/pakistan.xml", label: "Pakistan-wide & intent landing pages", group: "topic" },
     { path: "/sitemaps/keywords.xml", label: "Keyword hub, city & society landings", group: "topic" },

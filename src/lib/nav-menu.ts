@@ -1,5 +1,6 @@
 import { SOCIETIES } from "@/lib/landing-pages";
 import { townsForCity } from "@/lib/towns";
+import { NEW_MALLS, OPEN_MALLS } from "@/lib/malls";
 
 export type NavLink = { label: string; href: string };
 export type NavColumn = { title: string; links: NavLink[] };
@@ -106,6 +107,29 @@ export function buildHeaderNavMenus(): NavMenuDef[] {
             label: cityName(slug),
             href: `/properties/new-projects?city=${slug}`,
           })),
+        },
+      ],
+    },
+    {
+      label: "Malls",
+      href: "/malls",
+      columns: [
+        {
+          title: "Explore",
+          links: [
+            { label: "All malls in Pakistan", href: "/malls" },
+            { label: "Commercial property", href: "/properties/commercial" },
+            { label: "Shops for sale", href: "/properties?category=shop" },
+            { label: "Offices for sale", href: "/properties?category=office" },
+          ],
+        },
+        {
+          title: "Popular malls",
+          links: OPEN_MALLS.map((mall) => ({ label: mall.name, href: `/malls/${mall.slug}` })),
+        },
+        {
+          title: "New & coming soon",
+          links: NEW_MALLS.map((mall) => ({ label: mall.name, href: `/malls/${mall.slug}` })),
         },
       ],
     },

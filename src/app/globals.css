@@ -3435,7 +3435,97 @@ html { scroll-padding-top: calc(var(--site-header-height) + 20px); }
 
 /* ---------- 1. Header Bar (Deep Emerald & Champagne Gold) ---------- */
 .header-utility-bar {
-  display: none !important;
+  display: block !important;
+  height: 34px;
+  background: rgba(4, 20, 15, 0.92);
+  border-bottom: 1px solid rgba(216, 175, 104, 0.18);
+  color: rgba(255, 255, 255, 0.82);
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+}
+.header-utility-bar > .ui-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 100%;
+}
+.site-header--solid .header-utility-bar,
+html[data-header-solid] .site-header .header-utility-bar {
+  background: rgba(4, 20, 15, 0.92);
+  border-bottom-color: rgba(216, 175, 104, 0.18);
+  color: rgba(255, 255, 255, 0.82);
+}
+.header-utility-links {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.header-utility-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  color: inherit;
+}
+.header-utility-links a:hover {
+  color: #e2bc76;
+  text-decoration: none;
+}
+.header-utility-separator { opacity: 0.4; }
+.header-utility-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+.header-utility-bar .header-topbar-action {
+  min-height: 26px;
+  min-width: 32px;
+  flex-direction: row;
+  gap: 5px;
+  padding-inline: 8px;
+  border-radius: 7px;
+  color: inherit;
+}
+.header-utility-bar .header-topbar-action:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.header-utility-bar .header-action-caption {
+  display: none;
+  font-size: 11px;
+  text-shadow: none;
+}
+.header-utility-bar .header-saved-count {
+  background: #b8893d;
+  color: #082219;
+  top: -2px;
+  right: -2px;
+}
+.header-utility-bar .header-language-switch {
+  margin-left: 6px;
+  border-color: rgba(216, 175, 104, 0.4);
+}
+.header-utility-bar .header-language-switch button[aria-pressed="true"] {
+  background: rgba(226, 188, 118, 0.28);
+}
+@media (min-width: 640px) {
+  .header-utility-bar .header-action-caption {
+    display: inline;
+  }
+}
+@media (max-width: 639px) {
+  .header-utility-links {
+    display: none;
+  }
+  .header-utility-bar > .ui-container {
+    justify-content: flex-end;
+  }
+}
+@media (min-width: 768px) {
+  .header-utility-bar {
+    font-size: 0.75rem;
+  }
 }
 
 .site-header,

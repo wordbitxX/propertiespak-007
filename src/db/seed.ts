@@ -40,7 +40,7 @@ const SCHEMA_SQL = `
       slug text NOT NULL UNIQUE,
       name text NOT NULL,
       title text NOT NULL DEFAULT 'Property Consultant',
-      agency text NOT NULL DEFAULT 'Properties Pak Partners',
+      agency text NOT NULL DEFAULT 'Independent Agent',
       email text NOT NULL,
       phone text NOT NULL,
       whatsapp text NOT NULL DEFAULT '',

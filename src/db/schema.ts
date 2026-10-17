@@ -34,7 +34,7 @@ export const agents = pgTable("agents", {
   slug: text("slug").notNull().unique(),
   name: text("name").notNull(),
   title: text("title").notNull().default("Property Consultant"),
-  agency: text("agency").notNull().default("Properties Pak Partners"),
+  agency: text("agency").notNull().default("Independent Agent"),
   email: text("email").notNull(),
   phone: text("phone").notNull(),
   whatsapp: text("whatsapp").notNull().default(""),

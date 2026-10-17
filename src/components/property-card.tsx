@@ -17,15 +17,9 @@ export function purposeBadge(property: Pick<Property, "purpose" | "isNewProject"
 }
 
 /**
- * "From agent" / "From owner" pill — the publishing identity on the card image.
- * Platform-curated inventory and dealer/agency accounts read as agent listings;
- * everyone else (owners publishing their own property) reads as owner listings.
+ * "From agent" / "From owner" pill — REMOVED per product decision: property
+ * cards no longer show a publishing-source tag.
  */
-export function sourceBadge(property: Property | PropertyWithDealer) {
-  const dealerRole = (property as PropertyWithDealer).dealerRole;
-  const fromAgent = !property.listedByUserId || dealerRole === "dealer" || dealerRole === "agency";
-  return fromAgent ? "From agent" : "From owner";
-}
 
 function formatPkrNumeric(price: number | string, purpose: string): { main: string; suffix?: string } {
   const num = typeof price === "number" ? price : Number(price);
@@ -89,7 +83,6 @@ export function PropertyCard({
       <PropertyCardBadges
         purposeLabel={badge.label}
         purposeClassName={badge.className}
-        fromLabel={sourceBadge(property)}
         verified={listingVerified}
         compact={compact}
       />

@@ -3,43 +3,48 @@
 import { useLanguage } from "@/components/language-provider";
 
 /**
- * Card image badges (purpose, "From agent / From owner", "Verified"). This row
- * is a client island so the labels follow the Urdu/English toggle while the
- * card itself stays server-rendered.
+ * Floating badges on the property card image: the purpose pill plus the
+ * white "Verified" pill (sky-blue text) for trusted listings. The old
+ * "From agent" / "From owner" source pill was removed per product decision.
  */
 export function PropertyCardBadges({
   purposeLabel,
   purposeClassName,
-  fromLabel,
-  verified,
+  verified = false,
   compact = false,
 }: {
   purposeLabel: string;
-  purposeClassName: string;
-  fromLabel: string;
-  verified: boolean;
+  purposeClassName?: string;
+  /** Kept optional for callers that still pass it; the source pill is gone. */
+  fromLabel?: string;
+  verified?: boolean;
   compact?: boolean;
 }) {
   const { t } = useLanguage();
   return (
     <div
-      className={`absolute flex flex-wrap items-center gap-1.5 ${
-        compact ? "left-2.5 top-2.5 max-w-[calc(100%-64px)]" : "left-3.5 top-3.5"
-      }`}
+      className={`pointer-events-none absolute left-2.5 flex flex-col items-start gap-1.5 z-10 ${compact ? "top-2.5" : "top-3.5"}`}
     >
       <span
-        className={`rounded-md px-2.5 py-1 font-sans text-[0.7rem] font-semibold tracking-[0.03em] shadow-sm ${purposeClassName} shrink-0 whitespace-nowrap`}
+        className={`rounded-md px-2 py-1 text-[0.72rem] font-semibold tracking-wide shadow-sm ${purposeClassName ?? "bg-[#0D382A] text-white"}`}
       >
-        {t(purposeLabel)}
-      </span>
-      <span className="shrink-0 whitespace-nowrap rounded-md bg-[#E9CD9B] px-2.5 py-1 font-sans text-[0.7rem] font-semibold tracking-[0.03em] text-[#4A3413] shadow-sm">
-        {t(fromLabel)}
+        {purposeLabel}
       </span>
       {verified && (
-        <span className="inline-flex shrink-0 whitespace-nowrap items-center gap-1 rounded-md bg-[#2E9E5B] px-2.5 py-1 font-sans text-[0.7rem] font-bold tracking-[0.03em] text-white shadow-sm">
-          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" className="h-3.5 w-3.5">
-            <circle cx="8" cy="8" r="7" fill="white" fillOpacity="0.22" />
-            <path d="M4.6 8.2l2.2 2.2 4.6-4.6" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <span
+          className="inline-flex items-center gap-1 rounded-md border border-sky-200 bg-white px-2 py-1 text-[0.72rem] font-semibold text-sky-500 shadow-sm"
+          title={t("Verified")}
+        >
+          <svg viewBox="0 0 16 16" className="h-3 w-3 text-sky-500" aria-hidden="true">
+            <circle cx="8" cy="8" r="7" fill="currentColor" opacity="0.14" />
+            <path
+              d="M4.8 8.3l2 2 4.4-4.6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
           {t("Verified")}
         </span>

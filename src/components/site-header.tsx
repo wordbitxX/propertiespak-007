@@ -250,17 +250,39 @@ export function SiteHeader({
         data-surface={solid ? "solid" : "overlay"}
         className={`site-header ${solid ? "site-header--solid" : "site-header--overlay"}`}
       >
-        <div className="header-utility-bar">
+        <div className="header-utility-bar" data-testid="header-top-bar">
           <div className="ui-container">
-            <Link href="/contact">{t("Help & Support")}</Link>
-            <span className="header-utility-separator" aria-hidden="true">
-              |
-            </span>
-            <Link href="/advertise">{t("Advertise on Properties Pak")}</Link>
-            <span className="header-utility-separator" aria-hidden="true">
-              |
-            </span>
-            <LanguageSwitch />
+            <div className="header-utility-links">
+              <Link href="/contact">{t("Help & Support")}</Link>
+              <span className="header-utility-separator" aria-hidden="true">
+                |
+              </span>
+              <Link href="/advertise">{t("Advertise on Properties Pak")}</Link>
+            </div>
+            <div className="header-utility-actions">
+              <button
+                type="button"
+                data-testid="header-topbar-search"
+                onClick={(event) => openPanel("search", event.currentTarget)}
+                aria-label={t("Search properties")}
+                aria-haspopup="dialog"
+                className="header-action header-topbar-action"
+              >
+                <IconSearch className="h-[16px] w-[16px]" />
+                <span className="header-action-caption">{t("Search")}</span>
+              </button>
+              <Link
+                href="/favorites"
+                data-testid="header-topbar-saved"
+                aria-label={`${t("Saved properties")}${count ? `, ${count} ${t("saved")}` : ""}`}
+                className="header-action header-topbar-action"
+              >
+                <IconHeart className="h-[16px] w-[16px]" />
+                <span className="header-action-caption">{t("Saved")}</span>
+                {count > 0 && <span className="header-saved-count">{count > 99 ? "99+" : count}</span>}
+              </Link>
+              <LanguageSwitch />
+            </div>
           </div>
         </div>
 
@@ -376,27 +398,6 @@ export function SiteHeader({
             >
               <IconCompass className="h-[18px] w-[18px]" aria-hidden="true" />
             </a>
-            <button
-              type="button"
-              onClick={(event) => openPanel("search", event.currentTarget)}
-              aria-label={t("Search properties")}
-              aria-haspopup="dialog"
-              className="header-action header-search-action"
-            >
-              <IconSearch className="h-[18px] w-[18px]" />
-            </button>
-            <Link
-              href="/favorites"
-              data-testid="header-saved"
-              aria-label={`${t("Saved properties")}${count ? `, ${count} ${t("saved")}` : ""}`}
-              className="header-action header-saved-action"
-            >
-              <IconHeart className="h-[18px] w-[18px]" />
-              <span className="header-action-caption">{t("Saved")}</span>
-              {count > 0 && <span className="header-saved-count">{count > 99 ? "99+" : count}</span>}
-            </Link>
-            <LanguageSwitch mobile />
-
             <Link
               href="/list-property"
               data-testid="header-sell-property"

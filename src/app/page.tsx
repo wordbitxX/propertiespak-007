@@ -72,7 +72,7 @@ export default async function HomePage() {
     popularSearches,
   ] = await Promise.all([
     getPlatformStats(),
-    searchProperties({ featured: true, verified: true, pageSize: 8 }),
+    searchProperties({ featured: true, pageSize: 24 }),
     searchProperties({ sort: "newest", pageSize: 16 }),
     getPropertyCategoryCounts(),
     getCities(),
@@ -87,15 +87,14 @@ export default async function HomePage() {
   ]);
 
   /**
-   * "Premium Properties For You" carries verified inventory only. If nothing is
-   * flagged featured+verified yet, the fallback is still verified stock — a
-   * premium rail must never show unverified cards.
+   * "Premium Properties For You" is strictly featured AND verified — the same
+   * definition as the card's Verified pill (listing verified or verified
+   * dealer). Anything else never appears in the premium rail.
    */
-  const featuredItems =
-    featured.items.length > 0
-      ? featured.items
-      : discovery.items.filter((item) => item.verified || item.dealerVerified).slice(0, 8);
-  const featuredTotal = featured.total > 0 ? featured.total : featuredItems.length;
+  const featuredItems = featured.items
+    .filter((item) => item.featured && (item.verified || item.dealerVerified))
+    .slice(0, 8);
+  const featuredTotal = featuredItems.length;
 
   return (
     <div className="home-page">

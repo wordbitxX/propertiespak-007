@@ -13,6 +13,7 @@ const CORE_PAGES = [
   "/commercial",
   "/projects",
   "/maps",
+  "/malls",
   "/blog",
   "/price-index",
   "/tools",
