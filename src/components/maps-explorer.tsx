@@ -460,8 +460,8 @@ export function MapsExplorer({
                 <IconMap className="h-3.5 w-3.5" />
                 Interactive Google Satellite + Plot Number Overlay
               </p>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#4ADE80]/40 bg-[#22C55E]/15 px-2.5 py-0.5 text-[0.65rem] font-extrabold uppercase tracking-[0.12em] text-[#86EFAC]">
-                <span className="h-2 w-2 rounded-full bg-[#4ADE80]" />
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#DFBE78]/45 bg-[#DFBE78]/12 px-2.5 py-0.5 text-[0.65rem] font-extrabold uppercase tracking-[0.12em] text-[#E5CD9D]">
+                <span className="h-2 w-2 rounded-full bg-[#DFBE78]" />
                 {livePins.length} Listed Properties Marked on Map
               </span>
             </div>
@@ -563,7 +563,7 @@ export function MapsExplorer({
           <div className="mt-5 rounded-xl border border-white/12 bg-white/[0.05] p-4">
             <div className="flex flex-wrap items-center justify-between gap-2 pb-3">
               <div className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#4ADE80] shadow-[0_0_8px_#4ADE80]" />
+                <span className="h-2.5 w-2.5 rounded-full bg-[#DFBE78] shadow-[0_0_8px_#DFBE78]" />
                 <p className="text-[0.76rem] font-extrabold uppercase tracking-[0.14em] text-[#F3D590]">
                   Listed Properties Marked in {activeLiveSociety.citySlug.toUpperCase()} &amp;{" "}
                   {activeLiveSociety.name} ({societyAreaProperties.length})

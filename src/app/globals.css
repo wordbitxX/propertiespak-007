@@ -6260,12 +6260,12 @@ html:not([data-header-solid]):has(.pkr-hero--home) .site-header.site-header--ove
 @media (max-width: 575px) { .dlr-stat dd { font-size: 1.35rem; } }
 
 /* =====================================================================
-   LUXURY PALETTE — PREVIEW (homepage + /dealers only, via .lux-theme)
+   LUXURY PALETTE — site-wide (body.lux-theme)
    Same family as the homepage hero: green-black, deep green, champagne
    gold and warm cream. WhatsApp green, "Verified" chips and the blue
    tick keep their own colours on purpose.
    ===================================================================== */
-body:has(.lux-theme) {
+body.lux-theme {
   --lux-deep: #061610;
   --lux-green: #173C2D;
   --lux-green-2: #0f2c20;
@@ -6291,25 +6291,25 @@ body:has(.lux-theme) {
 }
 
 /* Header: gold accents instead of neon green. */
-html body:has(.lux-theme) .header-brand .brand-lockup-accent { color: var(--lux-gold) !important; }
-body:has(.lux-theme) .header-desktop-nav .nav-link:hover,
-body:has(.lux-theme) .header-desktop-nav .nav-link[data-active="true"] { color: var(--lux-gold-soft); }
-body:has(.lux-theme) .header-desktop-nav .nav-link::after { background: var(--lux-gold); }
-body:has(.lux-theme) .site-header .header-action:hover { color: var(--lux-gold-soft); }
-html body:has(.lux-theme) .site-header .header-account:hover { border-color: var(--lux-gold) !important; color: var(--lux-gold) !important; }
-html body:has(.lux-theme) .site-header .header-list-property.header-list-property {
+html body.lux-theme .header-brand .brand-lockup-accent { color: var(--lux-gold) !important; }
+body.lux-theme .header-desktop-nav .nav-link:hover,
+body.lux-theme .header-desktop-nav .nav-link[data-active="true"] { color: var(--lux-gold-soft); }
+body.lux-theme .header-desktop-nav .nav-link::after { background: var(--lux-gold); }
+body.lux-theme .site-header .header-action:hover { color: var(--lux-gold-soft); }
+html body.lux-theme .site-header .header-account:hover { border-color: var(--lux-gold) !important; color: var(--lux-gold) !important; }
+html body.lux-theme .site-header .header-list-property.header-list-property {
   border: 1px solid rgba(223, 190, 120, .75);
   background: linear-gradient(180deg, #1d4a37 0%, var(--lux-green) 100%);
   color: #F3E3BF;
   box-shadow: 0 8px 22px -12px rgba(0, 0, 0, .7), inset 0 1px 0 rgba(255, 255, 255, .06);
 }
-html body:has(.lux-theme) .site-header .header-list-property.header-list-property:hover,
-html body:has(.lux-theme) .site-header .header-list-property.header-list-property:focus-visible {
+html body.lux-theme .site-header .header-list-property.header-list-property:hover,
+html body.lux-theme .site-header .header-list-property.header-list-property:focus-visible {
   border-color: var(--lux-gold);
   background: linear-gradient(135deg, #E9D3A2 0%, var(--lux-gold-2) 100%);
   color: #1d1608;
 }
-html body:has(.lux-theme) .mobile-menu-list-btn {
+html body.lux-theme .mobile-menu-list-btn {
   border: 1px solid rgba(201, 164, 92, .6);
   background: var(--lux-green);
   color: #fff;
@@ -6317,9 +6317,9 @@ html body:has(.lux-theme) .mobile-menu-list-btn {
 }
 
 /* Section eyebrows / kickers: deep champagne on light, soft gold on dark. */
-.lux-theme .section-heading .eyebrow,
-.home-page.lux-theme #markets .section-heading .eyebrow { color: var(--lux-gold-ink); }
-.lux-theme .section-heading .eyebrow > span { background: var(--lux-gold-2); opacity: 1; }
+.lux-theme .section-heading .eyebrow.text-forest-700,
+.lux-theme .home-page #markets .section-heading .eyebrow { color: var(--lux-gold-ink); }
+.lux-theme .section-heading .eyebrow.text-forest-700 > span { background: var(--lux-gold-2); opacity: 1; }
 .lux-theme .dlr-kicker { color: var(--lux-gold-ink); }
 
 /* Buttons: deep hero green, neutral shadow. */
@@ -6341,8 +6341,43 @@ html body:has(.lux-theme) .mobile-menu-list-btn {
 .lux-theme .dlr-pill.is-active { border-color: var(--lux-green); background: var(--lux-green); }
 
 /* Footer: gold links/hover instead of neon green (footer bg already matches). */
-body:has(.lux-theme) footer a:hover { color: var(--lux-gold-soft); }
+body.lux-theme footer a:hover { color: var(--lux-gold-soft); }
 /* Dark panels: soft-gold kicker and a champagne primary button (deep green would sink into the dark). */
 .lux-theme .dlr-cta .dlr-kicker { color: var(--lux-gold-soft); }
 .lux-theme .dlr-cta .btn-green { background: linear-gradient(135deg, #E9D3A2 0%, var(--lux-gold-2) 100%); color: #1d1608; box-shadow: 0 12px 26px -14px rgba(201, 164, 92, .6); }
 .lux-theme .dlr-cta .btn-green:hover { background: linear-gradient(135deg, #F0DDB4 0%, #D4B06A 100%); }
+
+/* ── Luxury palette, site-wide extras: hard-coded neon greens → hero palette ── */
+.lux-theme ::selection { background: #E9D3A2; color: #1d1608; }
+.lux-theme :focus-visible { outline-color: #B08A3E; }
+.lux-theme .eyebrow.text-forest-700 { color: var(--lux-gold-ink); }
+.lux-theme .agx-eyebrow { color: var(--lux-gold-ink); }
+/* Dropdowns keep a green hover (PPS style) — deep hero green instead of bright green. */
+.lux-theme .header-dropdown-parent:has(> .header-flyout:not([hidden])) > .header-dropdown-item,
+.lux-theme .header-dropdown-parent:has(> .header-flyout:not([hidden])) .header-dropdown-caret,
+.lux-theme .header-dropdown-footer,
+.lux-theme .mobile-nav-sublink[aria-current="page"],
+.lux-theme .mobile-nav-submenu-footer,
+.lux-theme .society-map-side-link:hover,
+.lux-theme .dha-map-card-cta { color: var(--lux-green); }
+.lux-theme .dha-map-card-badge { color: var(--lux-gold-soft); }
+.lux-theme .society-map-spinner { border-top-color: var(--lux-gold-2); }
+.lux-theme .dha-maps-search:focus-within,
+.lux-theme .land-tool-input:focus-within,
+.lux-theme .land-tool-field select:focus { border-color: var(--lux-gold-2); box-shadow: 0 0 0 3px rgba(201, 164, 92, .18); }
+.lux-theme .home-page .dealer-showcase-card:hover { border-color: #D9C9A2; }
+.lux-theme .land-tool-split { background: var(--lux-gold-2); }
+.lux-theme .land-tool-split span,
+.lux-theme .land-tool-legend .is-principal::before { background: var(--lux-green); }
+.lux-theme .land-tool-legend .is-profit::before { background: var(--lux-gold-2); }
+
+/* ── WhatsApp float: icon only (round WhatsApp-green button) ── */
+.wa-float.wa-float { width: 58px; height: 58px; padding: 0; gap: 0; justify-content: center; border-radius: 50%; background: linear-gradient(145deg, #2fe079 0%, #1fb855 55%, #128c4a 100%); }
+.wa-float .wa-float-icon { width: 100%; height: 100%; flex: 0 0 100%; background: transparent; color: #fff; box-shadow: none; }
+.wa-float .wa-float-svg { width: 30px; height: 30px; }
+.wa-float .wa-float-pulse { box-shadow: 0 0 0 0 rgba(37, 211, 102, .55); animation-name: wa-float-pulse-green; }
+@keyframes wa-float-pulse-green { 0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, .5); } 70%, 100% { box-shadow: 0 0 0 14px rgba(37, 211, 102, 0); } }
+@media (max-width: 639px) {
+  .wa-float.wa-float { width: 54px; height: 54px; padding: 0; }
+  .wa-float .wa-float-svg { width: 28px; height: 28px; }
+}

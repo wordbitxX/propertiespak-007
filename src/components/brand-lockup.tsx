@@ -45,7 +45,7 @@ export function BrandLockup({
       <span className="min-w-0">
         <span className={`brand-lockup-name ${light ? "text-white" : "text-navy-900"}`}>
           Properties{" "}
-          <span className={light ? "text-[#10A456]" : "text-forest-700"}>Pak</span>
+          <span className={light ? "text-[#DFBE78]" : "text-forest-700"}>Pak</span>
         </span>
         <span className={`brand-lockup-tagline ${light ? "text-white/70" : "text-ink-muted"}`}>{t(SITE.tagline)}</span>
       </span>

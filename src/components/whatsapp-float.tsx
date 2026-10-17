@@ -16,7 +16,7 @@ function whatsappHref(pathname: string) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(greeting + page)}`;
 }
 
-/** Floating "Chat on WhatsApp" button shown on every public page. */
+/** Floating WhatsApp icon button shown on every public page. */
 export function WhatsAppFloat() {
   const pathname = usePathname() ?? "/";
 
@@ -40,14 +40,11 @@ export function WhatsAppFloat() {
       data-sticky-bar={hasStickyBar ? "true" : undefined}
       aria-label={`Chat with Properties Pak on WhatsApp, ${SITE.companyPhone}`}
       data-testid="whatsapp-float"
+      title="Chat on WhatsApp"
     >
       <span className="wa-float-icon" aria-hidden="true">
         <span className="wa-float-pulse" />
         <IconWhatsApp className="wa-float-svg" />
-      </span>
-      <span className="wa-float-copy">
-        <span className="wa-float-title">Chat on WhatsApp</span>
-        <span className="wa-float-subtitle">We usually reply in minutes</span>
       </span>
     </a>
   );
