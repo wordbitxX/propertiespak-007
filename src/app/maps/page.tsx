@@ -221,6 +221,43 @@ export default async function SocietyMapsPage() {
         </div>
       </section>
 
+      {/* Maps & Malls cross-promo: mall footfall moves the same neighbourhoods these maps cover. */}
+      <section className="ui-container mt-8 sm:mt-10" aria-labelledby="maps-malls-heading">
+        <div
+          className="relative overflow-hidden rounded-2xl border border-[#DFB872]/35 p-6 text-white sm:p-8"
+          style={{ background: "linear-gradient(120deg, #051811 0%, #0B2E21 58%, #123B2A 100%)" }}
+        >
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0"
+            style={{ background: "radial-gradient(circle at 88% 18%, rgba(216,175,104,0.22), transparent 46%)" }}
+          />
+          <div className="relative z-10 flex flex-wrap items-end justify-between gap-5">
+            <div className="max-w-2xl">
+              <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.18em] text-[#DFB872]">Maps &amp; Malls</p>
+              <h2 id="maps-malls-heading" className="mt-2 font-sans text-[1.45rem] font-bold leading-tight">
+                Shopping Malls in Pakistan — open &amp; coming soon
+              </h2>
+              <p className="mt-2 text-[0.9rem] leading-relaxed text-white/75">
+                Maps show where a plot sits; malls show where the footfall is going. Explore every major mall in Pakistan —
+                LuckyOne, Emporium, Dolmen, Centaurus, Giga and the upcoming projects — with property near each one.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/malls" className="btn btn-gold">
+                Explore all malls <IconArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/malls/luckyone-mall-karachi"
+                className="inline-flex min-h-11 items-center rounded-[10px] border border-white/25 px-4 font-sans text-[0.85rem] font-semibold text-white transition-colors hover:border-[#DFB872]"
+              >
+                Pakistan&rsquo;s largest mall
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Main Interactive Maps Explorer */}
       <section id="maps-library" className="ui-container mt-8 sm:mt-10">
         <MapsExplorer initialProperties={mapProperties} />

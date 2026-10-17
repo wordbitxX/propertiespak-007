@@ -14,6 +14,7 @@ export function getSitemapRegistry(): SitemapDescriptor[] {
     { path: "/sitemaps/cities.xml", label: "City hubs + sale/rent landings", group: "topic" },
     { path: "/sitemaps/societies.xml", label: "Society, town & area guides", group: "topic" },
     { path: "/sitemaps/dealers.xml", label: "Verified dealer profiles & town directory", group: "topic" },
+    { path: "/sitemaps/malls.xml", label: "Shopping malls directory (open & upcoming)", group: "topic" },
     { path: "/sitemaps/properties.xml", label: "Individual property listings", group: "topic" },
     { path: "/sitemaps/projects.xml", label: "New housing projects", group: "topic" },
     { path: "/sitemaps/blog.xml", label: "Blog & property guides", group: "topic" },

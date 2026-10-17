@@ -5252,3 +5252,44 @@ html[data-header-solid] .site-header .header-account:hover {
 }
 
 
+
+/* ---------- Malls nav + premium EN | Urdu pill (header) ---------- */
+.header-language-pill {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid rgba(223, 184, 114, 0.45);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+}
+.header-language-pill button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 750;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.78);
+  transition: background-color .16s ease, color .16s ease;
+}
+.header-language-pill button:hover { color: #ffffff; }
+.header-language-pill button[aria-pressed="true"] {
+  background: linear-gradient(135deg, #e2bc76 0%, #c89b4f 100%);
+  color: #082218;
+}
+.header-language-pill-separator { width: 1px; height: 14px; background: rgba(223, 184, 114, 0.35); }
+@media (min-width: 1024px) {
+  .header-language-pill { display: inline-flex; }
+  .header-language-mobile { display: none !important; }
+}
+/* Keep the widened primary nav (Maps + Malls added) uncluttered on laptops:
+   About/Contact stay in the footer, mobile drawer and utility links. */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .header-desktop-nav a[href="/about"],
+  .header-desktop-nav a[href="/contact"] { display: none; }
+}

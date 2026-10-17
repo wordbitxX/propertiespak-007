@@ -46,12 +46,32 @@ const DESKTOP_NAV_ITEMS = [
   { label: "New Projects", href: "/projects" },
   { label: "Areas", href: "/towns" },
   { label: "Maps", href: "/maps" },
+  { label: "Malls", href: "/malls" },
   { label: "Blog", href: "/blog" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ] as const;
 
 type Panel = "menu" | "search" | "map" | null;
+
+/**
+ * Premium segmented EN | اردو pill for the main header bar. On mobile the
+ * compact single-tap switch next to it takes over, so the bar never crowds.
+ */
+function LanguagePill() {
+  const { locale, setLocale, t } = useLanguage();
+  return (
+    <div className="header-language-pill" role="group" aria-label={t("Choose language")} data-testid="header-language-toggle">
+      <button type="button" lang="en" aria-label="English" aria-pressed={locale === "en"} onClick={() => setLocale("en")}>
+        EN
+      </button>
+      <span aria-hidden="true" className="header-language-pill-separator" />
+      <button type="button" lang="ur" aria-label="اردو" aria-pressed={locale === "ur"} onClick={() => setLocale("ur")}>
+        اردو
+      </button>
+    </div>
+  );
+}
 
 function LanguageSwitch({ mobile = false }: { mobile?: boolean }) {
   const { locale, setLocale, t } = useLanguage();
@@ -332,6 +352,7 @@ export function SiteHeader({ isAuthenticated = false }: { isAuthenticated?: bool
               <span className="header-action-caption">{t("Saved")}</span>
               {count > 0 && <span className="header-saved-count">{count > 99 ? "99+" : count}</span>}
             </Link>
+            <LanguagePill />
             <LanguageSwitch mobile />
 
             <Link

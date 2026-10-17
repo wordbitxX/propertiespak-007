@@ -38,6 +38,7 @@ const COLUMNS = [
       { label: "All properties", href: "/properties" },
       { label: "Towns & societies", href: "/towns" },
       { label: "Society PDF Maps", href: "/maps" },
+      { label: "Shopping Malls in Pakistan", href: "/malls" },
       { label: "Verified dealers", href: "/dealers" },
       { label: "Compare properties", href: "/compare" },
     ],

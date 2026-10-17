@@ -428,6 +428,37 @@ export function dealerJsonLd(input: {
   };
 }
 
+/** ShoppingCenter markup for a mall directory page. */
+export function mallJsonLd(input: {
+  slug: string;
+  name: string;
+  description: string;
+  city: string;
+  area: string;
+  status: "open" | "upcoming";
+  openingDate?: string;
+}) {
+  const url = `${SITE.url}/malls/${input.slug}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "ShoppingCenter",
+    "@id": `${url}#mall`,
+    name: input.name,
+    url,
+    description: input.description,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: input.area,
+      addressLocality: input.city,
+      addressCountry: "PK",
+    },
+    openingDate: input.status === "open" ? input.openingDate : undefined,
+    additionalProperty: [
+      { "@type": "PropertyValue", name: "Status", value: input.status === "open" ? "Open" : "Coming soon / under construction" },
+    ],
+  };
+}
+
 /** Dataset markup for the Pakistan Property Price Index (linkable data asset). */
 export function priceIndexJsonLd(input: { listings: number; cities: number; dateModified: string }) {
   return {
