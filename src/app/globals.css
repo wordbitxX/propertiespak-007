@@ -5677,3 +5677,10 @@ html[data-header-solid] .site-header .header-account:hover {
 
 .dha-poster-note { margin: 0 0 12px; padding: 10px 14px; border: 1px solid #ecdca8; border-radius: 12px; background: #fdf8e9; color: #5b4a12; font-size: .85rem; line-height: 1.5; }
 .dha-poster-note button { border: 0; padding: 0; background: none; color: var(--color-forest-800); font-weight: 700; text-decoration: underline; cursor: pointer; }
+
+/* Hero copy sits a little lower on desktop/laptop (user request). Uses a transform so
+   the search box below never moves; the shift scales with viewport height and is 0 on
+   short laptop screens where the copy already meets the city chips. */
+@media (min-width: 1024px) {
+  .home-page .hero-search-intro { transform: translateY(clamp(0px, calc((100vh - 680px) / 2), 48px)); }
+}
