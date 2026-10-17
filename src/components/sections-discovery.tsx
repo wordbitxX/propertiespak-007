@@ -268,6 +268,7 @@ export function RecentlyAddedProperties({ properties }: { properties: Property[]
           />
           <MobileScrollGrid
             label="Recently added properties"
+            autoPlay
             className="home-horizontal-rail home-recent-rail"
             testId="recently-added-rail"
           >

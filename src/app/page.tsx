@@ -107,7 +107,10 @@ export default async function HomePage() {
       {/* 1. Featured Properties ("Premium Properties For You") */}
       <FeaturedProperties properties={featuredItems} total={featuredTotal} />
 
-      {/* 2. Explore Popular Cities — directly below Premium Properties */}
+      {/* Explore more on Properties Pak — above the cities section */}
+      <ExploreMoreSection />
+
+      {/* 2. Explore Popular Cities */}
       <CityDiscovery cities={cities} counts={cityCounts} />
 
       {/* 5. Recently Added & Locally Viewed Properties */}
@@ -152,7 +155,6 @@ export default async function HomePage() {
       <CommercialSection properties={commercialListings.items} total={commercialListings.total} />
       <NewProjectsSection projects={projects} />
       <PopularSearches groups={popularSearches} />
-      <ExploreMoreSection />
 
       {/* 8. Editorial, Investment Snapshot, Guides & Closing CTA */}
       <WhyEstateWx listings={stats.listings} cities={stats.cities} />
