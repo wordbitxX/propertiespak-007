@@ -27,6 +27,9 @@ export type Mall = {
   description: string;
   highlights: string[];
   featured?: boolean;
+  /** Editorial cover photo (real mall photography where we have it). */
+  image?: string;
+  imageAlt?: string;
 };
 
 export const MALLS: Mall[] = [
@@ -46,6 +49,8 @@ export const MALLS: Mall[] = [
       "Lahore's flagship mega-mall in Johar Town: an 11-storey retail, dining and entertainment destination beside the Expo Centre, with a five-star hotel in the same complex.",
     highlights: ["Cinema & large food court", "International & local flagship brands", "Five-star hotel in the complex"],
     featured: true,
+    image: "/images/malls/emporium-mall-lahore.jpg",
+    imageAlt: "Inside Emporium Mall Lahore — food court and atrium levels in Johar Town",
   },
   {
     slug: "packages-mall-lahore",
@@ -78,6 +83,8 @@ export const MALLS: Mall[] = [
       "Dolmen Group's first Punjab mall and Pakistan's largest by gross leasable area: three retail levels with international first-to-Pakistan brands, hypermarket, themed food streets and a Sindbad amusement park.",
     highlights: ["Largest GLA in the country", "First-to-Pakistan international brands", "2,000-car parking"],
     featured: true,
+    image: "/images/malls/dolmen-mall-lahore.jpg",
+    imageAlt: "Dolmen Mall Lahore at dusk — the wavy illuminated facade in DHA Phase 6",
   },
   {
     slug: "mall-of-lahore",
@@ -237,6 +244,8 @@ export const MALLS: Mall[] = [
       "Pakistan's largest shopping mall: a 3.4 million sq ft destination on Rashid Minhas Road with 200+ stores, a huge atrium food court, indoor theme park and hypermarket anchor.",
     highlights: ["Largest mall in Pakistan", "Indoor theme park", "Hypermarket anchor"],
     featured: true,
+    image: "/images/malls/luckyone-mall-karachi.jpg",
+    imageAlt: "LuckyOne Mall Karachi illuminated at night — Pakistan's largest shopping mall entrance",
   },
   {
     slug: "dolmen-mall-clifton-karachi",
@@ -415,6 +424,8 @@ export const MALLS: Mall[] = [
       "Islamabad's landmark mixed-use complex: a four-storey mall beneath residential and office towers and the Mövenpick hotel, with 250+ brands, Fun City and a multiplex on Jinnah Avenue.",
     highlights: ["Islamabad's landmark mall", "250+ brands", "Hotel & towers complex"],
     featured: true,
+    image: "/images/malls/centaurus-mall-islamabad.jpg",
+    imageAlt: "The Centaurus Mall and towers in Islamabad lit up at night, F-8 Blue Area edge",
   },
   {
     slug: "giga-mall-islamabad",
@@ -429,6 +440,8 @@ export const MALLS: Mall[] = [
       "The World Trade Center's retail heart on GT Road, DHA Phase 2: 150+ stores, Cinepax cinema, food court and family entertainment for the DHA–Bahria twin-city corridor.",
     highlights: ["World Trade Center", "Cinepax cinema", "DHA Phase 2 anchor"],
     featured: true,
+    image: "/images/malls/giga-mall-islamabad.jpg",
+    imageAlt: "Giga Mall Islamabad exterior in DHA Phase 2 on GT Road",
   },
   {
     slug: "safa-gold-mall-islamabad",
@@ -742,7 +755,74 @@ export const MALLS: Mall[] = [
       "A mall project under construction in Sargodha, set to add a modern branded retail format to the city's growing boulevard corridor. Timelines may change.",
     highlights: ["Under construction", "Modern format planned", "Boulevard corridor"],
   },
+  {
+    slug: "orchard-mall-lahore",
+    name: "Orchard Mall",
+    city: "Lahore",
+    citySlug: "lahore",
+    area: "Bahria Orchard Phase 4, Raiwind Road",
+    status: "open",
+    developer: "Bahria Town",
+    sizeLabel: "≈ 150,000+ sq ft",
+    storesLabel: "200+ shops",
+    description:
+      "Bahria Orchard's main shopping destination on Raiwind Road: 200+ shops with a supermarket, IT market, kids' and wedding arenas and food court units serving the Orchard and southern Lahore societies.",
+    highlights: ["Bahria Orchard's anchor mall", "Supermarket & IT market", "Kids' & wedding arenas"],
+  },
+  {
+    slug: "prime-mall-al-kabir-lahore",
+    name: "Prime Mall — Al Kabir Downtown",
+    city: "Lahore",
+    citySlug: "lahore",
+    area: "Al Kabir Downtown, Main Raiwind Road (opposite Lake City)",
+    status: "upcoming",
+    expected: "Under construction",
+    developer: "Al Kabir Developers / Asaan Home",
+    sizeLabel: "15 floors (planned)",
+    description:
+      "A planned 15-floor mixed-use tower in Al Kabir Downtown opposite Lake City: shops and kiosks on the lower floors, a dedicated food-court floor, smart tech offices and serviced apartments above — one of Raiwind Road's most-watched upcoming retail projects.",
+    highlights: ["Raiwind Road growth corridor", "Retail + food court + tech offices", "Serviced apartments above"],
+    featured: true,
+  },
+  {
+    slug: "giga-boutique-mall-islamabad",
+    name: "Giga Boutique Mall",
+    city: "Islamabad",
+    citySlug: "islamabad",
+    area: "Giga City, DHA Phase 2 (next to Giga Mall)",
+    status: "upcoming",
+    expected: "Announced — linked to Giga Mall by a planned Sky Walk Bridge",
+    developer: "Giga Group",
+    description:
+      "Giga Group's next Islamabad retail project beside Giga Mall in DHA Phase 2: a boutique-scale lifestyle mall planned with a Sky Walk Bridge connecting it directly to Giga Mall, extending the twin cities' busiest retail cluster.",
+    highlights: ["Sky Walk Bridge to Giga Mall", "DHA Phase 2 retail cluster", "Local & international brands planned"],
+  },
 ];
+
+const CITY_COVER: Record<string, string> = {
+  Lahore: "/images/cities/lahore-hd.webp",
+  Karachi: "/images/cities/karachi-hd.webp",
+  Islamabad: "/images/cities/islamabad-hd.webp",
+  Faisalabad: "/images/cities/faisalabad-hd.webp",
+  Multan: "/images/cities/multan-hd.webp",
+  Gujranwala: "/images/cities/gujranwala-hd.webp",
+  Peshawar: "/images/cities/peshawar-hd.webp",
+  Rawalpindi: "/images/cities/rawalpindi-hd.webp",
+};
+
+/**
+ * Cover image for a mall: its own editorial photo when we have one, then a
+ * city backdrop, then the premium upcoming/exterior artwork. City and
+ * artwork covers are illustrative of the location, not the mall itself.
+ */
+export function mallImage(mall: Mall): { src: string; alt: string } {
+  if (mall.image) return { src: mall.image, alt: mall.imageAlt ?? `${mall.name}, ${mall.city}` };
+  if (mall.status === "upcoming")
+    return { src: "/images/malls/mall-upcoming-render.jpg", alt: `${mall.name}, ${mall.city} — upcoming mall project (illustrative visualisation)` };
+  const city = CITY_COVER[mall.city];
+  if (city) return { src: city, alt: `${mall.city} skyline — home of ${mall.name} in ${mall.area}` };
+  return { src: "/images/malls/mall-exterior-night.jpg", alt: `Premium shopping mall exterior at dusk — illustrative cover for ${mall.name}, ${mall.city}` };
+}
 
 export function getAllMalls(): Mall[] {
   return MALLS;

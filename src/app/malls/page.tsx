@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { JsonLd } from "@/components/json-ld";
-import { MallsExplorer } from "@/components/malls-explorer";
-import { PageHero } from "@/components/page-hero";
+import { MallCard, MallsExplorer } from "@/components/malls-explorer";
 import { Section, SectionHeading } from "@/components/section";
 import { getAllMalls, getMallCities } from "@/lib/malls";
 import { breadcrumbJsonLd, buildMetadata, collectionPageJsonLd, faqJsonLd, itemListJsonLd } from "@/lib/seo";
@@ -10,20 +11,28 @@ import { breadcrumbJsonLd, buildMetadata, collectionPageJsonLd, faqJsonLd, itemL
 export const metadata: Metadata = buildMetadata({
   title: "Shopping Malls in Pakistan — All Major & Upcoming Malls | Properties Pak",
   description:
-    "Pakistan's mall directory by Properties Pak: every major shopping mall — LuckyOne, Emporium, Dolmen, Packages, Centaurus, Giga — plus the coming-soon projects, by city, with locations, sizes and property near each mall.",
+    "Pakistan's premium mall directory: every major shopping mall — LuckyOne, Emporium, Dolmen, Packages, Centaurus, Giga — plus the coming-soon projects, by city, with locations, sizes and property near each mall.",
   path: "/malls",
   keywords: [
     "shopping malls in Pakistan",
     "malls in Pakistan",
+    "best malls in Pakistan",
     "biggest mall in Pakistan",
+    "largest mall in Pakistan",
+    "top 10 malls in Pakistan",
+    "list of shopping malls in Pakistan",
     "malls in Lahore",
+    "best malls in Lahore",
     "malls in Karachi",
     "malls in Islamabad",
     "upcoming malls in Pakistan",
     "new malls in Pakistan",
-    "LuckyOne Mall",
-    "Emporium Mall",
+    "new mall opening in Pakistan 2026",
+    "LuckyOne Mall Karachi",
+    "Emporium Mall Lahore",
     "Dolmen Mall Lahore",
+    "Centaurus Mall Islamabad",
+    "property near malls in Pakistan",
   ],
   ogKicker: "MALLS OF PAKISTAN",
   ogSubtitle: "Every major open and upcoming shopping mall in Pakistan, by city.",
@@ -38,7 +47,7 @@ const FAQS = [
   {
     question: "Which new malls are coming soon in Pakistan?",
     answer:
-      "The directory's Coming Soon list tracks publicly announced projects: Mall of Islamabad (Blue Area), J7 Emporium (B-17), Paradise Mall (New City Paradise), The Magnus Mall (Gulberg Greens), The Grand Central Mall (Faisalabad), Lahore Sky Mall (Ferozepur Road), Icon Mall & Towers (Bahria Town Lahore), United Mall Gulgasht (Multan) and Mall of Sargodha. Dates are developer-announced and can change — each mall page says what is known so far.",
+      "The directory's Coming Soon list tracks publicly announced projects: Mall of Islamabad (Blue Area), J7 Emporium (B-17), Paradise Mall (New City Paradise), The Magnus Mall (Gulberg Greens), Giga Boutique Mall (DHA Phase 2, Islamabad), The Grand Central Mall (Faisalabad), Lahore Sky Mall (Ferozepur Road), Icon Mall & Towers and Prime Mall (Lahore), United Mall Gulgasht (Multan) and Mall of Sargodha. Dates are developer-announced and can change — each mall page says what is known so far.",
   },
   {
     question: "Why does a property site run a mall directory?",
@@ -57,6 +66,16 @@ export default function MallsPage() {
   const cities = getMallCities();
   const openCount = malls.filter((mall) => mall.status === "open").length;
   const upcoming = malls.filter((mall) => mall.status === "upcoming");
+  const featured = malls.filter((mall) => mall.featured && mall.status === "open");
+  const heroMall = featured.find((mall) => mall.slug === "luckyone-mall-karachi") ?? featured[0];
+  const showcase = featured.filter((mall) => mall.slug !== heroMall?.slug).slice(0, 4);
+
+  const stats = [
+    { value: String(malls.length), label: "Malls tracked", note: "Open + coming soon" },
+    { value: String(openCount), label: "Open now", note: "LuckyOne to Centaurus" },
+    { value: String(upcoming.length), label: "Coming soon", note: "Announced projects" },
+    { value: String(cities.length), label: "Cities", note: cities.slice(0, 3).map((item) => item.city).join(" · ") },
+  ];
 
   return (
     <>
@@ -77,64 +96,116 @@ export default function MallsPage() {
       />
       <JsonLd data={faqJsonLd(FAQS)} />
 
-      <PageHero
-        eyebrow="Maps & Malls · Retail destinations"
-        title="Shopping Malls in Pakistan"
-        description={`${malls.length} malls tracked across ${cities.length} cities — ${openCount} open now and ${upcoming.length} coming soon. The same footfall that fills a mall lifts the houses, apartments and shops around it, so every mall links straight to live property nearby.`}
-        crumbs={[
-          { name: "Home", href: "/" },
-          { name: "Malls", href: "/malls" },
-        ]}
-      />
-
-      <Section tone="light">
-        <div className="ui-container">
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {[
-              { label: "Malls in the directory", value: String(malls.length), note: "Open and coming soon, all Pakistan" },
-              { label: "Open now", value: String(openCount), note: "From LuckyOne Karachi to Centaurus Islamabad" },
-              { label: "Coming soon", value: String(upcoming.length), note: "Announced projects being tracked" },
-              { label: "Cities covered", value: String(cities.length), note: cities.slice(0, 4).map((item) => item.city).join(" · ") },
-            ].map((stat) => (
-              <div key={stat.label} className="rounded-panel border border-soft bg-white px-5 py-4 shadow-soft">
-                <p className="text-[0.75rem] font-semibold uppercase tracking-[0.12em] text-ink-muted">{stat.label}</p>
-                <p className="mt-1.5 font-sans text-[1.5rem] font-bold leading-none text-navy-900">{stat.value}</p>
-                <p className="mt-1.5 text-[0.75rem] text-ink-muted">{stat.note}</p>
+      {/* Cinematic image hero — no boxes, one rich visual statement. */}
+      <section className="relative isolate overflow-hidden bg-[#04150E] pb-14 pt-32 text-white lg:pb-16 lg:pt-40">
+        <Image
+          src="/images/malls/mall-hero-atrium.jpg"
+          alt="Inside a premium shopping mall atrium in Pakistan — golden evening light over multi-level galleries"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(4,21,14,0.72) 0%, rgba(4,21,14,0.55) 42%, rgba(4,21,14,0.94) 100%), linear-gradient(95deg, rgba(4,21,14,0.82) 0%, rgba(4,21,14,0.25) 58%, rgba(4,21,14,0.1) 100%)",
+          }}
+        />
+        <div className="ui-container relative z-10">
+          <Breadcrumbs items={[{ name: "Home", href: "/" }, { name: "Malls", href: "/malls" }]} />
+          <p className="eyebrow mt-8 text-[#DFB872]">
+            <span className="h-[1px] w-6 bg-current opacity-70" />
+            Maps &amp; Malls · Retail destinations of Pakistan
+          </p>
+          <h1 className="display-2 mt-4 max-w-3xl text-white">Shopping Malls in Pakistan</h1>
+          <p className="lede mt-4 max-w-2xl text-white/80">
+            {malls.length} malls across {cities.length} cities — {openCount} open now, {upcoming.length} coming soon. From
+            LuckyOne and Dolmen to the projects still on the crane, every mall links straight to the property market around it.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <a href="#mall-directory" className="btn btn-gold">
+              Browse all malls
+            </a>
+            <a href="#coming-soon" className="btn btn-ghost-light">
+              Coming soon · {upcoming.length} projects
+            </a>
+          </div>
+          <dl className="mt-11 grid grid-cols-2 gap-x-6 gap-y-7 border-t border-white/15 pt-7 lg:grid-cols-4">
+            {stats.map((stat) => (
+              <div key={stat.label}>
+                <dd className="font-sans text-[2rem] font-extrabold leading-none text-white">
+                  {stat.value}
+                  <span className="text-[#DFB872]">.</span>
+                </dd>
+                <dt className="mt-2 text-[0.72rem] font-bold uppercase tracking-[0.14em] text-white/70">{stat.label}</dt>
+                <dd className="mt-1 text-[0.78rem] text-white/50">{stat.note}</dd>
               </div>
             ))}
-          </div>
+          </dl>
+        </div>
+      </section>
 
-          <div className="mt-10">
+      {/* Iconic malls showcase */}
+      {heroMall && (
+        <Section tone="light">
+          <div className="ui-container">
+            <SectionHeading
+              eyebrow="The icons"
+              title="Pakistan's landmark malls"
+              description="The destinations that define retail in their cities — and move every property price around them."
+            />
+            <div className="mt-8 grid gap-5 lg:grid-cols-2">
+              <MallCard mall={heroMall} priority />
+              <div className="grid gap-5 sm:grid-cols-2">
+                {showcase.map((mall) => (
+                  <MallCard key={mall.slug} mall={mall} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </Section>
+      )}
+
+      <Section tone="mist" >
+        <div className="ui-container" id="mall-directory">
+          <SectionHeading
+            eyebrow="Directory"
+            title="All malls, by city"
+            description="Search by name or area, filter by city, or jump straight to the coming-soon projects investors are watching."
+          />
+          <div className="mt-8">
             <MallsExplorer malls={malls} cities={cities} />
           </div>
         </div>
       </Section>
 
-      <Section tone="mist">
-        <div className="ui-container">
+      {/* Coming soon — dark premium band over the render artwork. */}
+      <section id="coming-soon" className="relative isolate overflow-hidden bg-[#04150E] py-16 text-white lg:py-20">
+        <Image
+          src="/images/malls/mall-upcoming-render.jpg"
+          alt="Upcoming luxury shopping mall under construction in Pakistan at dusk — illustrative visualisation"
+          fill
+          sizes="100vw"
+          className="object-cover opacity-40"
+        />
+        <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-[#04150E] via-[#04150E]/72 to-[#04150E]" />
+        <div className="ui-container relative z-10">
           <SectionHeading
+            tone="dark"
             eyebrow="Coming soon"
             title="Upcoming malls being tracked"
-            description="Announced and under-construction projects — the ones that move nearby land and shop prices before a single store opens. Dates are developer-announced and can slip; we update pages as projects progress."
+            description="Announced and under-construction projects — the ones that move nearby land and shop prices before a single store opens. Dates are developer-announced and can slip; pages update as projects progress."
           />
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-9 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {upcoming.map((mall) => (
-              <Link
-                key={mall.slug}
-                href={`/malls/${mall.slug}`}
-                className="group rounded-panel border border-amber-200 bg-amber-50 p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-amber-400"
-              >
-                <p className="text-[0.75rem] font-bold uppercase tracking-[0.12em] text-amber-800">
-                  {mall.city} · {mall.expected ?? "Announced"}
-                </p>
-                <h3 className="mt-2 font-sans text-[1.0625rem] font-bold text-navy-900 group-hover:text-forest-700">{mall.name}</h3>
-                <p className="mt-1.5 line-clamp-3 text-[0.875rem] leading-relaxed text-ink-muted">{mall.description}</p>
-                <span className="mt-3 inline-block text-[0.8125rem] font-bold text-forest-700">Track this project →</span>
-              </Link>
+              <MallCard key={mall.slug} mall={mall} />
             ))}
           </div>
         </div>
-      </Section>
+      </section>
 
       <Section tone="light">
         <div className="ui-container">

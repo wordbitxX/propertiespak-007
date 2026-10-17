@@ -334,7 +334,6 @@ const URDU: Record<string, string> = {
   "Sell / List Property": "پراپرٹی فروخت / لسٹ کریں",
   "Maps": "نقشے",
   "Malls": "مالز",
-  "Choose language": "زبان منتخب کریں",
   "Society PDF Maps": "سوسائٹی پی ڈی ایف نقشے",
   "Property guides & Blog": "پراپرٹی گائیڈز اور بلاگ",
 };

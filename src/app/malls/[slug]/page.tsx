@@ -6,7 +6,8 @@ import { JsonLd } from "@/components/json-ld";
 import { PropertyCard } from "@/components/property-card";
 import { Reveal } from "@/components/reveal";
 import { Section, SectionHeading } from "@/components/section";
-import { getAllMallSlugs, getMallBySlug, mallDirectionsUrl, MALLS } from "@/lib/malls";
+import Image from "next/image";
+import { getAllMallSlugs, getMallBySlug, mallDirectionsUrl, mallImage, MALLS } from "@/lib/malls";
 import { getLandingProperties } from "@/lib/queries";
 import { breadcrumbJsonLd, buildMetadata, faqJsonLd, mallJsonLd } from "@/lib/seo";
 
@@ -25,7 +26,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return buildMetadata({ title: "Mall not found", description: "This mall page is not available on Properties Pak.", path: "/malls" });
   }
   const statusLine = mall.status === "open" ? `Open${mall.opened ? ` since ${mall.opened}` : ""}` : "Coming soon — under construction/announced";
+  const cover = mallImage(mall);
   return buildMetadata({
+    image: cover.src,
     title: `${mall.name}, ${mall.city} — Location, Shops & Property Nearby | Properties Pak`,
     description: `${mall.name} in ${mall.area}, ${mall.city}: ${statusLine}. ${mall.description} See live property for sale and rent near ${mall.name} on Properties Pak.`,
     path: `/malls/${mall.slug}`,
@@ -36,6 +39,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       `${mall.name} location`,
       `${mall.name} shops`,
       mall.status === "upcoming" ? `${mall.name} opening date` : `${mall.name} property nearby`,
+      `best malls in ${mall.city}`,
+      `biggest mall in ${mall.city}`,
+      `shops in ${mall.name}`,
       "shopping malls in Pakistan",
     ],
     ogKicker: mall.status === "open" ? "SHOPPING MALL" : "COMING SOON",
@@ -80,6 +86,8 @@ export default async function MallDetailPage({ params }: PageProps) {
     },
   ];
 
+  const cover = mallImage(mall);
+
   const facts: { label: string; value: string }[] = [
     { label: "Status", value: upcoming ? `Coming soon · ${mall.expected ?? "Announced"}` : `Open${mall.opened ? ` since ${mall.opened}` : ""}` },
     { label: "Location", value: `${mall.area}, ${mall.city}` },
@@ -90,7 +98,7 @@ export default async function MallDetailPage({ params }: PageProps) {
 
   return (
     <>
-      <JsonLd data={mallJsonLd({ slug: mall.slug, name: mall.name, description: mall.description, city: mall.city, area: mall.area, status: mall.status, openingDate: mall.opened })} />
+      <JsonLd data={mallJsonLd({ slug: mall.slug, name: mall.name, description: mall.description, city: mall.city, area: mall.area, status: mall.status, openingDate: mall.opened, image: cover.src })} />
       <JsonLd
         data={breadcrumbJsonLd([
           { name: "Home", href: "/" },
@@ -100,13 +108,14 @@ export default async function MallDetailPage({ params }: PageProps) {
       />
       <JsonLd data={faqJsonLd(faqs)} />
 
-      <section className="relative isolate overflow-hidden bg-navy-950 pb-16 pt-28 lg:pb-20 lg:pt-36">
+      <section className="relative isolate overflow-hidden bg-[#04150E] pb-14 pt-32 text-white lg:pb-16 lg:pt-40">
+        <Image src={cover.src} alt={cover.alt} fill priority sizes="100vw" className="object-cover" />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-70"
+          className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(820px 420px at 12% -12%, rgba(223,184,114,0.24), transparent 60%), radial-gradient(760px 420px at 90% 6%, rgba(18,92,67,0.4), transparent 62%)",
+              "linear-gradient(180deg, rgba(4,21,14,0.66) 0%, rgba(4,21,14,0.45) 40%, rgba(4,21,14,0.95) 100%), linear-gradient(95deg, rgba(4,21,14,0.85) 0%, rgba(4,21,14,0.28) 60%, rgba(4,21,14,0.12) 100%)",
           }}
         />
         <div className="ui-container relative z-10">
@@ -117,20 +126,23 @@ export default async function MallDetailPage({ params }: PageProps) {
               { name: mall.name, href: `/malls/${mall.slug}` },
             ]}
           />
-          <p className="eyebrow mt-7 text-[#DFB872]">
+          <p className="eyebrow mt-8 text-[#DFB872]">
             <span className="h-[1px] w-6 bg-current opacity-70" />
             {upcoming ? "Coming soon · Upcoming mall" : "Shopping mall"} · {mall.city}
           </p>
           <h1 className="display-2 mt-4 max-w-4xl text-white">
             {mall.name} — {mall.city}
           </h1>
-          <p className="lede mt-4 max-w-3xl text-white/75">{mall.description}</p>
+          <p className="lede mt-4 max-w-3xl text-white/80">{mall.description}</p>
 
-          <dl className="mt-9 grid grid-cols-2 gap-6 border-t border-white/12 pt-7 sm:grid-cols-3 lg:grid-cols-5">
+          <dl className="mt-9 flex flex-wrap gap-2.5">
             {facts.map((fact) => (
-              <div key={fact.label}>
-                <dt className="text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-white/55">{fact.label}</dt>
-                <dd className="mt-2 font-sans text-[0.9375rem] font-bold leading-snug text-white">{fact.value}</dd>
+              <div
+                key={fact.label}
+                className="rounded-2xl border border-white/18 bg-white/[0.08] px-4 py-3 backdrop-blur-md"
+              >
+                <dt className="text-[0.65rem] font-bold uppercase tracking-[0.14em] text-[#DFB872]">{fact.label}</dt>
+                <dd className="mt-1 font-sans text-[0.9rem] font-bold leading-snug text-white">{fact.value}</dd>
               </div>
             ))}
           </dl>

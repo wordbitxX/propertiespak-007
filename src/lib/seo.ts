@@ -437,6 +437,7 @@ export function mallJsonLd(input: {
   area: string;
   status: "open" | "upcoming";
   openingDate?: string;
+  image?: string;
 }) {
   const url = `${SITE.url}/malls/${input.slug}`;
   return {
@@ -446,6 +447,7 @@ export function mallJsonLd(input: {
     name: input.name,
     url,
     description: input.description,
+    ...(input.image ? { image: input.image.startsWith("http") ? input.image : `${SITE.url}${input.image}` } : {}),
     address: {
       "@type": "PostalAddress",
       streetAddress: input.area,

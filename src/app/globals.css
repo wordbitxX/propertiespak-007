@@ -5293,3 +5293,72 @@ html[data-header-solid] .site-header .header-account:hover {
   .header-desktop-nav a[href="/about"],
   .header-desktop-nav a[href="/contact"] { display: none; }
 }
+
+/* ---------- Premium top bar: Search · Saved · EN | اردو ---------- */
+:root { --site-header-height: calc(104px + env(safe-area-inset-top, 0px)); }
+@media (min-width: 768px) { :root { --site-header-height: calc(108px + env(safe-area-inset-top, 0px)); } }
+@media (min-width: 1280px) { :root { --site-header-height: calc(106px + env(safe-area-inset-top, 0px)); } }
+.header-utility-bar {
+  display: block !important;
+  height: 36px;
+  background: linear-gradient(90deg, #052217 0%, #0A3524 55%, #06231A 100%);
+  border-bottom: 1px solid rgba(223, 184, 114, 0.35);
+  color: #ffffff;
+  font-size: .75rem;
+}
+.site-header--solid .header-utility-bar,
+html[data-header-solid] .site-header .header-utility-bar {
+  background: linear-gradient(90deg, #052217 0%, #0A3524 55%, #06231A 100%);
+  border-bottom: 1px solid rgba(223, 184, 114, 0.35);
+  color: #ffffff;
+}
+.header-utility-bar > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 100%;
+}
+.header-topbar-links { display: none; align-items: center; gap: 12px; }
+.header-topbar-links a { color: rgba(255,255,255,.78); font-weight: 600; min-height: 28px; }
+.header-topbar-links a:hover { color: #F0CE8F; text-decoration: none; }
+.header-topbar-actions { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+.header-topbar-action {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: .72rem;
+  font-weight: 750;
+  letter-spacing: .01em;
+  color: #ffffff;
+  transition: background-color .16s ease, color .16s ease;
+}
+.header-topbar-action:hover { background: rgba(255,255,255,.1); color: #F0CE8F; }
+.header-topbar-count {
+  display: grid;
+  place-items: center;
+  min-width: 16px;
+  height: 16px;
+  padding-inline: 4px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #E2BC76, #C89B4F);
+  color: #231600;
+  font-size: .6rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.header-utility-bar .header-language-pill { margin-left: 2px; }
+@media (min-width: 768px) {
+  .header-topbar-links { display: flex; }
+}
+@media (max-width: 767px) {
+  .header-utility-bar > div { justify-content: flex-end; }
+}
+@media (max-width: 1023px) {
+  .header-topbar-actions .header-utility-separator { display: none; }
+}

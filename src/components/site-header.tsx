@@ -54,25 +54,6 @@ const DESKTOP_NAV_ITEMS = [
 
 type Panel = "menu" | "search" | "map" | null;
 
-/**
- * Premium segmented EN | اردو pill for the main header bar. On mobile the
- * compact single-tap switch next to it takes over, so the bar never crowds.
- */
-function LanguagePill() {
-  const { locale, setLocale, t } = useLanguage();
-  return (
-    <div className="header-language-pill" role="group" aria-label={t("Choose language")} data-testid="header-language-toggle">
-      <button type="button" lang="en" aria-label="English" aria-pressed={locale === "en"} onClick={() => setLocale("en")}>
-        EN
-      </button>
-      <span aria-hidden="true" className="header-language-pill-separator" />
-      <button type="button" lang="ur" aria-label="اردو" aria-pressed={locale === "ur"} onClick={() => setLocale("ur")}>
-        اردو
-      </button>
-    </div>
-  );
-}
-
 function LanguageSwitch({ mobile = false }: { mobile?: boolean }) {
   const { locale, setLocale, t } = useLanguage();
   if (mobile) {
@@ -93,7 +74,7 @@ function LanguageSwitch({ mobile = false }: { mobile?: boolean }) {
     );
   }
   return (
-    <div className="header-language-switch" role="group" aria-label={t("Choose language")}>
+    <div className="header-language-switch header-language-pill" role="group" aria-label={t("Choose language")} data-testid="header-language-toggle">
       <button
         type="button"
         lang="en"
@@ -201,15 +182,39 @@ export function SiteHeader({ isAuthenticated = false }: { isAuthenticated?: bool
       >
         <div className="header-utility-bar">
           <div className="ui-container">
-            <Link href="/contact">{t("Help & Support")}</Link>
-            <span className="header-utility-separator" aria-hidden="true">
-              |
-            </span>
-            <Link href="/advertise">{t("Advertise on Properties Pak")}</Link>
-            <span className="header-utility-separator" aria-hidden="true">
-              |
-            </span>
-            <LanguageSwitch />
+            <div className="header-topbar-links">
+              <Link href="/contact">{t("Help & Support")}</Link>
+              <span className="header-utility-separator" aria-hidden="true">
+                |
+              </span>
+              <Link href="/advertise">{t("Advertise on Properties Pak")}</Link>
+            </div>
+            <div className="header-topbar-actions">
+              <button
+                type="button"
+                data-testid="topbar-search"
+                className="header-topbar-action"
+                aria-label={t("Search properties")}
+                onClick={(event) => openPanel("search", event.currentTarget)}
+              >
+                <IconSearch className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>{t("Search")}</span>
+              </button>
+              <Link
+                href="/favorites"
+                data-testid="topbar-saved"
+                className="header-topbar-action"
+                aria-label={`${t("Saved properties")}${count ? `, ${count} ${t("saved")}` : ""}`}
+              >
+                <IconHeart className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>{t("Saved")}</span>
+                {count > 0 && <span className="header-topbar-count">{count > 99 ? "99+" : count}</span>}
+              </Link>
+              <span className="header-utility-separator" aria-hidden="true">
+                |
+              </span>
+              <LanguageSwitch />
+            </div>
           </div>
         </div>
 
@@ -352,7 +357,6 @@ export function SiteHeader({ isAuthenticated = false }: { isAuthenticated?: bool
               <span className="header-action-caption">{t("Saved")}</span>
               {count > 0 && <span className="header-saved-count">{count > 99 ? "99+" : count}</span>}
             </Link>
-            <LanguagePill />
             <LanguageSwitch mobile />
 
             <Link
