@@ -7,13 +7,24 @@ import type { Property } from "@/db/schema";
 import { compactPropertyTitle, formatArea, formatNumber, formatPrice } from "@/lib/format";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { computePropertyScore, pricePerSqft } from "@/lib/score";
-import { BlueTick } from "@/components/verified-badge";
+import { PropertyCardBadges } from "@/components/property-card-badges";
 import type { PropertyWithDealer } from "@/lib/queries";
 
 export function purposeBadge(property: Pick<Property, "purpose" | "isNewProject">) {
   if (property.isNewProject) return { label: "New Project", className: "bg-[#0D382A] text-white" };
   if (property.purpose === "rent") return { label: "For Rent", className: "bg-[#0D382A] text-white" };
   return { label: "For Sale", className: "bg-[#0D382A] text-white" };
+}
+
+/**
+ * "From agent" / "From owner" pill — the publishing identity on the card image.
+ * Platform-curated inventory and dealer/agency accounts read as agent listings;
+ * everyone else (owners publishing their own property) reads as owner listings.
+ */
+export function sourceBadge(property: Property | PropertyWithDealer) {
+  const dealerRole = (property as PropertyWithDealer).dealerRole;
+  const fromAgent = !property.listedByUserId || dealerRole === "dealer" || dealerRole === "agency";
+  return fromAgent ? "From agent" : "From owner";
 }
 
 function formatPkrNumeric(price: number | string, purpose: string): { main: string; suffix?: string } {
@@ -75,22 +86,13 @@ export function PropertyCard({
         <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
       </Link>
 
-      <div
-        className={`absolute flex flex-wrap items-center gap-1.5 ${
-          compact ? "left-2.5 top-2.5 max-w-[calc(100%-60px)]" : "left-3.5 top-3.5"
-        }`}
-      >
-        <span
-          className={`rounded-md px-2.5 py-1 font-sans text-[0.7rem] font-semibold tracking-[0.03em] shadow-sm ${badge.className}`}
-        >
-          {badge.label}
-        </span>
-        {!compact && listingVerified && (
-          <span className="inline-flex items-center gap-1 rounded-md bg-white/95 px-2 py-1 font-sans text-[0.68rem] font-bold uppercase tracking-[0.08em] text-[#0D382A] shadow-sm">
-            <BlueTick className="h-3.5 w-3.5" /> {dealerVerified ? "Verified dealer" : "Verified"}
-          </span>
-        )}
-      </div>
+      <PropertyCardBadges
+        purposeLabel={badge.label}
+        purposeClassName={badge.className}
+        fromLabel={sourceBadge(property)}
+        verified={listingVerified}
+        compact={compact}
+      />
 
       <div className={`absolute flex flex-col gap-1.5 ${compact ? "right-2.5 top-2.5" : "right-3.5 top-3.5"}`}>
         <FavoriteButton propertyId={property.id} title={property.title} />

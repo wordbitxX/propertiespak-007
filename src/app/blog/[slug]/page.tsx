@@ -5,13 +5,14 @@ import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { IconArrowRight } from "@/components/icons";
 import { JsonLd } from "@/components/json-ld";
+import { FaqList } from "@/components/faq-list";
 import { KeywordLinks } from "@/components/keyword-links";
 import { LeadForm } from "@/components/lead-form";
 import { Section, SectionHeading } from "@/components/section";
 import { formatDate } from "@/lib/format";
 import { getPostBySlug, getPosts } from "@/lib/queries";
 import { keywordsForTags } from "@/lib/keyword-catalog";
-import { articleJsonLd, buildMetadata } from "@/lib/seo";
+import { articleJsonLd, breadcrumbJsonLd, buildMetadata, faqJsonLd, guideFaqs } from "@/lib/seo";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -42,6 +43,8 @@ export default async function BlogPostPage({ params }: PageProps) {
   if (!post) notFound();
 
   const related = (await getPosts(4)).filter((item) => item.slug !== post.slug).slice(0, 3);
+  /** Shared by the visible FAQ block and the FAQPage structured data. */
+  const guideFaqItems = guideFaqs(post);
 
   return (
     <>
@@ -177,7 +180,26 @@ export default async function BlogPostPage({ params }: PageProps) {
         </Section>
       )}
 
+      {/* Guide FAQ — visible content backed by FAQPage structured data */}
+      <Section tone="light" id="guide-faq">
+        <div className="ui-container">
+          <FaqList
+            title="Guide FAQ"
+            description="Quick answers about this Properties Pak guide."
+            faqs={guideFaqItems}
+          />
+        </div>
+      </Section>
+
       <JsonLd data={articleJsonLd(post)} />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", href: "/" },
+          { name: "Insights", href: "/blog" },
+          { name: post.title, href: `/blog/${post.slug}` },
+        ])}
+      />
+      <JsonLd data={faqJsonLd(guideFaqItems)} />
     </>
   );
 }

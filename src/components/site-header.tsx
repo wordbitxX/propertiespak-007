@@ -14,6 +14,7 @@ import {
   propertySearchHref,
   type PropertySearchState,
 } from "@/lib/property-search";
+import type { NavMenuDef } from "@/lib/nav-menu";
 import {
   IconArrowRight,
   IconChevronDown,
@@ -42,14 +43,36 @@ const PROPERTY_LINKS = [
 ];
 
 const DESKTOP_NAV_ITEMS = [
-  { label: "Agents", href: "/dealers" },
-  { label: "New Projects", href: "/projects" },
-  { label: "Areas", href: "/towns" },
   { label: "Maps", href: "/maps" },
-  { label: "Blog", href: "/blog" },
-  { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ] as const;
+
+/** Extra destinations in the Property dropdown — kept flat for the mobile drawer too. */
+const PLAN_LINKS = [
+  { label: "Society PDF Maps", href: "/maps" },
+  { label: "Compare properties", href: "/compare" },
+  { label: "Investment tools", href: "/tools" },
+  { label: "Property guides & Blog", href: "/blog" },
+  { label: "Pakistan investment guide", href: "/property-investment-in-pakistan" },
+  { label: "Property search topics", href: "/keywords-for-pakistan" },
+  { label: "Property price index", href: "/price-index" },
+] as const;
+
+/** The Property mega menu, expressed in the same shape as the server-built menus. */
+function propertyMenuDef(): NavMenuDef {
+  return {
+    label: "Property",
+    href: "/properties",
+    columns: [
+      { title: "Buy · Rent · Sell", links: [...PROPERTY_LINKS] },
+      {
+        title: "By city",
+        links: CITY_LINKS.map((city) => ({ label: city, href: `/city/${city.toLowerCase()}` })),
+      },
+      { title: "Plan your move", links: [...PLAN_LINKS] },
+    ],
+  };
+}
 
 type Panel = "menu" | "search" | "map" | null;
 
@@ -96,23 +119,71 @@ function LanguageSwitch({ mobile = false }: { mobile?: boolean }) {
   );
 }
 
-export function SiteHeader({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
+export function SiteHeader({
+  isAuthenticated = false,
+  navMenus = [],
+}: {
+  isAuthenticated?: boolean;
+  /** Server-built dropdown menus (agents, projects, areas, blog, about). */
+  navMenus?: NavMenuDef[];
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
   const [panel, setPanel] = useState<Panel>(null);
   const [panelPath, setPanelPath] = useState(pathname);
-  const [megaOpen, setMegaOpen] = useState(false);
-  const [drawerPropOpen, setDrawerPropOpen] = useState(true);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [drawerMenuOpen, setDrawerMenuOpen] = useState<string | null>("Property");
   const [searchDefaults, setSearchDefaults] = useState<PropertySearchState>(() => defaultPropertySearch());
   const [mapQuery, setMapQuery] = useState("");
-  const megaRef = useRef<HTMLDivElement | null>(null);
+  const megaRef = useRef<HTMLElement | null>(null);
   const dialogTriggerRef = useRef<HTMLElement | null>(null);
   const { count } = useFavorites();
   const solid = scrolled || pathname.startsWith("/admin");
   const accountHref = isAuthenticated ? "/account" : "/login";
   const dismiss = useCallback(() => setPanel(null), []);
+  const allMenus = [propertyMenuDef(), ...navMenus];
+
+  /**
+   * Wide dropdowns (the Areas catalog) must stay inside the viewport even from
+   * mid-nav triggers — shift the panel left just enough to fit.
+   */
+  const [panelShift, setPanelShift] = useState(0);
+  const triggerRefs = useRef<Record<string, HTMLElement | null>>({});
+
+  function menuPanelWidth(menu: NavMenuDef) {
+    return menu.columns.length >= 8
+      ? Math.min(960, window.innerWidth - 24)
+      : menu.columns.length >= 3
+        ? 700
+        : 480;
+  }
+
+  function openMenuWithShift(menu: NavMenuDef, trigger: HTMLElement | null) {
+    if (trigger) {
+      const left = trigger.getBoundingClientRect().left;
+      setPanelShift(Math.min(0, window.innerWidth - 24 - menuPanelWidth(menu) - left));
+    } else {
+      setPanelShift(0);
+    }
+    setOpenMenu(menu.label);
+  }
+
+  // Keeps an open panel clamped if the window is resized while it is showing.
+  useEffect(() => {
+    if (!openMenu) return;
+    const onResize = () => {
+      const trigger = triggerRefs.current[openMenu];
+      const menu = allMenus.find((item) => item.label === openMenu);
+      if (!trigger || !menu) return;
+      const left = trigger.getBoundingClientRect().left;
+      setPanelShift(Math.min(0, window.innerWidth - 24 - menuPanelWidth(menu) - left));
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openMenu]);
 
   useEffect(() => {
     const update = () => setScrolled(window.scrollY > 36);
@@ -124,16 +195,16 @@ export function SiteHeader({ isAuthenticated = false }: { isAuthenticated?: bool
   if (panelPath !== pathname) {
     setPanelPath(pathname);
     setPanel(null);
-    setMegaOpen(false);
+    setOpenMenu(null);
   }
 
   useEffect(() => {
-    if (!megaOpen) return;
+    if (!openMenu) return;
     const outside = (event: PointerEvent) => {
-      if (!megaRef.current?.contains(event.target as Node)) setMegaOpen(false);
+      if (!megaRef.current?.contains(event.target as Node)) setOpenMenu(null);
     };
     const escape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMegaOpen(false);
+      if (event.key === "Escape") setOpenMenu(null);
     };
     document.addEventListener("pointerdown", outside);
     document.addEventListener("keydown", escape);
@@ -141,11 +212,11 @@ export function SiteHeader({ isAuthenticated = false }: { isAuthenticated?: bool
       document.removeEventListener("pointerdown", outside);
       document.removeEventListener("keydown", escape);
     };
-  }, [megaOpen]);
+  }, [openMenu]);
 
   function openPanel(next: Exclude<Panel, null>, trigger?: HTMLElement) {
     if (trigger) dialogTriggerRef.current = trigger;
-    setMegaOpen(false);
+    setOpenMenu(null);
     const params = new URLSearchParams(window.location.search);
     if (pathname.includes("/for-rent")) params.set("purpose", "rent");
     else if (pathname.includes("/for-sale")) params.set("purpose", "buy");
@@ -198,86 +269,78 @@ export function SiteHeader({ isAuthenticated = false }: { isAuthenticated?: bool
             <BrandLockup adaptive compact />
           </Link>
 
-          <nav className="header-desktop-nav" aria-label="Primary">
-            <div
-              ref={megaRef}
-              className="relative"
-              onMouseEnter={() => setMegaOpen(true)}
-              onMouseLeave={() => setMegaOpen(false)}
-            >
-              <Link
-                href="/properties"
-                data-active={pathname.startsWith("/properties") || pathname === "/list-property"}
-                aria-expanded={megaOpen}
-                aria-controls="property-shortcuts"
-                onClick={() => setMegaOpen(false)}
-                className="nav-link inline-flex min-h-11 items-center gap-1"
-              >
-                {t("Property")}
-                <IconChevronDown className={`h-3.5 w-3.5 transition-transform ${megaOpen ? "rotate-180" : ""}`} />
-              </Link>
-              {megaOpen && (
-                <div id="property-shortcuts" className="absolute left-0 top-full z-50 w-[700px] pt-2">
-                  <div className="grid grid-cols-3 gap-6 rounded-xl border border-[#E4E8E5] bg-white p-6 text-[#0C261D] shadow-panel">
-                    <div>
-                      <p className="eyebrow text-[#0E3B2C]">{t("Buy · Rent · Sell")}</p>
-                      <ul className="mt-3 space-y-1">
-                        {PROPERTY_LINKS.map((link) => (
-                          <li key={link.href}>
-                            <Link
-                              href={link.href}
-                              onClick={() => setMegaOpen(false)}
-                              className="block rounded py-1.5 text-[0.8125rem] font-medium hover:text-[#B8893D]"
-                            >
-                              {t(link.label)}
-                            </Link>
-                          </li>
+          <nav ref={megaRef} className="header-desktop-nav" aria-label="Primary">
+            {allMenus.map((menu) => {
+              const menuId = `nav-menu-${menu.label.toLowerCase().replace(/\s+/g, "-")}`;
+              const active =
+                pathname === menu.href ||
+                pathname.startsWith(`${menu.href}/`) ||
+                (menu.label === "Property" && pathname === "/list-property") ||
+                (menu.label === "Blog" && pathname === "/price-index");
+              const open = openMenu === menu.label;
+              const wide = menu.columns.length >= 8;
+              return (
+                <div
+                  key={menu.label}
+                  className="relative"
+                  onMouseEnter={(event) => openMenuWithShift(menu, event.currentTarget)}
+                  onMouseLeave={() => setOpenMenu((current) => (current === menu.label ? null : current))}
+                >
+                  <Link
+                    href={menu.href}
+                    ref={(node) => {
+                      triggerRefs.current[menu.label] = node;
+                    }}
+                    data-active={active}
+                    aria-expanded={open}
+                    aria-controls={menuId}
+                    onClick={() => setOpenMenu(null)}
+                    className="nav-link inline-flex min-h-11 items-center gap-1"
+                  >
+                    {t(menu.label)}
+                    <IconChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+                  </Link>
+                  {open && (
+                    <div
+                      id={menuId}
+                      style={{ marginLeft: panelShift }}
+                      className={`absolute left-0 top-full z-50 pt-2 ${
+                        wide
+                          ? "w-[min(960px,calc(100vw-32px))]"
+                          : menu.columns.length >= 3
+                            ? "w-[700px]"
+                            : "w-[480px]"
+                      }`}
+                    >
+                      <div
+                        className={`grid gap-6 rounded-xl border border-[#E4E8E5] bg-white p-6 text-[#0C261D] shadow-panel ${
+                          wide ? "grid-cols-2 lg:grid-cols-4 max-h-[min(70vh,640px)] overflow-y-auto" : menu.columns.length >= 3 ? "grid-cols-3" : "grid-cols-2"
+                        }`}
+                      >
+                        {menu.columns.map((column, columnIndex) => (
+                          <div key={column.title} className={!wide && columnIndex > 0 ? "border-l border-soft pl-5" : undefined}>
+                            <p className="eyebrow text-[#0E3B2C]">{t(column.title)}</p>
+                            <ul className="mt-3 space-y-1">
+                              {column.links.map((link) => (
+                                <li key={`${column.title}-${link.href}`}>
+                                  <Link
+                                    href={link.href}
+                                    onClick={() => setOpenMenu(null)}
+                                    className="block rounded py-1.5 text-[0.8125rem] font-medium hover:text-[#B8893D]"
+                                  >
+                                    {t(link.label)}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     </div>
-                    <div className="border-l border-soft pl-5">
-                      <p className="eyebrow text-[#0E3B2C]">{t("By city")}</p>
-                      <ul className="mt-3 space-y-1">
-                        {CITY_LINKS.map((city) => (
-                          <li key={city}>
-                            <Link
-                              href={`/city/${city.toLowerCase()}`}
-                              onClick={() => setMegaOpen(false)}
-                              className="block py-1.5 text-[0.8125rem] font-medium hover:text-[#B8893D]"
-                            >
-                              {city}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="border-l border-soft pl-5">
-                      <p className="eyebrow text-[#0E3B2C]">{t("Plan your move")}</p>
-                      <ul className="mt-3 space-y-1.5">
-                        {[
-                          { label: "Society PDF Maps", href: "/maps" },
-                          { label: "Compare properties", href: "/compare" },
-                          { label: "Investment tools", href: "/tools" },
-                          { label: "Property guides & Blog", href: "/blog" },
-                          { label: "Pakistan investment guide", href: "/property-investment-in-pakistan" },
-                          { label: "Property search topics", href: "/keywords-for-pakistan" },
-                        ].map((link) => (
-                          <li key={link.href}>
-                            <Link
-                              href={link.href}
-                              onClick={() => setMegaOpen(false)}
-                              className="block py-1.5 text-[0.8125rem] font-medium hover:text-[#B8893D]"
-                            >
-                              {t(link.label)}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
+                  )}
                 </div>
-              )}
-            </div>
+              );
+            })}
 
             {DESKTOP_NAV_ITEMS.map((link) => (
               <Link
@@ -404,34 +467,55 @@ export function SiteHeader({ isAuthenticated = false }: { isAuthenticated?: bool
                 </Link>
               </div>
               <nav aria-label="Mobile navigation" className="mt-5">
-                {/* Property Dropdown inside Mobile Drawer (same as Desktop) */}
-                <div className="border-b border-soft">
-                  <button
-                    type="button"
-                    aria-expanded={drawerPropOpen}
-                    onClick={() => setDrawerPropOpen((v) => !v)}
-                    className="mobile-nav-link w-full !border-b-0"
-                  >
-                    <span>{t("Property")}</span>
-                    <IconChevronDown
-                      className={`h-4 w-4 text-[#0E3B2C] transition-transform ${drawerPropOpen ? "rotate-180" : ""}`}
-                    />
-                  </button>
-                  {drawerPropOpen && (
-                    <div className="mb-3 grid grid-cols-2 gap-1.5 rounded-xl bg-[#F4F7F5] p-2.5">
-                      {PROPERTY_LINKS.map((link) => (
-                        <Link
-                          key={link.href}
-                          href={link.href}
-                          onClick={dismiss}
-                          className="rounded-lg bg-white px-3 py-2 text-[0.78rem] font-semibold text-[#0C261D] shadow-xs transition hover:text-[#0E3B2C]"
-                        >
-                          {t(link.label)}
-                        </Link>
-                      ))}
+                {/* Every menu opens into its complete option list, matching the desktop dropdowns. */}
+                {allMenus.map((menu) => {
+                  const open = drawerMenuOpen === menu.label;
+                  return (
+                    <div key={menu.label} className="border-b border-soft">
+                      <button
+                        type="button"
+                        aria-expanded={open}
+                        onClick={() => setDrawerMenuOpen(open ? null : menu.label)}
+                        className="mobile-nav-link w-full !border-b-0"
+                      >
+                        <span>{t(menu.label)}</span>
+                        <IconChevronDown
+                          className={`h-4 w-4 text-[#0E3B2C] transition-transform ${open ? "rotate-180" : ""}`}
+                        />
+                      </button>
+                      {open && (
+                        <div className="mb-3 space-y-3">
+                          {menu.columns.map((column) => (
+                            <div key={column.title}>
+                              <p className="px-1 text-[0.7rem] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+                                {t(column.title)}
+                              </p>
+                              <div className="mt-1.5 grid grid-cols-2 gap-1.5 rounded-xl bg-[#F4F7F5] p-2.5">
+                                {column.links.map((link) => (
+                                  <Link
+                                    key={`${column.title}-${link.href}`}
+                                    href={link.href}
+                                    onClick={dismiss}
+                                    className="rounded-lg bg-white px-3 py-2 text-[0.78rem] font-semibold text-[#0C261D] shadow-xs transition hover:text-[#0E3B2C]"
+                                  >
+                                    {t(link.label)}
+                                  </Link>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                          <Link
+                            href={menu.href}
+                            onClick={dismiss}
+                            className="inline-flex items-center gap-1 px-1 text-[0.78rem] font-semibold text-[#0E3B2C]"
+                          >
+                            {t("View all")} <IconArrowRight className="h-3.5 w-3.5" />
+                          </Link>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  );
+                })}
 
                 {DESKTOP_NAV_ITEMS.map((link) => (
                   <Link

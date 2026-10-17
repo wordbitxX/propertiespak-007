@@ -14,6 +14,7 @@ const CORE_PAGES = [
   "/projects",
   "/maps",
   "/blog",
+  "/price-index",
   "/tools",
   "/tools/mortgage-calculator",
   "/tools/affordability-calculator",

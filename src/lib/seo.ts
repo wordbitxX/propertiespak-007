@@ -386,3 +386,68 @@ export function faqJsonLd(faqs: { question: string; answer: string }[]) {
     })),
   };
 }
+
+/**
+ * Data-derived FAQ for a listing page. Every answer is computed from the
+ * listing row itself — nothing is invented — and the same array is rendered
+ * as visible FAQ content and passed to `faqJsonLd`.
+ */
+export function propertyFaqs(property: Property) {
+  const isRent = property.purpose === "rent";
+  const priceLine = `${formatPrice(property.price, property.priceUnit)}${
+    property.negotiable ? " — the owner has marked the price negotiable." : "."
+  }`;
+  const sizeLine =
+    property.areaSqft > 0
+      ? `${formatArea(property.areaValue, property.areaUnit, property.areaSqft)} (${Math.round(property.areaSqft).toLocaleString("en-US")} sq ft).`
+      : `${formatArea(property.areaValue, property.areaUnit)}.`;
+  const roomsLine =
+    property.bedrooms > 0 || property.bathrooms > 0
+      ? `${property.title} has ${property.bedrooms} bedroom${property.bedrooms === 1 ? "" : "s"} and ${property.bathrooms} bathroom${property.bathrooms === 1 ? "" : "s"}.`
+      : `${property.title} is a ${property.propertyType.toLowerCase()} listing without a bedroom count — contact the poster for layout details.`;
+
+  return [
+    {
+      question: `What is the price of ${property.title}?`,
+      answer: `The listed price is ${priceLine}${isRent ? " Rent is quoted per month." : ""}`,
+    },
+    {
+      question: `Where is ${property.title} located?`,
+      answer: `It sits in ${property.locationArea}, ${property.cityName}, Pakistan${property.address ? ` — ${property.address}` : ""}. The listing page shows the exact map location and nearby properties.`,
+    },
+    {
+      question: `How many rooms does ${property.title} have?`,
+      answer: roomsLine,
+    },
+    {
+      question: `How big is ${property.title}?`,
+      answer: `The built-up / land size is ${sizeLine}`,
+    },
+    {
+      question: `How do I enquire about ${property.title}?`,
+      answer: `Open the listing on Properties Pak and use the enquiry form, call the listed contact, or send a WhatsApp message. Property viewings can be scheduled through the same listing.`,
+    },
+  ];
+}
+
+/** FAQ for editorial guide pages, built from the post's own metadata. */
+export function guideFaqs(post: Post) {
+  return [
+    {
+      question: `What does this guide cover?`,
+      answer: post.excerpt,
+    },
+    {
+      question: `Which topics are included?`,
+      answer: `This Properties Pak guide covers ${post.tags.join(", ")}. It is written for buyers, tenants and investors researching property in Pakistan.`,
+    },
+    {
+      question: `Who publishes this guide and how current is it?`,
+      answer: `It is published by ${post.author} on Properties Pak, Pakistan's property marketplace. Guides are reviewed against live market listings and platform data.`,
+    },
+    {
+      question: `Where can I get personal advice?`,
+      answer: `Create a free Properties Pak account to shortlist properties and message verified agents, or contact the Properties Pak team directly for help with buying, renting or listing a property.`,
+    },
+  ];
+}

@@ -4512,7 +4512,7 @@ html[data-header-solid] .site-header .header-account:hover {
   flex: 1;
 }
 
-.agent-expert-name {
+.agent-expert-agency {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -4521,6 +4521,21 @@ html[data-header-solid] .site-header .header-account:hover {
   font-weight: 700;
   line-height: 1.25;
   color: #0d261d;
+}
+
+.agent-expert-agency > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.agent-expert-name {
+  margin-top: 1px;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #45584e;
 }
 
 .agent-expert-city {

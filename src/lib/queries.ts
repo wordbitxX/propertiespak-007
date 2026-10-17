@@ -53,7 +53,11 @@ const LAND_CATEGORIES = ["land", "agricultural_land", "industrial_land"];
 const HOME_CATEGORIES = ["house", "apartment", "farmhouse", "penthouse"];
 
 /** A listing with its owning account's verification state resolved. */
-export type PropertyWithDealer = Property & { dealerVerified?: boolean | null };
+export type PropertyWithDealer = Property & {
+  dealerVerified?: boolean | null;
+  /** Publishing account's role (member | dealer | agency) — drives the "From agent / From owner" pill. */
+  dealerRole?: string | null;
+};
 
 /**
  * Joins the listing owner (by account, falling back to the email captured on
@@ -63,6 +67,7 @@ export type PropertyWithDealer = Property & { dealerVerified?: boolean | null };
 const LISTING_WITH_DEALER = {
   ...getTableColumns(properties),
   dealerVerified: sql<boolean | null>`${users.isVerified}`.as("dealer_verified"),
+  dealerRole: sql<string | null>`${users.role}`.as("dealer_role"),
 } as const;
 
 /**
@@ -722,16 +727,37 @@ export async function setUserVerification(userId: number, verified: boolean) {
   return updated[0];
 }
 
-/** Admin: update the name and agency shown on public dealer profiles. */
-export async function updateAdminUserIdentity(userId: number, input: { name?: string; agency?: string }) {
+/** Admin: update the full public profile shown on dealer profiles and cards. */
+export async function updateAdminUserProfile(
+  userId: number,
+  input: Partial<DealerProfileInput> & { role?: string; phone?: string },
+) {
   await ensureSeeded();
+  const patch: Record<string, unknown> = {};
+
+  for (const field of PROFILE_TEXT_FIELDS) {
+    const value = input[field];
+    if (typeof value !== "string") continue;
+    const trimmed = value.trim();
+    // Never blank the account name — it is required and shown across the site.
+    if (field === "name" && trimmed.length < 2) continue;
+    patch[field] = trimmed.slice(0, 600);
+  }
+  if (typeof input.phone === "string") patch.phone = input.phone.trim().slice(0, 32);
+  if (input.role && ["member", "dealer", "agency"].includes(input.role)) patch.role = input.role;
+
+  if (Object.keys(patch).length === 0) return undefined;
+
   const updated = await db
     .update(users)
-    .set(input)
+    .set(patch)
     .where(eq(users.id, userId))
-    .returning({ id: users.id, name: users.name, agency: users.agency, slug: users.slug });
+    .returning({ id: users.id, name: users.name, agency: users.agency, slug: users.slug, avatarUrl: users.avatarUrl, role: users.role });
   return updated[0];
 }
+
+/** @deprecated Use updateAdminUserProfile — kept for the identity-only admin PATCH. */
+export const updateAdminUserIdentity = updateAdminUserProfile;
 
 /** Distinct towns present in the live inventory, for the cascading filters. */
 async function getListingAreasByCityUncached() {
@@ -845,6 +871,102 @@ export async function clearVerificationRequest(userId: number) {
   return updated[0];
 }
 
+/* ------------------------------------------------------------------ */
+/*  Pakistan Property Price Index — live medians from real inventory   */
+/* ------------------------------------------------------------------ */
+
+export type PriceIndexCityRow = {
+  citySlug: string;
+  cityName: string;
+  listings: number;
+  saleListings: number;
+  rentListings: number;
+  medianSalePrice: number | null;
+  medianRentPrice: number | null;
+  avgPricePerSqft: number | null;
+};
+
+export type PriceIndexTypeRow = {
+  propertyType: string;
+  listings: number;
+  medianPrice: number | null;
+  avgPricePerSqft: number | null;
+};
+
+export type PriceIndexSnapshot = {
+  overall: {
+    listings: number;
+    cities: number;
+    propertyTypes: number;
+    medianSalePrice: number | null;
+    medianRentPrice: number | null;
+    avgPricePerSqft: number | null;
+  };
+  cities: PriceIndexCityRow[];
+  types: PriceIndexTypeRow[];
+  computedAt: string;
+};
+
+/**
+ * Aggregates the live marketplace into the Pakistan Property Price Index:
+ * median sale and rent prices per city, median prices per property type and
+ * an average price per sq ft. Every number is computed from published rows —
+ * nothing is hard-coded — so the index moves with real inventory.
+ */
+async function getPriceIndexUncached(): Promise<PriceIndexSnapshot> {
+  await ensureSeeded();
+
+  const priceExpr = properties.price;
+  const cityRows = (await db
+    .select({
+      citySlug: properties.citySlug,
+      cityName: properties.cityName,
+      listings: sql<number>`cast(count(*) as int)`,
+      saleListings: sql<number>`cast(count(*) filter (where ${properties.purpose} = 'buy') as int)`,
+      rentListings: sql<number>`cast(count(*) filter (where ${properties.purpose} = 'rent') as int)`,
+      medianSalePrice: sql<number | null>`round(percentile_cont(0.5) within group (order by ${priceExpr}) filter (where ${properties.purpose} = 'buy'))`,
+      medianRentPrice: sql<number | null>`round(percentile_cont(0.5) within group (order by ${priceExpr}) filter (where ${properties.purpose} = 'rent'))`,
+      avgPricePerSqft: sql<number | null>`round(avg(${priceExpr} / nullif(${properties.areaSqft}, 0)) filter (where ${properties.areaSqft} > 0))`,
+    })
+    .from(properties)
+    .where(isPublished)
+    .groupBy(properties.citySlug, properties.cityName)
+    .orderBy(desc(sql`count(*)`))
+    .limit(20)) as unknown as PriceIndexCityRow[];
+
+  const typeRows = (await db
+    .select({
+      propertyType: properties.propertyType,
+      listings: sql<number>`cast(count(*) as int)`,
+      medianPrice: sql<number | null>`round(percentile_cont(0.5) within group (order by ${priceExpr}))`,
+      avgPricePerSqft: sql<number | null>`round(avg(${priceExpr} / nullif(${properties.areaSqft}, 0)) filter (where ${properties.areaSqft} > 0))`,
+    })
+    .from(properties)
+    .where(isPublished)
+    .groupBy(properties.propertyType)
+    .orderBy(desc(sql`count(*)`))
+    .limit(16)) as unknown as PriceIndexTypeRow[];
+
+  const [overall] = (await db
+    .select({
+      listings: sql<number>`cast(count(*) as int)`,
+      cities: sql<number>`cast(count(distinct ${properties.citySlug}) as int)`,
+      propertyTypes: sql<number>`cast(count(distinct ${properties.propertyType}) as int)`,
+      medianSalePrice: sql<number | null>`round(percentile_cont(0.5) within group (order by ${priceExpr}) filter (where ${properties.purpose} = 'buy'))`,
+      medianRentPrice: sql<number | null>`round(percentile_cont(0.5) within group (order by ${priceExpr}) filter (where ${properties.purpose} = 'rent'))`,
+      avgPricePerSqft: sql<number | null>`round(avg(${priceExpr} / nullif(${properties.areaSqft}, 0)) filter (where ${properties.areaSqft} > 0))`,
+    })
+    .from(properties)
+    .where(isPublished)) as unknown as PriceIndexSnapshot["overall"][];
+
+  return {
+    overall: overall ?? { listings: 0, cities: 0, propertyTypes: 0, medianSalePrice: null, medianRentPrice: null, avgPricePerSqft: null },
+    cities: cityRows,
+    types: typeRows,
+    computedAt: new Date().toISOString(),
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Public reads go through the shared data cache (see src/lib/cache.ts).
 // ---------------------------------------------------------------------------
@@ -877,6 +999,7 @@ export const getDealerBySlug = cachedQuery("getDealerBySlug", getDealerBySlugUnc
 export const getAllDealerSlugs = cachedQuery("getAllDealerSlugs", getAllDealerSlugsUncached);
 export const getListingAreasByCity = cachedQuery("getListingAreasByCity", getListingAreasByCityUncached);
 export const getDealerShowcase = cachedQuery("getDealerShowcase", getDealerShowcaseUncached);
+export const getPriceIndex = cachedQuery("getPriceIndex", getPriceIndexUncached);
 
 const similarPropertiesCached = cachedQuery("getSimilarProperties", getSimilarPropertiesUncached);
 export function getSimilarProperties(property: Pick<Property, "id" | "citySlug" | "propertyType" | "purpose">, limit = 3) {

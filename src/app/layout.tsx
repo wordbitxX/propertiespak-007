@@ -11,6 +11,7 @@ import { CompareBar } from "@/components/compare-bar";
 import { AiAssistant } from "@/components/ai-assistant";
 import { JsonLd } from "@/components/json-ld";
 import { getSessionUserId } from "@/lib/auth";
+import { buildHeaderNavMenus } from "@/lib/nav-menu";
 import { SITE } from "@/lib/constants";
 import { ogImage } from "@/lib/images";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo";
@@ -156,6 +157,9 @@ const HEADER_SCROLL_SCRIPT = `(function(){var d=document.documentElement,s;funct
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const userId = await getSessionUserId();
+  // Header dropdown menus are built server-side so the area/society catalog
+  // never ships inside the client bundle.
+  const navMenus = buildHeaderNavMenus();
 
   return (
     /**
@@ -177,7 +181,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <LanguageProvider>
           <FavoritesProvider>
             <CompareProvider>
-              <SiteHeader isAuthenticated={userId !== null} />
+              <SiteHeader isAuthenticated={userId !== null} navMenus={navMenus} />
               <main id="main" className="min-h-screen">
                 {children}
               </main>

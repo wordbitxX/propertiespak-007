@@ -22,6 +22,7 @@ import {
   IconWhatsApp,
 } from "@/components/icons";
 import { JsonLd } from "@/components/json-ld";
+import { FaqList } from "@/components/faq-list";
 import { LeadForm } from "@/components/lead-form";
 import { MapView, type MapProperty } from "@/components/map-view";
 import { SinglePropertyMap } from "@/components/single-property-map";
@@ -34,7 +35,7 @@ import { Section, SectionHeading } from "@/components/section";
 import { formatArea, formatDate, formatNumber, formatPrice } from "@/lib/format";
 import { getAgentBySlug, getLeadDealerForProperty, getPropertyBySlug, getSimilarProperties, getNearbyProperties } from "@/lib/queries";
 import { BlueTick, initialsFor } from "@/components/verified-badge";
-import { buildMetadata, propertyJsonLd } from "@/lib/seo";
+import { breadcrumbJsonLd, buildMetadata, faqJsonLd, propertyFaqs, propertyJsonLd } from "@/lib/seo";
 import { SITE } from "@/lib/constants";
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -133,6 +134,9 @@ export default async function PropertyDetailPage({ params }: PageProps) {
     { label: "Payment type", value: property.paymentType === "installments" ? "Installments" : property.paymentType === "cash" ? "Cash / full payment" : "Not specified" },
     { label: "Reference", value: `EWX-${String(property.id).padStart(5, "0")}` },
   ];
+
+  /** Shared by the visible FAQ block and the FAQPage structured data. */
+  const faqs = propertyFaqs(property);
 
   const propertyMap: MapProperty = {
     id: property.id, slug: property.slug, title: property.title,
@@ -531,6 +535,17 @@ export default async function PropertyDetailPage({ params }: PageProps) {
         </div>
       </Section>
 
+      {/* Listing FAQ — visible content backed by FAQPage structured data */}
+      <Section tone="light" id="listing-faq">
+        <div className="ui-container">
+          <FaqList
+            title={`Common questions about ${property.title}`}
+            description="Price, location, size and viewing details — answered from this listing's own data."
+            faqs={faqs}
+          />
+        </div>
+      </Section>
+
       {/* Similar */}
       {similar.length > 0 && (
         <Section tone="mist">
@@ -579,6 +594,16 @@ export default async function PropertyDetailPage({ params }: PageProps) {
       <div className="h-20 lg:hidden" aria-hidden="true" />
 
       <JsonLd data={propertyJsonLd(property)} />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", href: "/" },
+          { name: "Properties", href: "/properties" },
+          { name: property.cityName, href: `/city/${property.citySlug}` },
+          { name: property.locationArea, href: `/properties?q=${encodeURIComponent(property.locationArea)}` },
+          { name: property.title, href: `/property/${property.slug}` },
+        ])}
+      />
+      <JsonLd data={faqJsonLd(faqs)} />
     </>
   );
 }

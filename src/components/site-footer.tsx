@@ -59,6 +59,7 @@ const COLUMNS = [
   {
     title: "Investment tools",
     links: [
+      { label: "Property price index", href: "/price-index" },
       { label: "Mortgage calculator", href: "/tools/mortgage-calculator" },
       { label: "Rental yield", href: "/tools/rental-yield-calculator" },
       { label: "Property ROI", href: "/tools/roi-calculator" },

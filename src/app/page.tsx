@@ -86,8 +86,16 @@ export default async function HomePage() {
     getPopularSearches(),
   ]);
 
-  const featuredItems = featured.items.length > 0 ? featured.items : discovery.items.slice(0, 8);
-  const featuredTotal = featured.total > 0 ? featured.total : discovery.total;
+  /**
+   * "Premium Properties For You" carries verified inventory only. If nothing is
+   * flagged featured+verified yet, the fallback is still verified stock — a
+   * premium rail must never show unverified cards.
+   */
+  const featuredItems =
+    featured.items.length > 0
+      ? featured.items
+      : discovery.items.filter((item) => item.verified || item.dealerVerified).slice(0, 8);
+  const featuredTotal = featured.total > 0 ? featured.total : featuredItems.length;
 
   return (
     <div className="home-page">

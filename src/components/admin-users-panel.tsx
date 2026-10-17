@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { BlueTick, UnverifiedChip, initialsFor } from "@/components/verified-badge";
 import { IconCheck, IconClose, IconSearch } from "@/components/icons";
+import { ResilientImage } from "@/components/resilient-image";
 import type { DealerProfile } from "@/lib/queries";
 import { formatDate } from "@/lib/format";
 
@@ -18,10 +19,52 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: "requested", label: "Verification requests" },
 ];
 
+/** Complete editable profile — everything the public dealer page can show. */
+type ProfileDraft = {
+  name: string;
+  agency: string;
+  designation: string;
+  role: string;
+  phone: string;
+  whatsapp: string;
+  companyPhone: string;
+  companyWebsite: string;
+  officeAddress: string;
+  areas: string;
+  experience: string;
+  bio: string;
+  verificationNote: string;
+  cityName: string;
+  avatarUrl: string;
+  companyLogo: string;
+};
+
+function draftFrom(user: DealerProfile): ProfileDraft {
+  return {
+    name: user.name ?? "",
+    agency: user.agency ?? "",
+    designation: user.designation ?? "",
+    role: user.role ?? "member",
+    phone: user.phone ?? "",
+    whatsapp: user.whatsapp ?? "",
+    companyPhone: user.companyPhone ?? "",
+    companyWebsite: user.companyWebsite ?? "",
+    officeAddress: user.officeAddress ?? "",
+    areas: user.areas ?? "",
+    experience: user.experience ?? "",
+    bio: user.bio ?? "",
+    verificationNote: user.verificationNote ?? "",
+    cityName: user.cityName ?? "",
+    avatarUrl: user.avatarUrl ?? "",
+    companyLogo: user.companyLogo ?? "",
+  };
+}
+
 /**
- * Admin controls for dealer verification and public identity. Every account is
- * listed with its listing footprint; admins can verify or unverify it and edit
- * the name and agency shown on public profiles.
+ * Admin controls for dealer verification and the complete public profile.
+ * Every account is listed with its listing footprint; admins can verify or
+ * unverify it and edit the whole profile — identity, agency, contact details,
+ * professional bio and the profile photo / company logo.
  */
 export function AdminUsersPanel() {
   const router = useRouter();
@@ -31,10 +74,11 @@ export function AdminUsersPanel() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState<number | null>(null);
+  const [uploading, setUploading] = useState<"avatar" | "logo" | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [identityDraft, setIdentityDraft] = useState({ name: "", agency: "" });
+  const [draft, setDraft] = useState<ProfileDraft | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -67,6 +111,10 @@ export function AdminUsersPanel() {
   useEffect(() => {
     load();
   }, [load]);
+
+  function set<K extends keyof ProfileDraft>(key: K, value: ProfileDraft[K]) {
+    setDraft((current) => (current ? { ...current, [key]: value } : current));
+  }
 
   async function setVerification(user: DealerProfile, verified: boolean) {
     setActing(user.id);
@@ -120,14 +168,37 @@ export function AdminUsersPanel() {
     }
   }
 
-  async function saveIdentity(user: DealerProfile) {
-    const name = identityDraft.name.trim();
-    const agency = identityDraft.agency.trim();
+  /** Uploads a profile photo or company logo, then stores its media URL. */
+  async function uploadImage(file: File | undefined, kind: "avatar" | "logo") {
+    if (!file) return;
+    setUploading(kind);
+    setError("");
+    try {
+      const form = new FormData();
+      form.append("images", file);
+      const response = await fetch("/api/media/upload", { method: "POST", body: form });
+      const payload = (await response.json()) as { ok?: boolean; images?: { url: string }[]; error?: string };
+      if (!response.ok || !payload.ok || !payload.images?.length) {
+        setError(payload.error ?? "Could not upload that image.");
+        return;
+      }
+      set(kind === "avatar" ? "avatarUrl" : "companyLogo", payload.images[0].url);
+      setNotice(`${kind === "avatar" ? "Profile photo" : "Company logo"} uploaded — save the form to apply it.`);
+    } catch {
+      setError("Upload failed. Please try again.");
+    } finally {
+      setUploading(null);
+    }
+  }
+
+  async function saveProfile(user: DealerProfile) {
+    if (!draft) return;
+    const name = draft.name.trim();
     if (name.length < 2) {
       setError("Public name must be at least 2 characters.");
       return;
     }
-    if (name.length > 120 || agency.length > 160) {
+    if (name.length > 120 || draft.agency.trim().length > 160) {
       setError("Name or agency is too long. Please shorten it and try again.");
       return;
     }
@@ -139,15 +210,33 @@ export function AdminUsersPanel() {
       const response = await fetch(`/api/admin/users/${user.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, agency }),
+        body: JSON.stringify({
+          name: draft.name.trim(),
+          agency: draft.agency.trim(),
+          designation: draft.designation.trim(),
+          role: draft.role,
+          phone: draft.phone.trim(),
+          whatsapp: draft.whatsapp.trim(),
+          companyPhone: draft.companyPhone.trim(),
+          companyWebsite: draft.companyWebsite.trim(),
+          officeAddress: draft.officeAddress.trim(),
+          areas: draft.areas.trim(),
+          experience: draft.experience.trim(),
+          bio: draft.bio.trim(),
+          verificationNote: draft.verificationNote.trim(),
+          cityName: draft.cityName.trim(),
+          avatarUrl: draft.avatarUrl.trim(),
+          companyLogo: draft.companyLogo.trim(),
+        }),
       });
       const payload = (await response.json()) as { ok?: boolean; error?: string };
       if (!response.ok || !payload.ok) {
-        setError(payload.error ?? "Could not update the dealer name and agency.");
+        setError(payload.error ?? "Could not update the profile.");
         return;
       }
       setEditingId(null);
-      setNotice(`Public name and agency updated for ${name}.`);
+      setDraft(null);
+      setNotice(`Profile updated for ${name} — changes are live on the public dealer profile.`);
       await load();
     } catch {
       setError("Network error. Please try again.");
@@ -247,8 +336,12 @@ export function AdminUsersPanel() {
             <article key={user.id} className="min-w-0 rounded-panel border border-soft bg-white p-5 shadow-soft">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="flex min-w-0 items-start gap-4">
-                  <span className="relative grid h-12 w-12 shrink-0 place-items-center rounded-full bg-navy-900 font-sans text-[0.9375rem] font-bold text-white">
-                    {initialsFor(user.name)}
+                  <span className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-navy-900 font-sans text-[0.9375rem] font-bold text-white">
+                    {user.avatarUrl ? (
+                      <ResilientImage src={user.avatarUrl} alt={user.name} width={96} height={96} className="h-full w-full object-cover" />
+                    ) : (
+                      initialsFor(user.name)
+                    )}
                     {user.isVerified && (
                       <span className="absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full border-2 border-white bg-white">
                         <BlueTick className="h-4 w-4" />
@@ -301,16 +394,17 @@ export function AdminUsersPanel() {
                     onClick={() => {
                       if (editingId === user.id) {
                         setEditingId(null);
+                        setDraft(null);
                       } else {
                         setEditingId(user.id);
-                        setIdentityDraft({ name: user.name, agency: user.agency });
+                        setDraft(draftFrom(user));
                         setError("");
                         setNotice("");
                       }
                     }}
                     className="btn btn-outline"
                   >
-                    {editingId === user.id ? "Close editor" : "Edit name / agency"}
+                    {editingId === user.id ? "Close editor" : "Edit full profile"}
                   </button>
                   <button
                     type="button"
@@ -331,24 +425,101 @@ export function AdminUsersPanel() {
                 </div>
               </div>
 
-              {editingId === user.id && (
+              {editingId === user.id && draft && (
                 <form
                   id={`admin-user-edit-${user.id}`}
                   onSubmit={(event) => {
                     event.preventDefault();
-                    void saveIdentity(user);
+                    void saveProfile(user);
                   }}
                   className="mt-4 rounded-xl border border-forest-600/25 bg-forest-50 p-4"
                 >
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  {/* Profile pictures */}
+                  <div className="flex flex-wrap items-start gap-6">
+                    <div>
+                      <p className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted">Profile photo</p>
+                      <div className="mt-2 flex items-center gap-3">
+                        <span className="grid h-16 w-16 place-items-center overflow-hidden rounded-full border border-soft bg-white font-sans text-[0.875rem] font-bold text-navy-900">
+                          {draft.avatarUrl ? (
+                            <ResilientImage src={draft.avatarUrl} alt="" width={128} height={128} className="h-full w-full object-cover" />
+                          ) : (
+                            initialsFor(draft.name || user.name)
+                          )}
+                        </span>
+                        <div className="flex flex-col gap-1.5">
+                          <label className="cursor-pointer rounded-lg border border-navy-800/20 bg-white px-3 py-1.5 text-center text-[0.75rem] font-semibold text-navy-900 hover:border-navy-800">
+                            {uploading === "avatar" ? "Uploading…" : "Upload photo"}
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp,image/avif"
+                              className="hidden"
+                              disabled={uploading !== null}
+                              onChange={(event) => {
+                                void uploadImage(event.target.files?.[0], "avatar");
+                                event.target.value = "";
+                              }}
+                            />
+                          </label>
+                          {draft.avatarUrl && (
+                            <button
+                              type="button"
+                              onClick={() => set("avatarUrl", "")}
+                              className="rounded-lg border border-soft bg-white px-3 py-1.5 text-[0.75rem] font-semibold text-ink-muted hover:border-red-300 hover:text-red-600"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted">Company logo</p>
+                      <div className="mt-2 flex items-center gap-3">
+                        <span className="grid h-16 w-24 place-items-center overflow-hidden rounded-lg border border-soft bg-white">
+                          {draft.companyLogo ? (
+                            <ResilientImage src={draft.companyLogo} alt="" width={192} height={128} className="h-full w-full object-contain" />
+                          ) : (
+                            <span className="text-[0.7rem] font-semibold text-ink-muted">No logo</span>
+                          )}
+                        </span>
+                        <div className="flex flex-col gap-1.5">
+                          <label className="cursor-pointer rounded-lg border border-navy-800/20 bg-white px-3 py-1.5 text-center text-[0.75rem] font-semibold text-navy-900 hover:border-navy-800">
+                            {uploading === "logo" ? "Uploading…" : "Upload logo"}
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp,image/avif"
+                              className="hidden"
+                              disabled={uploading !== null}
+                              onChange={(event) => {
+                                void uploadImage(event.target.files?.[0], "logo");
+                                event.target.value = "";
+                              }}
+                            />
+                          </label>
+                          {draft.companyLogo && (
+                            <button
+                              type="button"
+                              onClick={() => set("companyLogo", "")}
+                              className="rounded-lg border border-soft bg-white px-3 py-1.5 text-[0.75rem] font-semibold text-ink-muted hover:border-red-300 hover:text-red-600"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Identity */}
+                  <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                     <div>
                       <label className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted" htmlFor={`admin-user-name-${user.id}`}>
                         Public name
                       </label>
                       <input
                         id={`admin-user-name-${user.id}`}
-                        value={identityDraft.name}
-                        onChange={(event) => setIdentityDraft((current) => ({ ...current, name: event.target.value }))}
+                        value={draft.name}
+                        onChange={(event) => set("name", event.target.value)}
                         maxLength={120}
                         minLength={2}
                         required
@@ -361,20 +532,194 @@ export function AdminUsersPanel() {
                       </label>
                       <input
                         id={`admin-user-agency-${user.id}`}
-                        value={identityDraft.agency}
-                        onChange={(event) => setIdentityDraft((current) => ({ ...current, agency: event.target.value }))}
+                        value={draft.agency}
+                        onChange={(event) => set("agency", event.target.value)}
                         maxLength={160}
                         className="field mt-1.5"
                         placeholder="Leave blank for an individual dealer"
                       />
                     </div>
+                    <div>
+                      <label className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted" htmlFor={`admin-user-designation-${user.id}`}>
+                        Designation
+                      </label>
+                      <input
+                        id={`admin-user-designation-${user.id}`}
+                        value={draft.designation}
+                        onChange={(event) => set("designation", event.target.value)}
+                        maxLength={120}
+                        className="field mt-1.5"
+                        placeholder="e.g. Sales Director"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted" htmlFor={`admin-user-role-${user.id}`}>
+                        Account role
+                      </label>
+                      <select
+                        id={`admin-user-role-${user.id}`}
+                        value={draft.role}
+                        onChange={(event) => set("role", event.target.value)}
+                        className="field mt-1.5"
+                      >
+                        <option value="member">member</option>
+                        <option value="dealer">dealer</option>
+                        <option value="agency">agency</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted" htmlFor={`admin-user-city-${user.id}`}>
+                        City
+                      </label>
+                      <input
+                        id={`admin-user-city-${user.id}`}
+                        value={draft.cityName}
+                        onChange={(event) => set("cityName", event.target.value)}
+                        maxLength={120}
+                        className="field mt-1.5"
+                        placeholder="e.g. Lahore"
+                      />
+                    </div>
                   </div>
-                  <p className="mt-2 text-[0.75rem] text-ink-muted">Changes appear on the public dealer profile and agency directory.</p>
+
+                  {/* Contact */}
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    <div>
+                      <label className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted" htmlFor={`admin-user-phone-${user.id}`}>
+                        Phone
+                      </label>
+                      <input
+                        id={`admin-user-phone-${user.id}`}
+                        value={draft.phone}
+                        onChange={(event) => set("phone", event.target.value)}
+                        maxLength={32}
+                        className="field mt-1.5"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted" htmlFor={`admin-user-whatsapp-${user.id}`}>
+                        WhatsApp
+                      </label>
+                      <input
+                        id={`admin-user-whatsapp-${user.id}`}
+                        value={draft.whatsapp}
+                        onChange={(event) => set("whatsapp", event.target.value)}
+                        maxLength={32}
+                        className="field mt-1.5"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted" htmlFor={`admin-user-company-phone-${user.id}`}>
+                        Company phone
+                      </label>
+                      <input
+                        id={`admin-user-company-phone-${user.id}`}
+                        value={draft.companyPhone}
+                        onChange={(event) => set("companyPhone", event.target.value)}
+                        maxLength={32}
+                        className="field mt-1.5"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted" htmlFor={`admin-user-website-${user.id}`}>
+                        Company website
+                      </label>
+                      <input
+                        id={`admin-user-website-${user.id}`}
+                        value={draft.companyWebsite}
+                        onChange={(event) => set("companyWebsite", event.target.value)}
+                        maxLength={300}
+                        className="field mt-1.5"
+                        placeholder="https://example.com"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted" htmlFor={`admin-user-address-${user.id}`}>
+                        Office address
+                      </label>
+                      <input
+                        id={`admin-user-address-${user.id}`}
+                        value={draft.officeAddress}
+                        onChange={(event) => set("officeAddress", event.target.value)}
+                        maxLength={300}
+                        className="field mt-1.5"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Professional */}
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted" htmlFor={`admin-user-areas-${user.id}`}>
+                        Areas dealt in
+                      </label>
+                      <input
+                        id={`admin-user-areas-${user.id}`}
+                        value={draft.areas}
+                        onChange={(event) => set("areas", event.target.value)}
+                        maxLength={300}
+                        className="field mt-1.5"
+                        placeholder="e.g. DHA, Bahria Town, Gulberg"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted" htmlFor={`admin-user-experience-${user.id}`}>
+                        Experience
+                      </label>
+                      <input
+                        id={`admin-user-experience-${user.id}`}
+                        value={draft.experience}
+                        onChange={(event) => set("experience", event.target.value)}
+                        maxLength={160}
+                        className="field mt-1.5"
+                        placeholder="e.g. 9 years in DHA and Bahria Town"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted" htmlFor={`admin-user-bio-${user.id}`}>
+                        Bio
+                      </label>
+                      <textarea
+                        id={`admin-user-bio-${user.id}`}
+                        value={draft.bio}
+                        onChange={(event) => set("bio", event.target.value)}
+                        maxLength={600}
+                        rows={3}
+                        className="field mt-1.5"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-ink-muted" htmlFor={`admin-user-note-${user.id}`}>
+                        Verification notes
+                      </label>
+                      <textarea
+                        id={`admin-user-note-${user.id}`}
+                        value={draft.verificationNote}
+                        onChange={(event) => set("verificationNote", event.target.value)}
+                        maxLength={600}
+                        rows={2}
+                        className="field mt-1.5"
+                        placeholder="Documents or notes from the verification request"
+                      />
+                    </div>
+                  </div>
+
+                  <p className="mt-2 text-[0.75rem] text-ink-muted">
+                    The complete profile — photos included — appears on the public dealer profile and the agency directory.
+                  </p>
                   <div className="mt-4 flex flex-wrap justify-end gap-2">
-                    <button type="button" disabled={acting === user.id} onClick={() => setEditingId(null)} className="btn btn-outline">
+                    <button
+                      type="button"
+                      disabled={acting === user.id}
+                      onClick={() => {
+                        setEditingId(null);
+                        setDraft(null);
+                      }}
+                      className="btn btn-outline"
+                    >
                       Cancel
                     </button>
-                    <button type="submit" disabled={acting === user.id} className="btn btn-primary">
+                    <button type="submit" disabled={acting === user.id || uploading !== null} className="btn btn-primary">
                       {acting === user.id ? "Saving…" : "Save changes"}
                     </button>
                   </div>
