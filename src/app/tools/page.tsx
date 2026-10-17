@@ -9,6 +9,7 @@ import {
   IconCompass,
   IconKey,
   IconLayers,
+  IconMap,
   IconSpark,
 } from "@/components/icons";
 import { PageHero } from "@/components/page-hero";
@@ -30,6 +31,24 @@ export const metadata: Metadata = buildMetadata({
 });
 
 const TOOLS = [
+  {
+    href: "/tools/area-converter",
+    title: "Area Unit Converter",
+    copy: "Convert between Marla, Kanal, square feet, square yards, square meters and acres in one step.",
+    icon: IconAreaIcon,
+  },
+  {
+    href: "/tools/plot-size-calculator",
+    title: "Plot Size & Price Calculator",
+    copy: "Turn a plot's length and width into Marla and Kanal, then estimate its value from the market rate.",
+    icon: IconMap,
+  },
+  {
+    href: "/tools/islamic-financing-calculator",
+    title: "Islamic Home Financing",
+    copy: "Diminishing Musharakah plan with the monthly installment and a year-by-year ownership schedule.",
+    icon: IconCalculator,
+  },
   {
     href: "/tools/mortgage-calculator",
     title: "Mortgage Calculator",
