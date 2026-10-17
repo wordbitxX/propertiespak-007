@@ -5356,8 +5356,11 @@ html[data-header-solid] .site-header .header-utility-bar {
 @media (min-width: 768px) {
   .header-topbar-links { display: flex; }
 }
+/* Mobile: hide the premium top bar entirely. Search, Saved and the language
+   switch stay available in the main header / menu drawer on small screens. */
 @media (max-width: 767px) {
-  .header-utility-bar > div { justify-content: flex-end; }
+  :root { --site-header-height: calc(68px + env(safe-area-inset-top, 0px)); }
+  .header-utility-bar { display: none !important; }
 }
 @media (max-width: 1023px) {
   .header-topbar-actions .header-utility-separator { display: none; }
