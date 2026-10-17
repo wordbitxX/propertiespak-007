@@ -46,6 +46,9 @@ export type PropertyFilters = {
   page?: number;
   pageSize?: number;
   ids?: number[];
+  /** "Near me" search: listings within `radiusKm` of this point, nearest first. */
+  near?: { lat: number; lng: number };
+  radiusKm?: number;
 };
 
 const COMMERCIAL_CATEGORIES = ["office", "shop", "building", "warehouse", "commercial", "factory", "other"];
@@ -94,8 +97,28 @@ function dealerListingJoin() {
   return and(eq(properties.listedByUserId, users.id), isPublished)!;
 }
 
+/** Great-circle distance in km from a point to each listing (haversine). */
+function distanceKmSql(lat: number, lng: number): SQL<number> {
+  return sql<number>`(6371 * 2 * asin(sqrt(
+    power(sin(radians(${properties.lat} - ${lat}) / 2), 2) +
+    cos(radians(${lat})) * cos(radians(${properties.lat})) * power(sin(radians(${properties.lng} - ${lng}) / 2), 2)
+  )))`;
+}
+
 export function buildConditions(filters: PropertyFilters): SQL[] {
   const conditions: SQL[] = [isPublished];
+  if (filters.near) {
+    const radius = filters.radiusKm ?? 10;
+    const { lat, lng } = filters.near;
+    // Cheap bounding box first so the trig only runs on nearby rows.
+    const dLat = radius / 111;
+    const dLng = radius / (111 * Math.max(0.2, Math.cos((lat * Math.PI) / 180)));
+    conditions.push(
+      sql`${properties.lat} between ${lat - dLat} and ${lat + dLat}`,
+      sql`${properties.lng} between ${lng - dLng} and ${lng + dLng}`,
+      sql`${distanceKmSql(lat, lng)} <= ${radius}`,
+    );
+  }
   if (filters.purpose) conditions.push(eq(properties.purpose, filters.purpose));
   if (filters.city) conditions.push(eq(properties.citySlug, filters.city));
   if (filters.town) {
@@ -153,7 +176,8 @@ export function buildConditions(filters: PropertyFilters): SQL[] {
   return conditions;
 }
 
-export function orderFor(sort?: string) {
+export function orderFor(sort?: string, near?: PropertyFilters["near"]) {
+  if (near && (sort === "nearest" || !sort)) return [asc(distanceKmSql(near.lat, near.lng)), desc(properties.id)];
   switch (sort) {
     case "price-asc":
       return [asc(properties.price), asc(properties.id)];
@@ -181,7 +205,7 @@ async function searchPropertiesUncached(filters: PropertyFilters = {}) {
       .from(properties)
       .leftJoin(users, listingOwnerJoin())
       .where(where)
-      .orderBy(...orderFor(filters.sort))
+      .orderBy(...orderFor(filters.sort, filters.near))
       .limit(pageSize)
       .offset((page - 1) * pageSize),
     db.select({ total: sql<number>`cast(count(*) as int)` }).from(properties).where(where),
@@ -202,7 +226,7 @@ async function getLandingPropertiesUncached(filters: PropertyFilters, limit = 9)
       .from(properties)
       .leftJoin(users, listingOwnerJoin())
       .where(where)
-      .orderBy(...orderFor(filters.sort))
+      .orderBy(...orderFor(filters.sort, filters.near))
       .limit(limit),
     db.select({ total: sql<number>`cast(count(*) as int)` }).from(properties).where(where),
   ]);
@@ -360,6 +384,37 @@ async function getCityListingCountsUncached() {
     .where(isPublished)
     .groupBy(properties.citySlug);
   return new Map(rows.map((row) => [row.citySlug, row.total]));
+}
+
+/** Published listing counts per city + location area (powers search suggestions). */
+async function getLocationAreaCountsUncached() {
+  await ensureSeeded();
+  return db
+    .select({
+      citySlug: properties.citySlug,
+      cityName: properties.cityName,
+      area: properties.locationArea,
+      total: sql<number>`cast(count(*) as int)`,
+    })
+    .from(properties)
+    .where(isPublished)
+    .groupBy(properties.citySlug, properties.cityName, properties.locationArea);
+}
+
+/** Coordinates of every live listing — used to size "near me" searches. */
+async function getListingPointsUncached() {
+  await ensureSeeded();
+  return db
+    .select({
+      purpose: properties.purpose,
+      citySlug: properties.citySlug,
+      cityName: properties.cityName,
+      area: properties.locationArea,
+      lat: properties.lat,
+      lng: properties.lng,
+    })
+    .from(properties)
+    .where(isPublished);
 }
 
 async function getProjectsUncached(limit = 12, featuredOnly = false) {
@@ -1142,6 +1197,8 @@ export const getFeaturedProperties = cachedQuery("getFeaturedProperties", getFea
 export const getPropertiesByIds = cachedQuery("getPropertiesByIds", getPropertiesByIdsUncached);
 export const getMapProperties = cachedQuery("getMapProperties", getMapPropertiesUncached);
 export const getCities = cachedQuery("getCities", getCitiesUncached);
+export const getLocationAreaCounts = cachedQuery("getLocationAreaCounts", getLocationAreaCountsUncached);
+export const getListingPoints = cachedQuery("getListingPoints", getListingPointsUncached);
 export const getCityBySlug = cachedQuery("getCityBySlug", getCityBySlugUncached);
 export const getCityListingCounts = cachedQuery("getCityListingCounts", getCityListingCountsUncached);
 export const getPopularSearches = cachedQuery("getPopularSearches", getPopularSearchesUncached);
@@ -1158,6 +1215,27 @@ export const getPriceIndex = cachedQuery("getPriceIndex", getPriceIndexUncached)
 export const getAgents = cachedQuery("getAgents", getAgentsUncached);
 export const getAgentBySlug = cachedQuery("getAgentBySlug", getAgentBySlugUncached);
 export const getPlatformStats = cachedQuery("getPlatformStats", getPlatformStatsUncached);
+
+/** Homepage hero counters: live listings, verified listings, distinct listing locations (+ members). */
+async function getHeroStatsUncached() {
+  await ensureSeeded();
+  const [row] = await db
+    .select({
+      listings: sql<number>`cast(count(*) as int)`,
+      locations: sql<number>`cast(count(distinct ${properties.locationArea}) as int)`,
+      verified: sql<number>`cast(count(*) filter (where ${properties.verified}) as int)`,
+      members: sql<number>`(select cast(count(*) as int) from ${users})`,
+    })
+    .from(properties)
+    .where(isPublished);
+  return {
+    listings: Number(row?.listings ?? 0),
+    members: Number(row?.members ?? 0),
+    locations: Number(row?.locations ?? 0),
+    verified: Number(row?.verified ?? 0),
+  };
+}
+export const getHeroStats = cachedQuery("getHeroStats", getHeroStatsUncached);
 export const getPropertyCategoryCounts = cachedQuery("getPropertyCategoryCounts", getPropertyCategoryCountsUncached);
 export const getDealers = cachedQuery("getDealers", getDealersUncached);
 export const getDealerCount = cachedQuery("getDealerCount", getDealerCountUncached);

@@ -28,6 +28,29 @@ export default function robots(): MetadataRoute.Robots {
       // and for AI answer engines (ChatGPT, Perplexity, Gemini), which are
       // allowed because they send discovery traffic.
       { userAgent: ["AhrefsBot", "SemrushBot", "MJ12bot", "DotBot", "PetalBot"], disallow: "/" },
+      // AI search & answer engines (GEO): explicitly welcome, same private
+      // areas excluded as for every other crawler.
+      {
+        userAgent: [
+          "GPTBot",
+          "OAI-SearchBot",
+          "ChatGPT-User",
+          "PerplexityBot",
+          "Perplexity-User",
+          "ClaudeBot",
+          "Claude-SearchBot",
+          "Claude-User",
+          "Google-Extended",
+          "Applebot",
+          "Applebot-Extended",
+          "CCBot",
+          "meta-externalagent",
+          "DuckAssistBot",
+          "cohere-ai",
+        ],
+        allow: ["/", "/llms.txt"],
+        disallow: DISALLOW,
+      },
     ],
     // The sitemap index is the single Search Console entry point; it points to
     // the complete deduplicated master sitemap below.

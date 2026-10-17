@@ -31,6 +31,7 @@ const STATIC_TOP_LEVEL = new Set([
   "sitemap.xml",
   "sitemap-index.xml",
   "robots.txt",
+  "llms.txt",
   "manifest.webmanifest",
   "favicon.ico",
   "property-investment-in-pakistan",

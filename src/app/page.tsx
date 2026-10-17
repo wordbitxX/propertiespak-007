@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { DEEP_ZOOM_MAPS, DHA_SOCIETY_MAPS } from "@/lib/map-library";
 import Link from "next/link";
 import { Hero } from "@/components/hero";
 import { Section, SectionHeading } from "@/components/section";
@@ -13,13 +14,14 @@ import {
   RecentlyAddedProperties,
 } from "@/components/sections-discovery";
 import { CtaSection, InvestmentSection, WhyEstateWx } from "@/components/sections-editorial";
-import { DealersSlider } from "@/components/dealers-slider";
+import { VerifiedAgenciesSection } from "@/components/agency-samples-showcase";
 import { PopularSearches } from "@/components/popular-searches";
 import {
   getApprovedReviews,
   getCities,
   getCityListingCounts,
   getDealerShowcase,
+  getHeroStats,
   getPlatformStats,
   getPropertyCategoryCounts,
   getPosts,
@@ -75,6 +77,7 @@ export default async function HomePage() {
     popularSearches,
     clientReviews,
     reviewSummary,
+    heroStats,
   ] = await Promise.all([
     getPlatformStats(),
     searchProperties({ featured: true, verified: true, pageSize: 8 }),
@@ -91,6 +94,7 @@ export default async function HomePage() {
     getPopularSearches(),
     getApprovedReviews({ limit: 6 }),
     getReviewSummary(),
+    getHeroStats(),
   ]);
 
   // "Premium Properties For You" is an admin-verified rail: only listings the
@@ -102,22 +106,23 @@ export default async function HomePage() {
 
   return (
     <div className="home-page">
-      <Hero />
+      <Hero stats={{ ...heroStats, maps: DHA_SOCIETY_MAPS.length + DEEP_ZOOM_MAPS.length }} />
 
       {/* 1. Featured Properties ("Premium Properties For You") */}
       <FeaturedProperties properties={featuredItems} total={featuredTotal} />
 
-      {/* 2. Top Verified Agents ("Work With Trusted Real Estate Experts") */}
-      <DealersSlider dealers={showcaseDealers} />
+      {/* Explore more on Properties Pak — above the cities section */}
+      <ExploreMoreSection />
 
-      {/* 3. Browse By Category ("Explore Properties by Category") */}
-      <CategoryGrid counts={categoryCounts} />
-
-      {/* 4. Explore Popular Cities */}
+      {/* 2. Explore Popular Cities */}
       <CityDiscovery cities={cities} counts={cityCounts} />
 
       {/* 5. Recently Added & Locally Viewed Properties */}
       <RecentlyAddedProperties properties={discovery.items} />
+
+      {/* Verified Agencies (dhaplus "Registered Agencies" style) — right below Recently Added */}
+      <VerifiedAgenciesSection dealers={showcaseDealers} />
+
       <RecentProperties />
 
       {/* 6. Property Discovery */}
@@ -147,11 +152,13 @@ export default async function HomePage() {
         </div>
       </Section>
 
+      {/* Browse By Category ("Explore Properties by Category") — right above Commercial */}
+      <CategoryGrid counts={categoryCounts} />
+
       {/* 7. Commercial, New Projects, Popular Searches & Tools */}
       <CommercialSection properties={commercialListings.items} total={commercialListings.total} />
       <NewProjectsSection projects={projects} />
       <PopularSearches groups={popularSearches} />
-      <ExploreMoreSection />
 
       {/* 8. Editorial, Investment Snapshot, Guides & Closing CTA */}
       <WhyEstateWx listings={stats.listings} cities={stats.cities} />

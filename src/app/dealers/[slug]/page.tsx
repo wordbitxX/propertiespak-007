@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { DealerLogo } from "@/components/dealer-logo";
+import { agencyDisplayName } from "@/lib/agency-name";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { JsonLd } from "@/components/json-ld";
 import { LeadForm } from "@/components/lead-form";
@@ -8,11 +10,10 @@ import { PropertyCard } from "@/components/property-card";
 import { Reveal } from "@/components/reveal";
 import { PageHero } from "@/components/page-hero";
 import { Section } from "@/components/section";
-import { BlueTick, initialsFor, UnverifiedChip } from "@/components/verified-badge";
+import { BlueTick, UnverifiedChip } from "@/components/verified-badge";
 import { IconArrowRight, IconBuilding, IconMail, IconPhone, IconPin, IconWhatsApp } from "@/components/icons";
 import { getApprovedReviews, getDealerBySlug, getPropertiesForDealer, getReviewSummary } from "@/lib/queries";
 import { ReviewForm, Stars } from "@/components/review-form";
-import { ResilientImage } from "@/components/resilient-image";
 import { formatDate } from "@/lib/format";
 import { buildMetadata, breadcrumbJsonLd, dealerJsonLd, itemListJsonLd } from "@/lib/seo";
 
@@ -129,13 +130,7 @@ export default async function DealerProfilePage({ params }: PageProps) {
                 />
               </div>
               <div className="flex flex-wrap items-start gap-5 rounded-panel border border-soft bg-white p-6 shadow-soft">
-                <span className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full bg-navy-900 font-sans text-[1.5rem] font-bold text-white">
-                  {dealer.avatarUrl ? (
-                    <ResilientImage src={dealer.avatarUrl} alt={dealer.name} width={160} height={160} className="h-full w-full object-cover" />
-                  ) : (
-                    initialsFor(dealer.name)
-                  )}
-                </span>
+                <DealerLogo name={agencyDisplayName(dealer)} logo={dealer.companyLogo || dealer.avatarUrl} size={88} />
                 <div className="min-w-0 flex-1">
                   <h2 className="flex flex-wrap items-center gap-2.5 font-sans text-[1.375rem] font-bold text-navy-900">
                     {dealer.name}

@@ -28,6 +28,8 @@ import {
 import { useFavorites } from "@/components/favorites-provider";
 import { useLanguage } from "@/components/language-provider";
 import { SITE } from "@/lib/constants";
+import { HeaderDropdown, MobileNavAccordion } from "@/components/header-nav-menus";
+import { MAPS_MENU, TOOLS_MENU, type NavMenuItem, type NavMenuLink } from "@/lib/map-library";
 
 const CITY_LINKS = ["Lahore", "Islamabad", "Karachi", "Rawalpindi", "Faisalabad", "Multan"];
 const PROPERTY_LINKS = [
@@ -41,16 +43,29 @@ const PROPERTY_LINKS = [
   { label: "All properties", href: "/properties" },
 ];
 
-const DESKTOP_NAV_ITEMS = [
+type NavEntry =
+  | { label: string; href: string; menu?: undefined }
+  | { label: string; href: string; menu: { items: NavMenuItem[]; layout: "list" | "grid"; footer: NavMenuLink } };
+
+const DESKTOP_NAV_ITEMS: NavEntry[] = [
   { label: "Agents", href: "/dealers" },
   { label: "New Projects", href: "/projects" },
   { label: "Areas", href: "/towns" },
-  { label: "Maps", href: "/maps" },
+  {
+    label: "Maps",
+    href: "/maps",
+    menu: { items: MAPS_MENU, layout: "list", footer: { label: "Browse all society maps", href: "/maps" } },
+  },
   { label: "Malls", href: "/malls" },
+  {
+    label: "Tools",
+    href: "/tools",
+    menu: { items: TOOLS_MENU, layout: "grid", footer: { label: "View all tools", href: "/tools" } },
+  },
   { label: "Blog", href: "/blog" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
-] as const;
+];
 
 type Panel = "menu" | "search" | "map" | null;
 
@@ -304,16 +319,29 @@ export function SiteHeader({ isAuthenticated = false }: { isAuthenticated?: bool
               )}
             </div>
 
-            {DESKTOP_NAV_ITEMS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                data-active={pathname === link.href || pathname.startsWith(`${link.href}/`)}
-                className="nav-link"
-              >
-                {t(link.label)}
-              </Link>
-            ))}
+            {DESKTOP_NAV_ITEMS.map((link) =>
+              link.menu ? (
+                <HeaderDropdown
+                  key={link.href}
+                  label={link.label}
+                  items={link.menu.items}
+                  layout={link.menu.layout}
+                  footer={link.menu.footer}
+                  pathname={pathname}
+                  activePrefix={link.href}
+                  testId={`header-${link.label.toLowerCase()}-menu`}
+                />
+              ) : (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  data-active={pathname === link.href || pathname.startsWith(`${link.href}/`)}
+                  className="nav-link"
+                >
+                  {t(link.label)}
+                </Link>
+              ),
+            )}
           </nav>
 
           <div className="header-actions">
@@ -372,8 +400,14 @@ export function SiteHeader({ isAuthenticated = false }: { isAuthenticated?: bool
               {t("List Property")}
             </Link>
 
-            <Link href={accountHref} className="header-account">
-              {t(isAuthenticated ? "Account" : "Sign In / Register")}
+            <Link
+              href={accountHref}
+              data-testid="header-account"
+              className="header-account"
+              aria-label={t(isAuthenticated ? "My account" : "Sign In / Register")}
+              title={t(isAuthenticated ? "My account" : "Sign In / Register")}
+            >
+              <IconUser className="h-[19px] w-[19px]" aria-hidden="true" />
             </Link>
 
             <button
@@ -458,18 +492,30 @@ export function SiteHeader({ isAuthenticated = false }: { isAuthenticated?: bool
                   )}
                 </div>
 
-                {DESKTOP_NAV_ITEMS.map((link) => (
-                  <Link
-                    key={`${link.label}-${link.href}`}
-                    href={link.href}
-                    onClick={dismiss}
-                    aria-current={pathname === link.href ? "page" : undefined}
-                    className="mobile-nav-link"
-                  >
-                    <span>{t(link.label)}</span>
-                    <IconArrowRight className="h-4 w-4 text-[#0E3B2C]" />
-                  </Link>
-                ))}
+                {DESKTOP_NAV_ITEMS.map((link) =>
+                  link.menu ? (
+                    <MobileNavAccordion
+                      key={`${link.label}-${link.href}`}
+                      label={link.label}
+                      items={link.menu.items}
+                      footer={link.menu.footer}
+                      pathname={pathname}
+                      onNavigate={dismiss}
+                      testId={`mobile-${link.label.toLowerCase()}-menu`}
+                    />
+                  ) : (
+                    <Link
+                      key={`${link.label}-${link.href}`}
+                      href={link.href}
+                      onClick={dismiss}
+                      aria-current={pathname === link.href ? "page" : undefined}
+                      className="mobile-nav-link"
+                    >
+                      <span>{t(link.label)}</span>
+                      <IconArrowRight className="h-4 w-4 text-[#0E3B2C]" />
+                    </Link>
+                  ),
+                )}
               </nav>
               <div className="mt-6">
                 <p className="eyebrow text-ink-muted">{t("Explore cities")}</p>
@@ -486,16 +532,9 @@ export function SiteHeader({ isAuthenticated = false }: { isAuthenticated?: bool
                   ))}
                 </div>
               </div>
-              <Link
-                href="/tools"
-                onClick={dismiss}
-                className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[#0E3B2C]"
-              >
-                {t("Open investment tools")} <IconArrowRight className="h-4 w-4" />
-              </Link>
             </div>
             <div className="navigation-drawer-footer">
-              <Link href="/list-property" onClick={dismiss} className="btn btn-gold min-h-12 w-full">
+              <Link href="/list-property" onClick={dismiss} className="btn mobile-menu-list-btn min-h-12 w-full">
                 {t("List Your Property")} <IconArrowRight className="h-4 w-4" />
               </Link>
               <Link

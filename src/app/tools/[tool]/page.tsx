@@ -257,6 +257,15 @@ export default async function ToolPage({ params }: PageProps) {
                     {item.eyebrow}
                   </Link>
                 ))}
+                {[
+                  { label: "Area unit converter", href: "/tools/area-converter" },
+                  { label: "Plot size & price", href: "/tools/plot-size-calculator" },
+                  { label: "Islamic home financing", href: "/tools/islamic-financing-calculator" },
+                ].map((item) => (
+                  <Link key={item.href} href={item.href} className="chip">
+                    {item.label}
+                  </Link>
+                ))}
               </div>
             </div>
           </div>

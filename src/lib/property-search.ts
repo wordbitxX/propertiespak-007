@@ -39,6 +39,10 @@ export type PropertySearchState = {
   keyword: string;
   withImages: boolean;
   withVideos: boolean;
+  /** "lat,lng" for a near-me search (empty when not used). */
+  near: string;
+  /** Search radius in km for `near`. */
+  radius: string;
 };
 
 export const SEARCH_GROUPS: { value: SearchGroup; label: string }[] = [
@@ -70,11 +74,34 @@ export function defaultPropertySearch(purpose: SearchPurpose = "buy"): PropertyS
   return {
     purpose, city: "", town: "", townExact: false, originalCategory: "", featured: false, newProjects: false, furnishing: "", possession: "", sort: "newest", group: "all", type: "", paymentType: "", minPrice: "", maxPrice: "",
     minArea: "", maxArea: "", areaUnit: "marla", beds: "", baths: "", verified: false,
-    keyword: "", withImages: false, withVideos: false,
+    keyword: "", withImages: false, withVideos: false, near: "", radius: "",
   };
 }
 
 type Params = Pick<URLSearchParams, "get">;
+
+export const NEAR_RADII = [2, 5, 10, 25, 50] as const;
+const DEFAULT_RADIUS_KM = 10;
+
+/** Parses `near=lat,lng`; anything malformed is ignored rather than erroring. */
+export function parseNear(value: string | null | undefined): { lat: number; lng: number } | undefined {
+  const match = value?.trim().match(/^(-?\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)$/);
+  if (!match) return undefined;
+  const lat = Number(match[1]);
+  const lng = Number(match[2]);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return undefined;
+  return { lat, lng };
+}
+
+export function parseRadius(value: string | null | undefined): number {
+  const radius = Number(value);
+  return Number.isFinite(radius) && radius >= 1 && radius <= 100 ? radius : DEFAULT_RADIUS_KM;
+}
+
+/** Coordinates are rounded to ~10 m before they go into a URL. */
+export function formatNear(lat: number, lng: number) {
+  return `${lat.toFixed(4)},${lng.toFixed(4)}`;
+}
 export function nonNegativeNumber(value: string | null | undefined): number | undefined {
   if (!value?.trim()) return undefined;
   const number = Number(value);
@@ -84,7 +111,10 @@ export function nonNegativeNumber(value: string | null | undefined): number | un
 /** One URL contract for the full-screen search, listing pages, API and map. */
 export function propertyQueryFromParams(params: Params): PropertyFilters {
   const payment = params.get("paymentType");
+  const near = parseNear(params.get("near"));
   return {
+    near,
+    radiusKm: near ? parseRadius(params.get("radius")) : undefined,
     purpose: ["buy", "rent"].includes(params.get("purpose") ?? "") ? params.get("purpose")! : undefined,
     city: params.get("city") || undefined,
     town: params.get("town") || undefined,
@@ -107,7 +137,7 @@ export function propertyQueryFromParams(params: Params): PropertyFilters {
     commercialOnly: params.get("commercial") === "1" || undefined,
     furnishing: params.get("furnishing") || undefined,
     possession: params.get("possession") || undefined,
-    sort: params.get("sort") || "newest",
+    sort: params.get("sort") || (near ? "nearest" : "newest"),
     page: Math.max(1, Math.floor(nonNegativeNumber(params.get("page")) ?? 1)),
     pageSize: Math.max(1, Math.min(48, Math.floor(nonNegativeNumber(params.get("pageSize")) ?? 12))),
   };
@@ -133,6 +163,8 @@ export function propertySearchFromParams(params: Params, fallbackPurpose: Search
     areaUnit, beds: parsed.beds === undefined ? "" : String(parsed.beds),
     baths: parsed.baths === undefined ? "" : String(parsed.baths),
     verified: !!parsed.verified, keyword: parsed.q ?? "", withImages: !!parsed.withImages, withVideos: !!parsed.withVideos,
+    near: parsed.near ? formatNear(parsed.near.lat, parsed.near.lng) : "",
+    radius: parsed.near && params.get("radius") ? String(parsed.radiusKm) : "",
   };
 }
 
@@ -146,7 +178,12 @@ export function propertySearchParams(state: PropertySearchState) {
   if (state.newProjects) params.set("newProjects", "1");
   if (state.furnishing) params.set("furnishing", state.furnishing);
   if (state.possession) params.set("possession", state.possession);
-  if (state.sort !== "newest") params.set("sort", state.sort);
+  const near = parseNear(state.near);
+  if (near) {
+    params.set("near", formatNear(near.lat, near.lng));
+    if (state.radius) params.set("radius", String(parseRadius(state.radius)));
+  }
+  if (state.sort !== "newest" && !(near && state.sort === "nearest")) params.set("sort", state.sort);
   if (state.type) params.set("type", state.type);
   if (state.paymentType) params.set("paymentType", state.paymentType);
   for (const key of ["minPrice", "maxPrice", "beds", "baths"] as const) {
@@ -172,5 +209,5 @@ export function propertySearchHref(state: PropertySearchState) {
 export const SEARCH_FILTER_KEYS = [
   "purpose", "q", "city", "town", "townExact", "type", "category", "beds", "baths", "minPrice", "maxPrice",
   "minArea", "maxArea", "areaUnit", "paymentType", "verified", "withImages", "withVideos",
-  "featured", "newProjects", "commercial", "furnishing", "possession", "sort", "page",
+  "featured", "newProjects", "commercial", "furnishing", "possession", "sort", "page", "near", "radius",
 ];

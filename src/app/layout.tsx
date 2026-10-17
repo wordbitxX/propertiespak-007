@@ -8,7 +8,7 @@ import { LanguageProvider } from "@/components/language-provider";
 import { FavoritesProvider } from "@/components/favorites-provider";
 import { CompareProvider } from "@/components/compare-provider";
 import { CompareBar } from "@/components/compare-bar";
-import { AiAssistant } from "@/components/ai-assistant";
+import { WhatsAppFloat } from "@/components/whatsapp-float";
 import { JsonLd } from "@/components/json-ld";
 import { getSessionUserId } from "@/lib/auth";
 import { SITE } from "@/lib/constants";
@@ -171,7 +171,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
-      <body className="bg-white text-ink antialiased" suppressHydrationWarning>
+      <body className="lux-theme bg-white text-ink antialiased" suppressHydrationWarning>
         {/* Runs straight from the HTML, before and independently of React, so the header turns solid on scroll even if hydration is slow or a JS chunk fails. */}
         <script dangerouslySetInnerHTML={{ __html: HEADER_SCROLL_SCRIPT }} />
         <LanguageProvider>
@@ -183,7 +183,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               </main>
               <SiteFooter />
               <CompareBar />
-              <AiAssistant />
+              <WhatsAppFloat />
             </CompareProvider>
           </FavoritesProvider>
         </LanguageProvider>

@@ -646,3 +646,8 @@ export function nearestSocietyPlace(
 
   return { area: match.place, detail, distanceM: Math.round(match.distance) };
 }
+
+/** Alternative names buyers type for a society (e.g. "Defence" → DHA Lahore). */
+export function societyAliases(name: string): string[] {
+  return SOCIETIES.find((society) => society.name === name)?.aliases ?? [];
+}

@@ -6,7 +6,8 @@ import { PageHero } from "@/components/page-hero";
 import { Section, SectionHeading } from "@/components/section";
 import { SITE } from "@/lib/constants";
 import { getAgents } from "@/lib/queries";
-import { buildMetadata } from "@/lib/seo";
+import { buildMetadata, faqJsonLd } from "@/lib/seo";
+import { JsonLd } from "@/components/json-ld";
 
 export const metadata: Metadata = buildMetadata({
   title: "Contact Properties Pak — Property Advisory in Pakistan",
@@ -17,6 +18,80 @@ export const metadata: Metadata = buildMetadata({
 });
 
 const DESK_WHATSAPP_TEXT = "Hi Properties Pak, I would like to discuss a property enquiry.";
+
+const WA_NUMBER = SITE.companyPhone.replace(/\D/g, "");
+const waLink = (text: string) => `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
+
+/** Route each visitor to the right desk with a prefilled WhatsApp message. */
+const HELP_INTENTS = [
+  {
+    title: "Buy or rent a property",
+    copy: "Share your city, budget and size — get a matched shortlist and viewings.",
+    whatsapp: "Hi Properties Pak, I want to buy / rent a property. City: , Budget: , Size: ",
+    link: { label: "Browse listings", href: "/properties" },
+  },
+  {
+    title: "List or sell my property",
+    copy: "Free listing review, pricing guidance and photography support.",
+    whatsapp: "Hi Properties Pak, I want to list / sell my property. Location: , Size: , Demand: ",
+    link: { label: "List property", href: "/list-property" },
+  },
+  {
+    title: "Dealer & agency verification",
+    copy: "Get the verified badge and publish your agency's inventory.",
+    whatsapp: "Hi Properties Pak, I am a dealer / agency and want to get verified. Agency name: , City: ",
+    link: { label: "Verified dealers", href: "/dealers" },
+  },
+  {
+    title: "Report a listing",
+    copy: "Wrong price, sold property or suspicious ad? Send the link and we review it.",
+    whatsapp: "Hi Properties Pak, I want to report a listing. Link: , Issue: ",
+    link: { label: "How we verify", href: "/about#how-we-work" },
+  },
+  {
+    title: "Account & technical help",
+    copy: "Login, saved properties, submissions or anything not working.",
+    whatsapp: "Hi Properties Pak, I need help with my account. Email / phone used: , Issue: ",
+    link: { label: "My account", href: "/account" },
+  },
+  {
+    title: "Overseas Pakistanis",
+    copy: "Video viewings, verified listings and remote-buying guidance.",
+    whatsapp: "Hi Properties Pak, I live abroad and want to buy property in Pakistan. Country: , City in Pakistan: , Budget: ",
+    link: { label: "Overseas buying guide", href: "/blog/overseas-pakistanis-property-buying-guide" },
+  },
+];
+
+const CONTACT_FAQS = [
+  {
+    question: "How do I contact Properties Pak?",
+    answer: `Call or WhatsApp ${SITE.companyPhone}, email ${SITE.companyEmail}, or send your requirement through the form on this page. Overseas buyers can also call the international desk on ${SITE.companyPhoneUs}.`,
+  },
+  {
+    question: "What is the Properties Pak WhatsApp number?",
+    answer: `The Properties Pak WhatsApp number is ${SITE.companyPhone}. Choose a topic on this page to open WhatsApp with a ready-made message.`,
+  },
+  {
+    question: "How quickly will I get a reply?",
+    answer:
+      "Sales enquiries are answered within one working day, rental viewings are arranged the same or next day where possible, and commercial requirements get a matched shortlist in 2–3 days.",
+  },
+  {
+    question: "Is it free to list my property on Properties Pak?",
+    answer:
+      "Yes. Owners can submit a property for free through the List Property page. The desk reviews the details before the listing goes live.",
+  },
+  {
+    question: "How do I report a fake or wrong listing?",
+    answer:
+      "Send the listing link on WhatsApp using the Report a listing option, or email the desk. Reported listings are reviewed and corrected or removed.",
+  },
+  {
+    question: "Which cities do the Properties Pak desks cover?",
+    answer:
+      "Desks in Lahore, Islamabad and Multan, plus an international desk in New York, handle enquiries for Lahore, Islamabad, Karachi, Rawalpindi, Faisalabad, Multan, Gujranwala and Peshawar.",
+  },
+];
 
 export default async function ContactPage() {
   const agents = await getAgents();
@@ -32,6 +107,38 @@ export default async function ContactPage() {
           { name: "Contact", href: "/contact" },
         ]}
       />
+
+      <Section tone="mist" id="how-can-we-help">
+        <div className="ui-container">
+          <SectionHeading
+            eyebrow="How can we help?"
+            title="Choose a topic to reach the right desk"
+            description="Each option opens WhatsApp with a ready-made message, so the right person can answer faster."
+          />
+          <ul className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {HELP_INTENTS.map((intent) => (
+              <li key={intent.title} className="contact-intent">
+                <h3 className="font-sans text-[1.02rem] font-semibold text-navy-900">{intent.title}</h3>
+                <p className="mt-2 text-[0.875rem] leading-relaxed text-ink-muted">{intent.copy}</p>
+                <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 pt-5">
+                  <a
+                    href={waLink(intent.whatsapp)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="contact-intent-wa"
+                    aria-label={`WhatsApp Properties Pak about: ${intent.title}`}
+                  >
+                    <IconWhatsApp className="h-4 w-4" /> WhatsApp
+                  </a>
+                  <Link href={intent.link.href} className="contact-intent-link">
+                    {intent.link.label} <IconArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </Section>
 
       <Section tone="light">
         <div className="ui-container grid gap-10 lg:grid-cols-[1fr_1.1fr]">
@@ -234,6 +341,70 @@ export default async function ContactPage() {
           </div>
         </div>
       </Section>
+
+      <Section tone="light" id="contact-faqs">
+        <div className="ui-container">
+          <SectionHeading
+            eyebrow="FAQs"
+            title="Contact questions, answered"
+            description="Quick answers about reaching the Properties Pak desks, listing a property and reporting a listing."
+          />
+          <div className="mt-9 grid gap-3.5 lg:grid-cols-2">
+            {CONTACT_FAQS.map((faq) => (
+              <details key={faq.question} className="article-faq group rounded-panel border border-soft bg-white p-5 open:shadow-soft">
+                <summary className="cursor-pointer list-none font-sans text-[1rem] font-semibold text-navy-900">
+                  {faq.question}
+                </summary>
+                <p className="mt-3 text-[0.9rem] leading-relaxed text-ink-muted">{faq.answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </Section>
+
+      <JsonLd data={faqJsonLd(CONTACT_FAQS)} />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "ContactPage",
+          "@id": `${SITE.url}/contact#webpage`,
+          url: `${SITE.url}/contact`,
+          name: "Contact Properties Pak",
+          description:
+            "Contact the Properties Pak property desks in Lahore, Islamabad and Multan or the international desk in New York by phone, WhatsApp or email.",
+          inLanguage: SITE.language,
+          isPartOf: { "@id": `${SITE.url}/#website` },
+          about: { "@id": `${SITE.url}/#organization` },
+          mainEntity: {
+            "@id": `${SITE.url}/#organization`,
+            contactPoint: [
+              {
+                "@type": "ContactPoint",
+                contactType: "customer service",
+                telephone: SITE.companyPhone,
+                email: SITE.companyEmail,
+                areaServed: "PK",
+                availableLanguage: ["English", "Urdu"],
+              },
+              {
+                "@type": "ContactPoint",
+                contactType: "sales",
+                telephone: SITE.companyPhone,
+                url: `https://wa.me/${WA_NUMBER}`,
+                areaServed: "PK",
+                availableLanguage: ["English", "Urdu"],
+              },
+              {
+                "@type": "ContactPoint",
+                contactType: "international enquiries",
+                telephone: SITE.companyPhoneUs,
+                email: SITE.companyEmail,
+                availableLanguage: ["English"],
+              },
+            ],
+          },
+        }}
+      />
     </>
   );
 }

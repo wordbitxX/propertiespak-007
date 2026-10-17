@@ -334,9 +334,9 @@ export function CtaSection() {
         height={768}
         loading="lazy"
         decoding="async"
-        className="absolute inset-0 h-full w-full object-cover opacity-20"
+        className="absolute inset-0 h-full w-full object-cover opacity-60"
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#061B14]/95 via-[#09241B]/88 to-[#0B2B20]/78" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#061B14]/90 via-[#09241B]/70 to-[#0B2B20]/40" />
       <div className="ui-container relative z-10">
         <div className="grid min-w-0 items-center gap-8 lg:grid-cols-[minmax(0,1fr)_auto]">
           <div className="min-w-0 max-w-2xl">

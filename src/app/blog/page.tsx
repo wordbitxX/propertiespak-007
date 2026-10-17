@@ -8,7 +8,9 @@ import { CtaSection } from "@/components/sections-editorial";
 import { Section, SectionHeading } from "@/components/section";
 import { formatDate } from "@/lib/format";
 import { getPosts } from "@/lib/queries";
-import { buildMetadata } from "@/lib/seo";
+import { buildMetadata, collectionPageJsonLd, itemListJsonLd } from "@/lib/seo";
+import { JsonLd } from "@/components/json-ld";
+import { slugifyHeading } from "@/components/article-body";
 
 export const metadata: Metadata = buildMetadata({
   title: "Property Insights, Guides & Market Notes",
@@ -19,9 +21,17 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default async function BlogPage() {
-  const posts = await getPosts(9);
+  const posts = await getPosts(60);
   const [lead, ...rest] = posts;
-  const categories = Array.from(new Set(posts.map((post) => post.category)));
+  const categoryOrder = ["Malls", "Maps", "Cities", "Guides"];
+  const categories = Array.from(new Set(posts.map((post) => post.category))).sort((a, b) => {
+    const ia = categoryOrder.indexOf(a);
+    const ib = categoryOrder.indexOf(b);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib) || a.localeCompare(b);
+  });
+  const groups = categories
+    .map((category) => ({ category, id: `topic-${slugifyHeading(category)}`, items: rest.filter((post) => post.category === category) }))
+    .filter((group) => group.items.length > 0);
 
   return (
     <>
@@ -35,10 +45,14 @@ export default async function BlogPage() {
         ]}
       >
         <div className="flex flex-wrap gap-2">
-          {categories.map((category) => (
-            <span key={category} className="rounded-md border border-white/15 px-2.5 py-1 text-[0.75rem] font-semibold text-white/70">
-              {category}
-            </span>
+          {groups.map((group) => (
+            <a
+              key={group.category}
+              href={`#${group.id}`}
+              className="rounded-md border border-white/15 px-2.5 py-1 text-[0.75rem] font-semibold text-white/70 transition-colors hover:border-white/40 hover:text-white"
+            >
+              {group.category} <span className="text-white/45">({group.items.length + (lead?.category === group.category ? 1 : 0)})</span>
+            </a>
           ))}
         </div>
       </PageHero>
@@ -88,45 +102,69 @@ export default async function BlogPage() {
           <SectionHeading
             eyebrow="Archive"
             title="Guides and market notes"
-            description="Practical reading for buyers, sellers, landlords and investors in Pakistan's property market."
+            description="Practical reading for buyers, sellers, landlords and investors in Pakistan's property market — grouped by topic."
           />
-          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {rest.map((post, index) => (
-              <Reveal key={post.slug} delay={index * 50}>
-                <article className="group flex h-full flex-col overflow-hidden rounded-panel border border-soft bg-white shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-card">
-                  <Link href={`/blog/${post.slug}`} className="zoom-frame relative block aspect-[16/10] overflow-hidden bg-soft">
-                    <ResilientImage
-                      src={post.coverImage}
-                      alt={post.title}
-                      width={1200}
-                      height={750}
-                      loading="lazy"
-                      decoding="async"
-                      className="h-full w-full object-cover"
-                    />
-                    <span className="absolute left-4 top-4 rounded-md bg-white/95 px-2.5 py-1 font-sans text-[0.75rem] font-bold uppercase tracking-[0.14em] text-navy-900">
-                      {post.category}
-                    </span>
-                  </Link>
-                  <div className="flex flex-1 flex-col p-5">
-                    <h3 className="font-sans text-[1.0625rem] font-semibold leading-snug text-navy-900">
-                      <Link href={`/blog/${post.slug}`} className="hover:text-forest-700">
-                        {post.title}
+          {groups.map((group) => (
+            <div key={group.category} id={group.id} className="mt-12 scroll-mt-32 first-of-type:mt-10">
+              <h2 className="blog-topic-title">
+                {group.category}
+                <span>{group.items.length} {group.items.length === 1 ? "article" : "articles"}</span>
+              </h2>
+              <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                {group.items.map((post, index) => (
+                  <Reveal key={post.slug} delay={Math.min(index, 5) * 50}>
+                    <article className="group flex h-full flex-col overflow-hidden rounded-panel border border-soft bg-white shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-card">
+                      <Link href={`/blog/${post.slug}`} className="zoom-frame relative block aspect-[16/10] overflow-hidden bg-soft">
+                        <ResilientImage
+                          src={post.coverImage}
+                          alt={post.title}
+                          width={1200}
+                          height={750}
+                          loading="lazy"
+                          decoding="async"
+                          className="h-full w-full object-cover"
+                        />
+                        <span className="absolute left-4 top-4 rounded-md bg-white/95 px-2.5 py-1 font-sans text-[0.75rem] font-bold uppercase tracking-[0.14em] text-navy-900">
+                          {post.category}
+                        </span>
                       </Link>
-                    </h3>
-                    <p className="mt-3 line-clamp-3 text-[0.875rem] leading-relaxed text-ink-muted">{post.excerpt}</p>
-                    <div className="mt-auto pt-5">
-                      <div className="hairline pt-4 text-[0.75rem] font-medium text-ink-muted">
-                        {formatDate(post.publishedAt)} · {post.readMinutes} min read
+                      <div className="flex flex-1 flex-col p-5">
+                        <h3 className="font-sans text-[1.0625rem] font-semibold leading-snug text-navy-900">
+                          <Link href={`/blog/${post.slug}`} className="hover:text-forest-700">
+                            {post.title}
+                          </Link>
+                        </h3>
+                        <p className="mt-3 line-clamp-3 text-[0.875rem] leading-relaxed text-ink-muted">{post.excerpt}</p>
+                        <div className="mt-auto pt-5">
+                          <div className="hairline pt-4 text-[0.75rem] font-medium text-ink-muted">
+                            {formatDate(post.publishedAt)} · {post.readMinutes} min read
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </article>
-              </Reveal>
-            ))}
-          </div>
+                    </article>
+                  </Reveal>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </Section>
+
+      <JsonLd
+        data={collectionPageJsonLd({
+          name: "Property Insights, Guides & Market Notes",
+          description:
+            "Pakistan property guides from Properties Pak: shopping malls, society maps, city investment guides, land measurement and buying checklists.",
+          path: "/blog",
+        })}
+      />
+      <JsonLd
+        data={itemListJsonLd({
+          name: "Properties Pak property guides",
+          path: "/blog",
+          items: posts.map((post) => ({ name: post.title, path: `/blog/${post.slug}` })),
+        })}
+      />
 
       <CtaSection />
     </>
