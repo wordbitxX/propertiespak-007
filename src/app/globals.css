@@ -5365,3 +5365,46 @@ html[data-header-solid] .site-header .header-utility-bar {
 @media (max-width: 1023px) {
   .header-topbar-actions .header-utility-separator { display: none; }
 }
+
+/* ---------- Home hero: keep the search box above the fold on laptops & desktops ----------
+   The search wrap overlaps the hero by 126px and is ~206px tall, so it ends ~80px below the
+   hero. Sizing the hero to (viewport - 96px) keeps the whole search box on the first screen.
+   Scoped to #home-hero so the /sample gallery keeps its own sizing. */
+@media (min-width: 1024px) {
+  .home-page #home-hero {
+    min-height: clamp(480px, calc(100svh - 96px), 780px) !important;
+    padding: calc(var(--site-header-height) + 40px) 0 140px !important;
+  }
+}
+/* Shorter laptop screens (e.g. 1366×768, 1536×864, 1280×800): tighten the intro. */
+@media (min-width: 1024px) and (max-height: 800px) {
+  .home-page #home-hero {
+    padding: calc(var(--site-header-height) + 18px) 0 136px !important;
+  }
+  .home-page #home-hero .hero-headline {
+    margin-top: 8px !important;
+    font-size: clamp(2.2rem, 3.6vw, 3.05rem) !important;
+  }
+  .home-page #home-hero .hero-description-desktop { margin-top: 8px !important; }
+  .home-page #home-hero .hero-actions { margin-top: 14px !important; }
+  .home-page #home-hero .hero-signature { margin-top: 10px !important; }
+  .home-page #home-hero .hero-credit { min-height: 20px !important; }
+}
+/* Very short screens (e.g. 1280×720 with browser toolbars): drop the small signature lines. */
+@media (min-width: 1024px) and (max-height: 640px) {
+  .home-page #home-hero {
+    padding-top: calc(var(--site-header-height) + 12px) !important;
+  }
+  .home-page #home-hero .hero-headline { font-size: clamp(2.1rem, 3.3vw, 2.7rem) !important; }
+  .home-page #home-hero .hero-signature,
+  .home-page #home-hero .hero-credit { display: none !important; }
+}
+/* 1024–1279px: the search fields wrap onto two rows (~222px instead of ~158px). */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .home-page #home-hero {
+    min-height: clamp(460px, calc(100svh - 160px), 780px) !important;
+  }
+}
+@media (min-width: 1024px) and (max-width: 1279px) and (max-height: 800px) {
+  .home-page #home-hero { padding-top: calc(var(--site-header-height) + 12px) !important; }
+}
