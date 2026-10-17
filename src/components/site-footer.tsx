@@ -98,11 +98,11 @@ export function SiteFooter() {
         aria-hidden="true"
         loading="lazy"
         decoding="async"
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-[0.18] mix-blend-luminosity"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-[0.42]"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#061912]/90 via-[#071E16]/82 to-[#05150F]/94"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#061912]/80 via-[#071E16]/66 to-[#05150F]/88"
       />
       <div className="ui-container relative z-10 py-12 sm:py-16">
         <div className="grid min-w-0 gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,2fr)] lg:gap-14">

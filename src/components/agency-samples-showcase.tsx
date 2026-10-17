@@ -155,11 +155,16 @@ function SampleClassic({ agencies }: { agencies: Agency[] }) {
               {agency.verified && <BlueTick className="h-4 w-4 shrink-0" />}
             </p>
             <p className="agx-p1-city">{agency.city}</p>
-            <p className="agx-p1-meta">
-              <span><b>{agency.listings}</b> Listings</span>
-              <span className="agx-p1-dot" aria-hidden="true" />
-              <span><b>{agency.verifiedListings}</b> Verified</span>
-            </p>
+            <div className="agx-p1-split">
+              <span className="agx-p1-stat">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-5h6v5" /></svg>
+                <span><b>{agency.listings}</b><small>Listings</small></span>
+              </span>
+              <span className="agx-p1-stat agx-p1-stat--verified">
+                <span><b>{agency.verifiedListings}</b><small>Verified</small></span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z" /><path d="m8.8 12.2 2.2 2.2 4.3-4.6" /></svg>
+              </span>
+            </div>
           </Link>
         ))}
       </div>
@@ -169,7 +174,8 @@ function SampleClassic({ agencies }: { agencies: Agency[] }) {
 
 /** Homepage section: the chosen P1 "Verified Agencies" design with live agency data. */
 export function VerifiedAgenciesSection({ dealers }: { dealers: DealerProfile[] }) {
-  const agencies = toAgencies(dealers).slice(0, 16);
+  // Only admin-verified agencies, with their real listing / verified-listing counts.
+  const agencies = toAgencies(dealers.filter((dealer) => dealer.isVerified)).slice(0, 16);
   if (agencies.length === 0) return null;
   return (
     <section id="home-dealers" className="home-verified-agencies" aria-labelledby="verified-agencies-heading">
