@@ -5684,3 +5684,21 @@ html[data-header-solid] .site-header .header-account:hover {
 @media (min-width: 1024px) {
   .home-page .hero-search-intro { transform: translateY(clamp(0px, calc((100vh - 680px) / 2), 48px)); }
 }
+
+/* Top bar language toggle: no visible border (user request). */
+html body .header-language-pill { border-color: transparent; }
+
+/* Header "List Property": solid, clearly visible CTA instead of a transparent outline. */
+html body .site-header .header-list-property.header-list-property {
+  border-color: transparent;
+  background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+  color: #052e1b;
+  font-weight: 700;
+  box-shadow: 0 6px 18px -8px rgba(34, 197, 94, .75);
+}
+html body .site-header .header-list-property.header-list-property:hover,
+html body .site-header .header-list-property.header-list-property:focus-visible {
+  border-color: transparent;
+  background: linear-gradient(135deg, #6ee7a0 0%, #2fd06b 100%);
+  color: #052e1b;
+}
