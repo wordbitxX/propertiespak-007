@@ -6,12 +6,14 @@ import { useLanguage } from "@/components/language-provider";
 import { ResilientImage } from "@/components/resilient-image";
 import { SearchPanel } from "@/components/search-panel";
 import { SITE } from "@/lib/constants";
-import { heroImage } from "@/lib/images";
 
+/** Sample 04 — Lahore Skyline at Golden Hour (Emerald Luxe & Mint Accent). */
+const HERO_IMAGE_SRC = "/images/hero-lahore-skyline.jpg";
+const HERO_IMAGE_ALT = "Lahore skyline at golden hour with high-rise towers, a tree-lined avenue and the setting sun";
 const HERO_IMAGE_SOURCES = [
-  { type: "image/avif", srcSet: "/images/hero-villa-sunset.avif 1672w", sizes: "100vw" },
-  { type: "image/webp", srcSet: "/images/hero-villa-sunset.webp 1672w", sizes: "100vw" },
-  { type: "image/jpeg", srcSet: heroImage.desktopSrcSet, sizes: "100vw" },
+  { type: "image/avif", srcSet: "/images/hero-lahore-skyline.avif 1672w", sizes: "100vw" },
+  { type: "image/webp", srcSet: "/images/hero-lahore-skyline.webp 1672w", sizes: "100vw" },
+  { type: "image/jpeg", srcSet: `${HERO_IMAGE_SRC} 1672w`, sizes: "100vw" },
 ];
 
 const HERO_FEATURED_CITIES = [
@@ -21,35 +23,36 @@ const HERO_FEATURED_CITIES = [
   { label: "Peshawar", href: "/city/peshawar" },
 ] as const;
 
-/** Cinematic luxury villa hero with left primary intro, right glass owner CTA card, and search bar. */
+/** Lahore golden-hour hero (Emerald Luxe & Mint Accent) with left intro, right glass owner CTA card, and search bar. */
 export function Hero() {
   const { t, locale } = useLanguage();
   const englishHeadline = (
     <>
-      Find Your <span className="hero-headline-accent">Dream</span>
+      Find Your <span className="hero-headline-accent">Dream Property</span>
       <br />
-      Property in Pakistan
+      in Pakistan
     </>
   );
   const headline = locale === "en" ? englishHeadline : t("Find Your Dream Property in Pakistan");
 
   return (
-    <div className="hero-section-wrapper">
+    <div className="hero-section-wrapper hero-variant--emerald-luxe">
       <section id="home-hero" className="home-hero" aria-labelledby="hero-heading" data-testid="home-hero">
         <ResilientImage
           pictureClassName="hero-photograph"
           pictureSources={HERO_IMAGE_SOURCES}
-          srcSet={heroImage.desktopSrcSet}
-          fallbackSrc="/images/hero-premium.jpg"
-          src={heroImage.desktop}
+          srcSet={`${HERO_IMAGE_SRC} 1672w`}
+          fallbackSrc={HERO_IMAGE_SRC}
+          src={HERO_IMAGE_SRC}
           sizes="100vw"
           width={1672}
           height={941}
-          alt={heroImage.alt}
+          alt={HERO_IMAGE_ALT}
           loading="eager"
           fetchPriority="high"
           decoding="async"
           className="hero-background-image"
+          style={{ objectPosition: "center 45%" }}
           data-testid="hero-photograph"
         />
         <div className="hero-photograph-shade" aria-hidden="true" />
