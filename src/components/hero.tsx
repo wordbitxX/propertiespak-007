@@ -21,12 +21,6 @@ const HERO_FEATURED_CITIES = [
   { label: "Peshawar", href: "/city/peshawar" },
 ] as const;
 
-const HERO_PREMIUM_BULLETS = [
-  "Buy, rent and explore new projects",
-  "Connect with property agents",
-  "Verified property listings",
-] as const;
-
 /** Cinematic luxury villa hero with left primary intro, right glass owner CTA card, and search bar. */
 export function Hero() {
   const { t, locale } = useLanguage();
@@ -89,17 +83,6 @@ export function Hero() {
                   "Discover homes, apartments, plots, commercial properties and new projects across Lahore, Islamabad, Karachi and Pakistan’s major markets.",
                 )}
               </p>
-
-              <ul className="hero-premium-bullets" aria-label="Platform highlights">
-                {HERO_PREMIUM_BULLETS.map((point) => (
-                  <li key={point} className="hero-premium-bullet">
-                    <span className="hero-premium-bullet-icon" aria-hidden="true">
-                      ✓
-                    </span>
-                    <span>{t(point)}</span>
-                  </li>
-                ))}
-              </ul>
 
               <div className="hero-actions hero-actions-desktop">
                 <Link href="#featured" className="btn hero-cta-primary">
