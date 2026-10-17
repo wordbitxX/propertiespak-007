@@ -7012,3 +7012,7 @@ body.lux-theme footer a:hover { color: var(--lux-gold-soft); }
   .pkr-hero--home .pkr-stats b { font-size: 1.15rem; }
   .pkr-hero--home .pkr-stats small { font-size: .72rem; line-height: 1.25; }
 }
+
+/* Explore more: redrawn 24px icon set, sized to fill the tile properly */
+.explore-more-glyph { position: relative; z-index: 1; width: 34px; height: 34px; }
+@media (max-width: 767px) { .explore-more-glyph { width: 31px; height: 31px; } }

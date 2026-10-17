@@ -112,7 +112,7 @@ export function ExploreMoreSection() {
               return (
                 <Link key={item.title} className="explore-more-card" href={item.href}>
                   <span className={`explore-more-icon explore-more-icon--${item.color}`} aria-hidden="true">
-                    <Icon className="h-[34px] w-[34px]" />
+                    <Icon className="explore-more-glyph" />
                   </span>
                   <span className="explore-more-copy">
                     <span className="explore-more-title">{t(item.title)}</span>
