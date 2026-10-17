@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { AgencySamplesShowcase } from "@/components/agency-samples-showcase";
-import { HeroReplicaSample } from "@/components/hero-replica-sample";
+import { LegacyHero } from "@/components/hero-legacy";
 import { HeroSamplesShowcase } from "@/components/hero-samples-showcase";
 import { SITE } from "@/lib/constants";
-import { getDealerShowcase, getHeroStats } from "@/lib/queries";
+import { getDealerShowcase } from "@/lib/queries";
 
 export const metadata: Metadata = {
   title: `Design Samples — Platinum Agency & Hero — ${SITE.name}`,
@@ -16,15 +16,17 @@ export const metadata: Metadata = {
 };
 
 export default async function SamplePage() {
-  const [dealers, heroStats] = await Promise.all([getDealerShowcase(16), getHeroStats()]);
+  const dealers = await getDealerShowcase(16);
   return (
     <>
-      <section id="sample-10" className="pkr-sample" aria-label="Sample 10 — pakproperties.pk hero replica">
+      <section id="previous-hero" className="pkr-sample legacy-hero-sample" aria-label="Previous homepage hero">
         <div className="pkr-sample-head">
-          <b>Sample 10 · Hero replica</b>
-          <span>Night villa background with a cream Buy / Rent / Sell search card, matching the reference screenshot.</span>
+          <b>Previous homepage hero</b>
+          <span>Lahore golden-hour skyline (Sample 04 · Emerald Luxe) — kept here in case we switch back.</span>
         </div>
-        <HeroReplicaSample stats={heroStats} />
+        <div className="home-page">
+          <LegacyHero />
+        </div>
       </section>
       <AgencySamplesShowcase dealers={dealers} />
       <HeroSamplesShowcase />

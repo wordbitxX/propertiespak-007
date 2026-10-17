@@ -20,6 +20,7 @@ import {
   getCities,
   getCityListingCounts,
   getDealerShowcase,
+  getHeroStats,
   getPlatformStats,
   getPropertyCategoryCounts,
   getPosts,
@@ -75,6 +76,7 @@ export default async function HomePage() {
     popularSearches,
     clientReviews,
     reviewSummary,
+    heroStats,
   ] = await Promise.all([
     getPlatformStats(),
     searchProperties({ featured: true, verified: true, pageSize: 8 }),
@@ -91,6 +93,7 @@ export default async function HomePage() {
     getPopularSearches(),
     getApprovedReviews({ limit: 6 }),
     getReviewSummary(),
+    getHeroStats(),
   ]);
 
   // "Premium Properties For You" is an admin-verified rail: only listings the
@@ -102,7 +105,7 @@ export default async function HomePage() {
 
   return (
     <div className="home-page">
-      <Hero />
+      <Hero stats={heroStats} />
 
       {/* 1. Featured Properties ("Premium Properties For You") */}
       <FeaturedProperties properties={featuredItems} total={featuredTotal} />

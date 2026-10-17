@@ -6058,3 +6058,18 @@ html[data-header-solid] .site-header .header-language-mobile:hover { background:
 }
 .pkr-sample { padding-top: calc(var(--site-header-height) + 8px); }
 @media (min-width: 1024px) { .pkr-sample { padding-top: calc(var(--site-header-height) + 36px); } }
+
+/* Homepage hero (formerly /sample · Sample 10). The fixed header overlays the photograph. */
+.pkr-hero--home { min-height: 0; border-radius: 0 0 28px 28px; }
+.pkr-hero--home .pkr-hero-inner { padding-top: calc(var(--site-header-height) + 44px); padding-bottom: 34px; }
+@media (min-width: 1024px) {
+  /* Desktop shows the 28px utility bar above the main header row. */
+  .pkr-hero--home .pkr-hero-inner { padding-top: calc(var(--site-header-height) + 28px + 40px); }
+}
+@media (max-width: 767px) {
+  .pkr-hero--home .pkr-hero-inner { padding-top: calc(var(--site-header-height) + 34px); padding-bottom: 40px; }
+}
+
+/* /sample · the previous homepage hero, parked for later. */
+.legacy-hero-sample .home-page .home-hero { padding-top: 56px; }
+.legacy-hero-sample .home-page { background: transparent; }
