@@ -66,12 +66,12 @@ function ChevronIcon({ className }: { className?: string }) {
 }
 
 /**
- * Homepage hero: night villa photograph, "Exceptional spaces. / New beginnings."
+ * Homepage hero: night villa photograph, "Find Your Dream / Property in Pakistan."
  * headline, cream Buy / Rent / Sell search card and three live counters.
  * (The previous Lahore-skyline hero lives on in hero-legacy.tsx, shown on /sample.)
  */
 export function Hero({ stats }: { stats: HeroStats }) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("buy");
   const [location, setLocation] = useState("");
@@ -106,21 +106,33 @@ export function Hero({ stats }: { stats: HeroStats }) {
 
       <div className="pkr-hero-inner">
         <p className="pkr-hero-eyebrow">
-          <span aria-hidden="true" />{t("A place for your next chapter")}
+          <span aria-hidden="true" />
+          {t("PREMIUM REAL ESTATE PLATFORM")}
         </p>
-        <h1 id="hero-heading" className="pkr-hero-title">
-          Exceptional spaces.
-          <em>New beginnings.</em>
+        <h1 id="hero-heading" className="pkr-hero-title" aria-label={t("Find Your Dream Property in Pakistan")}>
+          {locale === "en" ? (
+            <>
+              Find Your Dream
+              <em>Property in Pakistan.</em>
+            </>
+          ) : (
+            t("Find Your Dream Property in Pakistan")
+          )}
         </h1>
         <p className="pkr-hero-sub">
-          Discover homes, land and possibilities across Pakistan.{" "}
-          <br />
-          Your next move starts with the right place.
+          {t(
+            "Discover homes, apartments, plots, commercial properties and new projects across Lahore, Islamabad, Karachi and Pakistan’s major markets.",
+          )}
         </p>
-        <Link href="/properties" className="pkr-hero-explore">
-          {t("Explore the collection")}
-          <ArrowIcon className="pkr-hero-explore-arrow" />
-        </Link>
+        <div className="pkr-hero-links">
+          <Link href="/properties" className="pkr-hero-explore">
+            {t("Explore Properties")}
+            <ArrowIcon className="pkr-hero-explore-arrow" />
+          </Link>
+          <Link href="/dealers" className="pkr-hero-explore pkr-hero-explore--secondary">
+            {t("Find an Agent")}
+          </Link>
+        </div>
 
         <form id="property-search" className="pkr-search" onSubmit={submit} role="search" aria-label={t("Search properties")} data-testid="hero-search">
           <div className="pkr-search-tabs" role="tablist" aria-label="Search purpose">

@@ -6089,3 +6089,18 @@ html:not([data-header-solid]):has(.pkr-hero--home) .site-header.site-header--ove
 .site-header { transition: background-color .25s ease, box-shadow .25s ease, border-color .25s ease; }
 /* A soft top scrim keeps the white navigation readable on bright parts of the photo. */
 .pkr-hero--home .pkr-hero-shade::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 190px; background: linear-gradient(180deg, rgba(4, 16, 11, .55) 0%, rgba(4, 16, 11, 0) 100%); pointer-events: none; }
+
+/* Homepage hero copy: own wording (Find Your Dream / Property in Pakistan). */
+.pkr-hero-sub { max-width: 560px; }
+.pkr-hero-links { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 34px; margin-top: 30px; }
+.pkr-hero-links .pkr-hero-explore { margin-top: 0; }
+.pkr-hero-explore--secondary { border-bottom-color: rgba(255, 255, 255, .25); color: rgba(255, 255, 255, .82); }
+.pkr-hero-explore--secondary:hover { color: #eed8b2; border-color: #e5cd9d; }
+@media (max-width: 767px) { .pkr-hero-links { margin-top: 22px; gap: 12px 26px; } }
+@media (min-width: 1024px) {
+  .pkr-hero--home .pkr-hero-inner { padding-top: calc(var(--site-header-height) + 52px); }
+  .pkr-hero--home .pkr-hero-sub { max-width: 640px; }
+  .pkr-hero--home .pkr-search { margin-top: 40px; }
+}
+@media (max-width: 767px) { .pkr-hero--home .pkr-hero-title em { font-size: .86em; white-space: nowrap; } }
+@media (max-width: 359px) { .pkr-hero--home .pkr-hero-title em { white-space: normal; } }
