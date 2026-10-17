@@ -1158,6 +1158,25 @@ export const getPriceIndex = cachedQuery("getPriceIndex", getPriceIndexUncached)
 export const getAgents = cachedQuery("getAgents", getAgentsUncached);
 export const getAgentBySlug = cachedQuery("getAgentBySlug", getAgentBySlugUncached);
 export const getPlatformStats = cachedQuery("getPlatformStats", getPlatformStatsUncached);
+
+/** Hero counters for the /sample hero replica: live listings, registered members, distinct listing locations. */
+async function getHeroStatsUncached() {
+  await ensureSeeded();
+  const [row] = await db
+    .select({
+      listings: sql<number>`cast(count(*) as int)`,
+      locations: sql<number>`cast(count(distinct ${properties.locationArea}) as int)`,
+      members: sql<number>`(select cast(count(*) as int) from ${users})`,
+    })
+    .from(properties)
+    .where(isPublished);
+  return {
+    listings: Number(row?.listings ?? 0),
+    members: Number(row?.members ?? 0),
+    locations: Number(row?.locations ?? 0),
+  };
+}
+export const getHeroStats = cachedQuery("getHeroStats", getHeroStatsUncached);
 export const getPropertyCategoryCounts = cachedQuery("getPropertyCategoryCounts", getPropertyCategoryCountsUncached);
 export const getDealers = cachedQuery("getDealers", getDealersUncached);
 export const getDealerCount = cachedQuery("getDealerCount", getDealerCountUncached);
