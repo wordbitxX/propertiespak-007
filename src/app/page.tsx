@@ -107,10 +107,7 @@ export default async function HomePage() {
       {/* 1. Featured Properties ("Premium Properties For You") */}
       <FeaturedProperties properties={featuredItems} total={featuredTotal} />
 
-      {/* 3. Browse By Category ("Explore Properties by Category") */}
-      <CategoryGrid counts={categoryCounts} />
-
-      {/* 4. Explore Popular Cities */}
+      {/* 2. Explore Popular Cities — directly below Premium Properties */}
       <CityDiscovery cities={cities} counts={cityCounts} />
 
       {/* 5. Recently Added & Locally Viewed Properties */}
@@ -147,6 +144,9 @@ export default async function HomePage() {
           </div>
         </div>
       </Section>
+
+      {/* Browse By Category ("Explore Properties by Category") — right above Commercial */}
+      <CategoryGrid counts={categoryCounts} />
 
       {/* 7. Commercial, New Projects, Popular Searches & Tools */}
       <CommercialSection properties={commercialListings.items} total={commercialListings.total} />

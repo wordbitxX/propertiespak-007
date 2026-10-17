@@ -16,20 +16,8 @@ export function purposeBadge(property: Pick<Property, "purpose" | "isNewProject"
   return { label: "For Sale", className: "bg-[#0D382A] text-white" };
 }
 
-/** Pastel type pill colours for the featured card ("House", "Apartment", "Plot" …). */
-const TYPE_PILL: Record<string, string> = {
-  house: "bg-[#CFF7E1] text-[#0F6B45]",
-  farmhouse: "bg-[#CFF7E1] text-[#0F6B45]",
-  apartment: "bg-[#E0E9FF] text-[#2F4FA0]",
-  penthouse: "bg-[#E0E9FF] text-[#2F4FA0]",
-  plot: "bg-[#FDF1C6] text-[#8A5A00]",
-  land: "bg-[#FDF1C6] text-[#8A5A00]",
-  shop: "bg-[#F1E6FF] text-[#6A3DB0]",
-  office: "bg-[#F1E6FF] text-[#6A3DB0]",
-  building: "bg-[#F1E6FF] text-[#6A3DB0]",
-  commercial: "bg-[#F1E6FF] text-[#6A3DB0]",
-  warehouse: "bg-[#F1E6FF] text-[#6A3DB0]",
-};
+/** One shared colour for every type pill on the featured card (House, Villa, Apartment, Plot …). */
+const TYPE_PILL_CLASS = "bg-[#CFF7E1] text-[#0F6B45]";
 
 function formatPkrNumeric(price: number | string, purpose: string): { main: string; suffix?: string } {
   const num = typeof price === "number" ? price : Number(price);
@@ -97,7 +85,7 @@ export function PropertyCard({
       {featuredLook ? (
         <>
           <div className="pointer-events-none absolute left-2.5 top-2.5 flex max-w-[calc(100%-112px)] flex-wrap items-center gap-1.5">
-            <span className={`rounded-full px-2.5 py-[3px] font-sans text-[0.7rem] font-semibold shadow-sm ${TYPE_PILL[property.category] ?? "bg-white/95 text-[#0D382A]"}`}>
+            <span className={`rounded-full px-2.5 py-[3px] font-sans text-[0.7rem] font-semibold shadow-sm ${TYPE_PILL_CLASS}`}>
               {property.propertyType}
             </span>
             <span
