@@ -8,7 +8,7 @@ import { ResilientImage } from "@/components/resilient-image";
 import { SearchPanel } from "@/components/search-panel";
 import { SITE } from "@/lib/constants";
 
-type ImageGroup = "lahore" | "villa";
+type ImageGroup = "lahore" | "villa" | "twilight";
 type VariantStyle = "signature" | "ultraclear" | "royal-gold" | "emerald-luxe" | "cinematic-glass";
 
 interface HeroSampleConfig {
@@ -36,6 +36,12 @@ const VILLA_SOURCES = [
   { type: "image/avif", srcSet: "/images/hero-villa-sunset.avif 1672w", sizes: "100vw" },
   { type: "image/webp", srcSet: "/images/hero-villa-sunset.webp 1672w", sizes: "100vw" },
   { type: "image/jpeg", srcSet: "/images/hero-premium.jpg 1672w", sizes: "100vw" },
+];
+
+const TWILIGHT_SOURCES = [
+  { type: "image/avif", srcSet: "/images/hero-twilight-villa.avif 1672w", sizes: "100vw" },
+  { type: "image/webp", srcSet: "/images/hero-twilight-villa.webp 1672w", sizes: "100vw" },
+  { type: "image/jpeg", srcSet: "/images/hero-twilight-villa.jpg 1672w", sizes: "100vw" },
 ];
 
 const HERO_SAMPLES: HeroSampleConfig[] = [
@@ -182,6 +188,78 @@ const HERO_SAMPLES: HeroSampleConfig[] = [
     fallbackSrc: "/images/hero-premium.jpg",
     objectPosition: "66% 50%",
   },
+
+  // 11–15: Twilight Villa Overlooking City and Mountains (client-supplied art)
+  {
+    id: 11,
+    code: "Sample 11",
+    title: "Twilight Villa — Signature Emerald & Gold",
+    subtitle: "Current hero layout with the twilight villa, infinity pool and city-and-mountains sunset at blue hour.",
+    imageGroup: "twilight",
+    imageLabel: "New Image: Twilight Villa & City Mountains",
+    locationBadge: "Islamabad",
+    locationHref: "/city/islamabad",
+    variant: "signature",
+    sources: TWILIGHT_SOURCES,
+    fallbackSrc: "/images/hero-twilight-villa.jpg",
+    objectPosition: "62% 46%",
+  },
+  {
+    id: 12,
+    code: "Sample 12",
+    title: "Twilight Villa — Ultra-Clear HD Panorama",
+    subtitle: "Lightest overlay so the pool reflections, villa glazing and sunset sky read at full clarity.",
+    imageGroup: "twilight",
+    imageLabel: "New Image: Twilight Villa & City Mountains",
+    locationBadge: "Islamabad",
+    locationHref: "/city/islamabad",
+    variant: "ultraclear",
+    sources: TWILIGHT_SOURCES,
+    fallbackSrc: "/images/hero-twilight-villa.jpg",
+    objectPosition: "64% 44%",
+  },
+  {
+    id: 13,
+    code: "Sample 13",
+    title: "Twilight Villa — Royal Sunset Gold Edition",
+    subtitle: "Champagne Gold CTAs and warm gold headline accent matched to the sunset behind the ridge.",
+    imageGroup: "twilight",
+    imageLabel: "New Image: Twilight Villa & City Mountains",
+    locationBadge: "Islamabad",
+    locationHref: "/city/islamabad",
+    variant: "royal-gold",
+    sources: TWILIGHT_SOURCES,
+    fallbackSrc: "/images/hero-twilight-villa.jpg",
+    objectPosition: "62% 46%",
+  },
+  {
+    id: 14,
+    code: "Sample 14",
+    title: "Twilight Villa — Emerald Luxe & Mint Accent",
+    subtitle: "Deep emerald glassmorphism with mint accents over the blue-hour garden and pool lights.",
+    imageGroup: "twilight",
+    imageLabel: "New Image: Twilight Villa & City Mountains",
+    locationBadge: "Islamabad",
+    locationHref: "/city/islamabad",
+    variant: "emerald-luxe",
+    sources: TWILIGHT_SOURCES,
+    fallbackSrc: "/images/hero-twilight-villa.jpg",
+    objectPosition: "60% 46%",
+  },
+  {
+    id: 15,
+    code: "Sample 15",
+    title: "Twilight Villa — Cinematic Pill & Dark Glass Search",
+    subtitle: "Pill CTAs and a dark frosted search panel framing the pool line and city lights below.",
+    imageGroup: "twilight",
+    imageLabel: "New Image: Twilight Villa & City Mountains",
+    locationBadge: "Islamabad",
+    locationHref: "/city/islamabad",
+    variant: "cinematic-glass",
+    sources: TWILIGHT_SOURCES,
+    fallbackSrc: "/images/hero-twilight-villa.jpg",
+    objectPosition: "62% 48%",
+  },
 ];
 
 export function HeroSamplesShowcase() {
@@ -199,9 +277,9 @@ export function HeroSamplesShowcase() {
         <div className="ui-container hero-samples-toolbar-inner">
           <div className="hero-samples-toolbar-head">
             <div>
-              <span className="hero-samples-kicker">HERO DESIGN GALLERY · 10 SAMPLES</span>
+              <span className="hero-samples-kicker">HERO DESIGN GALLERY · 15 SAMPLES</span>
               <h1 className="hero-samples-heading">
-                Hero Section Variations (5 New Lahore Skyline + 5 Current Sunset Villa)
+                Hero Section Variations (5 Lahore Skyline + 5 Sunset Villa + 5 Twilight Villa)
               </h1>
             </div>
             <div className="hero-samples-filter-group" role="tablist" aria-label="Filter hero samples by background image">
@@ -212,7 +290,7 @@ export function HeroSamplesShowcase() {
                 onClick={() => setFilter("all")}
                 className={`hero-samples-filter-btn ${filter === "all" ? "is-active" : ""}`}
               >
-                All 10 Samples
+                All 15 Samples
               </button>
               <button
                 type="button"
@@ -232,6 +310,15 @@ export function HeroSamplesShowcase() {
               >
                 6–10: Sunset Villa (Current)
               </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={filter === "twilight"}
+                onClick={() => setFilter("twilight")}
+                className={`hero-samples-filter-btn ${filter === "twilight" ? "is-active" : ""}`}
+              >
+                11–15: Twilight Villa (New)
+              </button>
             </div>
           </div>
 
@@ -241,12 +328,20 @@ export function HeroSamplesShowcase() {
                 key={sample.id}
                 href={`#sample-${sample.id}`}
                 className={`hero-samples-jump-chip ${
-                  sample.imageGroup === "lahore" ? "is-lahore" : "is-villa"
+                  sample.imageGroup === "lahore"
+                    ? "is-lahore"
+                    : sample.imageGroup === "villa"
+                      ? "is-villa"
+                      : "is-twilight"
                 }`}
               >
                 <span>#{sample.id}</span>
                 <span className="hidden sm:inline">
-                  {sample.imageGroup === "lahore" ? "Lahore" : "Villa"}
+                  {sample.imageGroup === "lahore"
+                    ? "Lahore"
+                    : sample.imageGroup === "villa"
+                      ? "Villa"
+                      : "Twilight"}
                 </span>
               </a>
             ))}
@@ -288,7 +383,9 @@ export function HeroSamplesShowcase() {
                     className={`hero-sample-badge ${
                       sample.imageGroup === "lahore"
                         ? "hero-sample-badge--lahore"
-                        : "hero-sample-badge--villa"
+                        : sample.imageGroup === "villa"
+                          ? "hero-sample-badge--villa"
+                          : "hero-sample-badge--twilight"
                     }`}
                   >
                     {sample.code}
