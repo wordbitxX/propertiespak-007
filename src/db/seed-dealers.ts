@@ -4,6 +4,11 @@
  * the blue verified tick across the site — every founding account has been
  * checked by the Properties Pak team (identity, phone and published inventory).
  * Agency names stay short so they fit the dealer slider without truncation.
+ *
+ * Newer accounts join WITHOUT the tick (`isVerified: false`) until the desk
+ * reviews them; their seeded listings stay unverified too, so the pre-review
+ * state (no badge on cards, "Listing reference" on detail pages) is visible
+ * across the site exactly as a live account would look.
  */
 export type DealerSeed = {
   slug: string;
@@ -181,6 +186,63 @@ export const dealerSeed: DealerSeed[] = [
     companyPhone: "+92 41 1110000",
     companyWebsite: "https://wordbitxtech.com/",
     isVerified: true,
+    pendingReview: 0,
+    password: "propertiespak",
+  },
+  {
+    slug: "faraz-ahmed",
+    name: "Faraz Ahmed",
+    email: "faraz.ahmed@propertywx.pk",
+    phone: "+92 302 4455667",
+    citySlug: "lahore",
+    cityName: "Lahore",
+    agency: "SkyLine Property Works",
+    bio: "Young Lahore desk covering Johar Town, Wapda City and the Punjab University Society belt. Joined recently and is awaiting the Properties Pak verification review; listings publish with desk checks only until the blue tick is granted.",
+    designation: "Property Consultant",
+    experience: "4 years in Johar Town and Wapda City",
+    areas: "Johar Town, Wapda City, Punjab University Society",
+    officeAddress: "Block H1, Johar Town, Lahore",
+    companyPhone: "+92 42 3510000",
+    companyWebsite: "",
+    isVerified: false,
+    pendingReview: 0,
+    password: "propertiespak",
+  },
+  {
+    slug: "sana-malik",
+    name: "Sana Malik",
+    email: "sana.malik@propertywx.pk",
+    phone: "+92 303 2288994",
+    citySlug: "karachi",
+    cityName: "Karachi",
+    agency: "Malik & Sons Estate",
+    bio: "Family-run Karachi estate office listing houses and rented portions in Scheme 33, Gulshan-e-Iqbal and DHA periphery. New to the platform — verification documents are with the Properties Pak desk and the profile carries no tick until they clear.",
+    designation: "Partner",
+    experience: "5 years in Scheme 33 and Gulshan-e-Iqbal",
+    areas: "Scheme 33, Gulshan-e-Iqbal, DHA Karachi periphery",
+    officeAddress: "Sector 17, Scheme 33, Karachi",
+    companyPhone: "+92 21 3530000",
+    companyWebsite: "",
+    isVerified: false,
+    pendingReview: 0,
+    password: "propertiespak",
+  },
+  {
+    slug: "imran-qureshi",
+    name: "Imran Qureshi",
+    email: "imran.qureshi@propertywx.pk",
+    phone: "+92 301 8899776",
+    citySlug: "islamabad",
+    cityName: "Islamabad",
+    agency: "Qureshi Real Estate",
+    bio: "Islamabad desk focused on B-17 Multi Gardens, Gulberg Greens and G-13 sectors, working mostly with end-user families. Account created this quarter; inventory is live but unverified until the desk finishes its identity and phone checks.",
+    designation: "Owner",
+    experience: "6 years in B-17 and Gulberg Greens",
+    areas: "B-17 Multi Gardens, Gulberg Greens, G-13",
+    officeAddress: "Main G-13 Markaz, Islamabad",
+    companyPhone: "+92 51 2300000",
+    companyWebsite: "",
+    isVerified: false,
     pendingReview: 0,
     password: "propertiespak",
   },

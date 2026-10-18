@@ -9,6 +9,7 @@ import { hashPassword } from "@/lib/password";
 import { agentSeed, citySeed, postSeed, projectSeed, propertySeed, testimonialSeed } from "@/db/seed-data";
 import { extraPropertySeed } from "@/db/seed-data-extra";
 import { dhaPropertySeed } from "@/db/seed-data-dha";
+import { unverifiedPropertySeed } from "@/db/seed-data-unverified";
 import { EXTRA_POSTS, POST_LINKS } from "@/db/seed-content";
 import { BLOG_POSTS_2026 } from "@/lib/blog-content-2026";
 import { assignSeedGalleries } from "@/db/seed-gallery";
@@ -497,7 +498,9 @@ async function linkDealerListings(q: Executor) {
   const cities = Array.from(new Set(dealerSeed.map((dealer) => dealer.citySlug)));
 
   for (const citySlug of cities) {
-    const cityDealers = dealerSeed.filter((dealer) => dealer.citySlug === citySlug);
+    // Only blue-tick dealers receive round-robin desk inventory; unverified
+    // accounts keep exactly the portfolio they published themselves.
+    const cityDealers = dealerSeed.filter((dealer) => dealer.citySlug === citySlug && dealer.isVerified);
     const accounts: { id: number; name: string; phone: string; email: string }[] = [];
 
     for (const dealer of cityDealers) {
@@ -588,7 +591,14 @@ const RESERVED_PHOTOS = new Set<number>([
 
 /** Every seeded listing, each with its own cover photo (see seed-gallery.ts). */
 const seedListings: SeedProperty[] = assignSeedGalleries(
-  [...propertySeed, ...extraPropertySeed, ...dhaPropertySeed, ...townPropertySeed, ...societyPropertySeed],
+  [
+    ...propertySeed,
+    ...extraPropertySeed,
+    ...dhaPropertySeed,
+    ...townPropertySeed,
+    ...societyPropertySeed,
+    ...unverifiedPropertySeed,
+  ],
   RESERVED_PHOTOS,
 );
 
@@ -664,6 +674,38 @@ async function refreshSeedGalleries(q: Executor) {
        )
        and (p.cover_image is distinct from v.cover or p.images is distinct from v.images)
   `);
+}
+
+/**
+ * Pins every unverified seed listing to its own (unverified) dealer account,
+ * after the round-robin linker, so the pre-review state — no badge on cards,
+ * "Listing reference" on the detail page — survives reseeds. Idempotent: it
+ * only ever touches slugs owned by the unverified seed itself.
+ */
+async function assignUnverifiedPortfolios(q: Executor) {
+  for (const property of unverifiedPropertySeed) {
+    const dealer = dealerSeed.find((entry) => entry.slug === property.dealerSlug);
+    if (!dealer) continue;
+    const account = (
+      await q
+        .select({ id: users.id, name: users.name, phone: users.phone })
+        .from(users)
+        .where(eq(users.email, dealer.email))
+        .limit(1)
+    )[0];
+    if (!account) continue;
+    await q
+      .update(properties)
+      .set({
+        listedByUserId: account.id,
+        listedByName: account.name,
+        listedByEmail: dealer.email,
+        listedByPhone: account.phone,
+        listedByWhatsapp: account.phone.replace(/[^0-9]/g, ""),
+        verified: false,
+      })
+      .where(eq(properties.slug, property.slug));
+  }
 }
 
 /**
@@ -763,6 +805,7 @@ async function runSeed() {
     await seedProperties(tx);
     await refreshSeedGalleries(tx);
     await linkDealerListings(tx);
+    await assignUnverifiedPortfolios(tx);
     await holdSeedListingsForReview(tx);
     await tx.execute(sql`
       insert into app_meta (key, value, updated_at) values ('seed_version', ${SEED_VERSION}, now())
