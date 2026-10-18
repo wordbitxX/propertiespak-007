@@ -58,6 +58,26 @@ export function isGoogleSignInConfigured(): boolean {
 }
 
 /**
+ * Google accepts only pre-registered redirect URIs, verbatim. The button is
+ * therefore offered only on hosts where the URI this deployment would send
+ * can actually be registered: the canonical domain (when the URI is derived)
+ * or whichever host `GOOGLE_REDIRECT_URI` points at. Preview and sandbox
+ * hosts hide the button instead of dead-ending visitors on Google's
+ * `redirect_uri_mismatch` screen.
+ */
+export async function isGoogleSignInAvailable(): Promise<boolean> {
+  if (!isGoogleSignInConfigured()) return false;
+  const configured = process.env.GOOGLE_REDIRECT_URI?.trim();
+  try {
+    const currentHost = new URL(await resolveOrigin()).host;
+    if (configured) return new URL(configured).host === currentHost;
+    return currentHost === SITE.host;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Absolute origin for this deployment, read from the request headers rather
  * than from `nextUrl.origin`, which reports the address the server is bound to
  * (`0.0.0.0` in dev) and is not routable from a browser. `x-forwarded-host`
@@ -102,12 +122,14 @@ function authorizeUrl(redirectUriValue: string, state: string): string {
  * Called from `GET /api/auth/google`.
  */
 export async function startGoogleSignIn(returnTo?: string): Promise<Response> {
-  if (!isGoogleSignInConfigured()) {
+  if (!isGoogleSignInConfigured() || !(await isGoogleSignInAvailable())) {
     const origin = await resolveOrigin();
     const fallback = new URL("/login", origin);
     fallback.searchParams.set(
       "error",
-      "Google Sign-In requires GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables in this environment. Please use email and password or sign in on the live production domain.",
+      isGoogleSignInConfigured()
+        ? "Google Sign-In is only available on the platform's registered domain. Please use email and password here, or sign in with Google on the live site."
+        : "Google Sign-In requires GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables in this environment. Please use email and password or sign in on the live production domain.",
     );
     return Response.redirect(fallback.toString(), 302);
   }
