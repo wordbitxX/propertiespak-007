@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import {
   SOCIETY_MAP_CATEGORIES,
   SOCIETY_MAP_CITIES,
   SOCIETY_PDF_MAPS,
+  pdfEmbedUrl,
+  pdfProxyPath,
   type SocietyMapCategory,
   type SocietyMapCity,
   type SocietyPdfMap,
@@ -23,6 +25,34 @@ import {
   IconShield,
   IconSpark,
 } from "@/components/icons";
+
+/**
+ * Whether the same-origin PDF proxy can actually reach its upstream right now.
+ * Sandboxes without external egress answer 502, so the UI falls back to the
+ * lightweight document-viewer embed instead of showing a broken frame.
+ */
+const proxyProbeCache = new Map<string, boolean>();
+async function probePdfProxy(path: string): Promise<boolean> {
+  const cached = proxyProbeCache.get(path);
+  if (cached !== undefined) return cached;
+  let ok = false;
+  try {
+    let response = await fetch(path, { method: "HEAD", cache: "no-store" });
+    if (response.status === 405) {
+      // Upstream servers that reject HEAD: verify with a real GET and drop the
+      // body straight away so only the first byte is transferred.
+      response = await fetch(path, { cache: "no-store" });
+      ok = response.ok && (response.headers.get("content-type") ?? "").includes("pdf");
+      void response.body?.cancel();
+    } else {
+      ok = response.ok && (response.headers.get("content-type") ?? "").includes("pdf");
+    }
+  } catch {
+    ok = false;
+  }
+  proxyProbeCache.set(path, ok);
+  return ok;
+}
 
 const LeafletMap = dynamic(
   () => import("@/components/leaflet-map").then((mod) => mod.LeafletMap),
@@ -322,6 +352,7 @@ export function MapsExplorer({
   const [selectedCategory, setSelectedCategory] = useState<"all" | SocietyMapCategory>("all");
   const [featuredOnly, setFeaturedOnly] = useState(false);
   const [previewMap, setPreviewMap] = useState<SocietyPdfMap | null>(null);
+  const [previewMode, setPreviewMode] = useState<"proxy" | "embed" | null>(null);
   const [activeLiveSlug, setActiveLiveSlug] = useState<string>("phase-6-lahore");
   const [allProperties, setAllProperties] = useState<MapProperty[]>(initialProperties);
   const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
@@ -331,6 +362,45 @@ export function MapsExplorer({
     lng: number;
     zoom: number;
   } | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    const decide = async (): Promise<"proxy" | "embed" | null> => {
+      if (!previewMap) return null;
+      const proxy = pdfProxyPath(previewMap);
+      if (!proxy) return "embed";
+      return (await probePdfProxy(proxy)) ? "proxy" : "embed";
+    };
+    void decide().then((mode) => {
+      if (alive) setPreviewMode(mode);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [previewMap]);
+
+  /**
+   * Reliable save: same-origin proxy with `Content-Disposition: attachment`
+   * when it is reachable (fast, edge-cached), otherwise open the source PDF in
+   * a new tab so the browser's own viewer/save flow takes over.
+   */
+  const handlePdfDownload = (map: SocietyPdfMap, event?: MouseEvent<HTMLAnchorElement>) => {
+    event?.preventDefault();
+    const proxy = pdfProxyPath(map);
+    void (async () => {
+      if (proxy && (await probePdfProxy(proxy))) {
+        const link = document.createElement("a");
+        link.href = `${proxy}?download=1`;
+        link.download = `${map.id}.pdf`;
+        link.rel = "noopener";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        return;
+      }
+      window.open(map.pdfUrl, "_blank", "noopener,noreferrer");
+    })();
+  };
 
   useEffect(() => {
     if (initialProperties.length > 0) return;
@@ -905,6 +975,7 @@ export function MapsExplorer({
                       href={map.pdfUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={(event) => handlePdfDownload(map, event)}
                       className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#0B3224] to-[#134E38] px-3 py-2.5 text-[0.78rem] font-extrabold text-[#F3D590] shadow-sm transition hover:from-[#0F4230] hover:to-[#186347]"
                     >
                       Download PDF
@@ -951,6 +1022,7 @@ export function MapsExplorer({
                   href={previewMap.pdfUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={(event) => handlePdfDownload(previewMap, event)}
                   className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E2BC76] to-[#D4A85D] px-4 py-2 text-[0.78rem] font-extrabold text-[#120D05]"
                 >
                   Open / Download Full PDF
@@ -967,26 +1039,33 @@ export function MapsExplorer({
             </div>
 
             <div className="relative flex-1 bg-[#0C261D]">
-              <iframe
-                src={previewMap.pdfUrl}
-                title={previewMap.title}
-                className="h-full w-full border-0"
-              />
+              {previewMode === null ? (
+                <div className="grid h-full place-items-center text-sm font-semibold text-white/70">
+                  Loading map preview…
+                </div>
+              ) : (
+                <iframe
+                  src={previewMode === "proxy" ? (pdfProxyPath(previewMap) ?? previewMap.pdfUrl) : pdfEmbedUrl(previewMap)}
+                  title={previewMap.title}
+                  className="h-full w-full border-0"
+                />
+              )}
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-[#061A13] px-5 py-3 text-[0.76rem] text-white/75">
               <span>{previewMap.phasesOrSectors}</span>
               <span>
-                If your browser blocks embedded PDFs, click{" "}
+                Preview not loading?{" "}
                 <a
                   href={previewMap.pdfUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={(event) => handlePdfDownload(previewMap, event)}
                   className="font-bold text-[#F3D590] underline"
                 >
                   Open / Download Full PDF
                 </a>{" "}
-                to view in full resolution.
+                opens the original file in full resolution.
               </span>
             </div>
           </div>

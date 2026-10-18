@@ -6,6 +6,7 @@ import {
   PPS_SOURCE,
 } from "@/lib/map-library";
 import { SOCIETY_MAPS } from "@/lib/society-maps";
+import { LRE_PDF_BASE, SOCIETY_PDF_MAPS } from "@/lib/society-pdf-maps";
 
 /**
  * Same-origin proxy for the society map viewers.
@@ -15,6 +16,9 @@ import { SOCIETY_MAPS } from "@/lib/society-maps";
  *   /api/map-proxy/dhaplus/<image>.jpg                  → DHA Plus HD society map
  *   /api/map-proxy/bplus/<cdn|maps>/<layer>/<z>/<x>/<y>.png → DHA Plus plot-layout tile
  *     (same-origin, so the map can mask the CDN's "no data" filler tiles)
+ *   /api/map-proxy/lre/<path>.pdf[?download=1]              → curated society PDF map
+ *     (same-origin, so the preview modal can embed it and the download button
+ *      can force `Content-Disposition: attachment`; edge-cached like tiles)
  *
  * Only files belonging to the curated maps in `@/lib/map-library` are allowed,
  * so this can never be used as an open proxy. Responses are cached at the edge
@@ -43,11 +47,20 @@ const BPLUS_LAYERS = new Set(
 );
 const DHAPLUS_IMAGE = /^[A-Za-z0-9]{20,64}\.(jpg|jpeg|png)$/;
 
+/** Exact upstream paths of the curated PDF maps — the proxy allow-list. */
+const LRE_BASE = process.env.MAP_PROXY_LRE_BASE || LRE_PDF_BASE;
+const LRE_PDF_PATHS = new Set(
+  SOCIETY_PDF_MAPS.filter((map) => map.pdfUrl.startsWith(LRE_PDF_BASE)).map((map) =>
+    map.pdfUrl.slice(LRE_PDF_BASE.length),
+  ),
+);
+
 const CONTENT_TYPES: Record<string, string> = {
   dzi: "application/xml; charset=utf-8",
   jpg: "image/jpeg",
   jpeg: "image/jpeg",
   png: "image/png",
+  pdf: "application/pdf",
 };
 
 const LONG_CACHE = "public, max-age=86400, s-maxage=2592000, stale-while-revalidate=604800";
@@ -72,6 +85,10 @@ function resolveUpstream(source: string, path: string): { url: string; ext: stri
     if (image && DHA_SOCIETY_IMAGE_NAMES.has(path)) return { url: `${DHAPLUS_BASE}${path}`, ext: image[1].toLowerCase() };
     return null;
   }
+  if (source === "lre") {
+    if (path.toLowerCase().endsWith(".pdf") && LRE_PDF_PATHS.has(path)) return { url: `${LRE_BASE}${path}`, ext: "pdf" };
+    return null;
+  }
   return null;
 }
 
@@ -87,8 +104,15 @@ export async function GET(_request: Request, { params }: { params: Promise<{ sou
   try {
     response = await fetch(upstream.url, {
       cache: "no-store",
-      signal: AbortSignal.timeout(20_000),
-      headers: { Accept: upstream.ext === "dzi" ? "application/xml,text/xml,*/*" : "image/*,*/*" },
+      signal: AbortSignal.timeout(upstream.ext === "pdf" ? 60_000 : 20_000),
+      headers: {
+        Accept:
+          upstream.ext === "dzi"
+            ? "application/xml,text/xml,*/*"
+            : upstream.ext === "pdf"
+              ? "application/pdf,*/*"
+              : "image/*,*/*",
+      },
     });
   } catch {
     return NextResponse.json({ error: "Map source unavailable" }, { status: 502, headers: { "Cache-Control": "no-store" } });
@@ -103,12 +127,23 @@ export async function GET(_request: Request, { params }: { params: Promise<{ sou
     );
   }
 
-  return new NextResponse(response.body, {
-    status: 200,
-    headers: {
-      "Content-Type": CONTENT_TYPES[upstream.ext] ?? "application/octet-stream",
-      "Cache-Control": LONG_CACHE,
-      "X-Content-Type-Options": "nosniff",
-    },
-  });
+  const headers = {
+    "Content-Type": CONTENT_TYPES[upstream.ext] ?? "application/octet-stream",
+    "Cache-Control": LONG_CACHE,
+    "X-Content-Type-Options": "nosniff",
+  } as Record<string, string>;
+
+  if (upstream.ext === "pdf") {
+    // `?download=1` forces a real save dialog; without it the same URL stays
+    // embeddable inline (Chrome refuses to render attachment responses inside
+    // frames, which is exactly what broke the old direct embeds).
+    const wantsDownload = new URL(_request.url).searchParams.has("download");
+    const fileName = joined.split("/").pop() ?? "map.pdf";
+    headers["Content-Disposition"] = `${wantsDownload ? "attachment" : "inline"}; filename="${fileName.replace(/"/g, "")}"`;
+    if (wantsDownload) headers["Cache-Control"] = "public, max-age=3600, s-maxage=86400";
+    const length = response.headers.get("content-length");
+    if (length) headers["Content-Length"] = length;
+  }
+
+  return new NextResponse(response.body, { status: 200, headers });
 }
