@@ -38,6 +38,9 @@ const STATIC_TOP_LEVEL = new Set([
   "keywords-for-pakistan",
   "pakistan-property-price-index",
   "malls",
+  "privacy-policy",
+  "terms",
+  "verification",
 ]);
 
 const KNOWN_PREFIXES = [

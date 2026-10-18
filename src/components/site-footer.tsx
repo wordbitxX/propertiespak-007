@@ -27,6 +27,15 @@ const COMPANY_SOCIAL = [
   { platform: "TikTok", href: SITE.companySocial.tiktok, Icon: IconTikTok },
 ].filter((entry) => entry.href.trim().length > 0);
 
+/** The marketplace's own profiles — same opt-in rule as the company row. */
+const PLATFORM_SOCIAL = [
+  { platform: "Facebook", href: SITE.social.facebook, Icon: IconFacebook },
+  { platform: "Instagram", href: SITE.social.instagram, Icon: IconInstagram },
+  { platform: "LinkedIn", href: SITE.social.linkedin, Icon: IconLinkedIn },
+  { platform: "YouTube", href: SITE.social.youtube, Icon: IconYouTube },
+  { platform: "X", href: SITE.social.x, Icon: IconX },
+].filter((entry) => entry.href.trim().length > 0);
+
 const COLUMNS = [
   {
     title: "Explore",
@@ -79,6 +88,9 @@ const COLUMNS = [
       { label: "FBR property tax guide", href: "/blog/fbr-property-tax-guide-pakistan" },
       { label: "DHA vs Bahria Town", href: "/blog/dha-vs-bahria-town-comparison" },
       { label: "About Properties Pak", href: "/about" },
+      { label: "About & Verification", href: "/verification" },
+      { label: "Privacy Policy", href: "/privacy-policy" },
+      { label: "Terms of Service", href: "/terms" },
     ],
   },
 ];
@@ -146,6 +158,27 @@ export function SiteFooter() {
             <p className="text-[0.75rem] font-semibold uppercase tracking-[0.13em] text-white/50">{t("A WordbitX Product")}</p>
             <a href={SITE.companyUrl} target="_blank" rel="noopener noreferrer" aria-label="WordbitX | Group of Companies" className="mt-2 inline-block font-sans text-[0.9375rem] font-semibold text-white hover:text-forest-400"><span>Wordbit<span className="footer-wordbitx-x text-forest-400">X</span></span> <span className="text-[0.8125rem] font-normal">| {t("Group of Companies")}</span></a>
             <a href={`mailto:${SITE.companyEmail}`} className="mt-2 flex items-center gap-2 text-[0.75rem] text-white/60 hover:text-white"><IconMail className="h-3.5 w-3.5 shrink-0" /><span className="break-all">{SITE.companyEmail}</span></a>
+            {PLATFORM_SOCIAL.length > 0 && (
+              <div className="mt-5">
+                <h2 className="text-[0.75rem] font-semibold uppercase tracking-[0.13em] text-white/50">{t("Follow Properties Pak")}</h2>
+                <ul className="mt-3 flex flex-wrap items-center gap-2.5">
+                  {PLATFORM_SOCIAL.map(({ platform, href, Icon }) => (
+                    <li key={platform}>
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`${SITE.name} on ${platform}`}
+                        title={`${SITE.name} on ${platform}`}
+                        className="grid h-9 w-9 place-items-center rounded-full border border-white/15 text-white/70 transition-colors hover:border-forest-400 hover:text-forest-400"
+                      >
+                        <Icon className="h-4 w-4" />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {COMPANY_SOCIAL.length > 0 && (
               <div className="mt-5">
                 <h2 className="text-[0.75rem] font-semibold uppercase tracking-[0.13em] text-white/50">{t("Follow WordbitX")}</h2>
@@ -180,8 +213,9 @@ export function SiteFooter() {
           <p className="text-[0.75rem] text-white/50">© {new Date().getFullYear()} {SITE.name}. A WordbitX Product.</p>
           <div className="flex min-w-0 flex-wrap gap-x-5 gap-y-3 text-[0.75rem]">
             <Link href="/contact" className="hover:text-white">{t("Contact")}</Link>
-            <a href={SITE.url} className="hover:text-white">{t("Official platform")}</a>
-            <Link href="/admin" className="hover:text-white">{t("Admin")}</Link>
+            <Link href="/verification" className="hover:text-white">{t("About & Verification")}</Link>
+            <Link href="/privacy-policy" className="hover:text-white">{t("Privacy Policy")}</Link>
+            <Link href="/terms" className="hover:text-white">{t("Terms of Service")}</Link>
           </div>
         </div>
       </div>
