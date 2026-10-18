@@ -131,6 +131,35 @@ const SCHEMA_SQL = `
     CREATE INDEX IF NOT EXISTS properties_listed_by_user_idx ON properties (listed_by_user_id);
     CREATE INDEX IF NOT EXISTS properties_published_idx ON properties (published);
     CREATE INDEX IF NOT EXISTS properties_location_area_idx ON properties (location_area);
+
+    -- Scale indexes: every listing query filters on "published" first, then a
+    -- city/purpose/category equality, and sorts by created_at (default),
+    -- price or views. These composites keep those plans index-only even with
+    -- millions of rows, instead of sorting the whole table per request.
+    CREATE INDEX IF NOT EXISTS properties_published_created_idx ON properties (published, created_at DESC, id DESC);
+    CREATE INDEX IF NOT EXISTS properties_city_created_idx ON properties (published, city_slug, created_at DESC);
+    CREATE INDEX IF NOT EXISTS properties_city_purpose_created_idx ON properties (published, city_slug, purpose, created_at DESC);
+    CREATE INDEX IF NOT EXISTS properties_purpose_created_idx ON properties (published, purpose, created_at DESC);
+    CREATE INDEX IF NOT EXISTS properties_category_created_idx ON properties (published, category, created_at DESC);
+    CREATE INDEX IF NOT EXISTS properties_price_idx ON properties (published, price);
+    CREATE INDEX IF NOT EXISTS properties_views_idx ON properties (published, views DESC);
+    CREATE INDEX IF NOT EXISTS properties_area_sqft_idx ON properties (published, area_sqft);
+    -- Bounding-box prefilter for radius search (lat/lng between …).
+    CREATE INDEX IF NOT EXISTS properties_lat_idx ON properties (lat);
+    CREATE INDEX IF NOT EXISTS properties_lng_idx ON properties (lng);
+    CREATE INDEX IF NOT EXISTS properties_new_project_idx ON properties (published, created_at DESC) WHERE is_new_project;
+    CREATE INDEX IF NOT EXISTS properties_featured_idx ON properties (published, created_at DESC) WHERE featured;
+
+    -- Trigram GIN indexes so the free-text search (q) and town matching use
+    -- an index for ILIKE '%term%' instead of a sequential scan. Guarded: hosts
+    -- without pg_trgm (e.g. the sandbox PGlite) simply skip these.
+    DO $$ BEGIN CREATE EXTENSION IF NOT EXISTS pg_trgm; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+    DO $$ BEGIN CREATE INDEX IF NOT EXISTS properties_title_trgm_idx ON properties USING gin (title gin_trgm_ops); EXCEPTION WHEN OTHERS THEN NULL; END $$;
+    DO $$ BEGIN CREATE INDEX IF NOT EXISTS properties_area_trgm_idx ON properties USING gin (location_area gin_trgm_ops); EXCEPTION WHEN OTHERS THEN NULL; END $$;
+    DO $$ BEGIN CREATE INDEX IF NOT EXISTS properties_city_trgm_idx ON properties USING gin (city_name gin_trgm_ops); EXCEPTION WHEN OTHERS THEN NULL; END $$;
+    DO $$ BEGIN CREATE INDEX IF NOT EXISTS properties_type_trgm_idx ON properties USING gin (property_type gin_trgm_ops); EXCEPTION WHEN OTHERS THEN NULL; END $$;
+    DO $$ BEGIN CREATE INDEX IF NOT EXISTS properties_address_trgm_idx ON properties USING gin (address gin_trgm_ops); EXCEPTION WHEN OTHERS THEN NULL; END $$;
+
     CREATE TABLE IF NOT EXISTS listing_media (
       id serial PRIMARY KEY,
       file_name text NOT NULL,
