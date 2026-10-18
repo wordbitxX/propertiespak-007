@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { FiltersBar, type TownGroup } from "@/components/filters-bar";
-import { MapView, type MapProperty } from "@/components/map-view";
 import { Pagination } from "@/components/pagination";
 import { PageHero } from "@/components/page-hero";
 import { PropertyCard } from "@/components/property-card";
@@ -8,7 +7,7 @@ import { Reveal } from "@/components/reveal";
 import type { Crumb } from "@/components/breadcrumbs";
 import { RecentSearchResultsTracker } from "@/components/recent-properties-tracker";
 import { JsonLd } from "@/components/json-ld";
-import { getCities, getListingAreasByCity, getMapProperties, searchProperties, type PropertyFilters } from "@/lib/queries";
+import { getCities, getListingAreasByCity, searchProperties, type PropertyFilters } from "@/lib/queries";
 import { townFilterOptions, townMatchFor } from "@/lib/towns";
 import { collectionPageJsonLd, itemListJsonLd } from "@/lib/seo";
 import { propertyQueryFromParams, SEARCH_FILTER_KEYS } from "@/lib/property-search";
@@ -52,7 +51,6 @@ export async function ListingView({
   raw,
   fixed,
   purposeKind = "buy",
-  withMap = false,
   typeOptions,
   showHero = true,
 }: {
@@ -64,15 +62,13 @@ export async function ListingView({
   raw: RawSearchParams;
   fixed?: PropertyFilters;
   purposeKind?: "buy" | "rent" | "mixed";
-  withMap?: boolean;
   typeOptions: string[];
   showHero?: boolean;
 }) {
   const filters = parseListingFilters(raw, fixed);
-  const [result, cities, mapRows, areasByCity] = await Promise.all([
+  const [result, cities, areasByCity] = await Promise.all([
     searchProperties(filters),
     getCities(),
-    withMap ? getMapProperties({ ...filters, page: 1 }, 16) : Promise.resolve([]),
     getListingAreasByCity(),
   ]);
 
@@ -95,25 +91,6 @@ export async function ListingView({
     );
     if (!alreadyListed) group.towns.push({ label: row.area, value: row.area });
   }
-  const mapProperties: MapProperty[] = mapRows.map((property) => ({
-    id: property.id,
-    slug: property.slug,
-    title: property.title,
-    cityName: property.cityName,
-    locationArea: property.locationArea,
-    price: property.price,
-    priceUnit: property.priceUnit,
-    lat: property.lat,
-    lng: property.lng,
-    coverImage: property.coverImage,
-    propertyType: property.propertyType,
-    bedrooms: property.bedrooms,
-    bathrooms: property.bathrooms,
-    areaValue: property.areaValue,
-    areaUnit: property.areaUnit,
-    citySlug: property.citySlug,
-  }));
-
   // Structured data only on the canonical, unfiltered view of the page, so
   // Google reads one ItemList per URL instead of per filter combination.
   const hasActiveFilters = SEARCH_FILTER_KEYS.some((key) => Boolean(first(raw[key])));
@@ -203,26 +180,6 @@ export async function ListingView({
                 params={paramRecord}
               />
             </>
-          )}
-
-          {withMap && mapProperties.length > 0 && (
-            <div className="mt-16">
-              <h2 className="font-sans text-[1.15rem] font-semibold text-navy-900">See these results on the map</h2>
-              <p className="mt-2 max-w-2xl text-[0.9rem] text-ink-muted">
-                Markers show society-level positions so you can judge access, distance and neighbouring development before
-                booking visits.
-              </p>
-              <div className="mt-6">
-                <MapView
-                  properties={mapProperties}
-                  center={{
-                    lat: mapProperties.reduce((sum, item) => sum + item.lat, 0) / mapProperties.length,
-                    lng: mapProperties.reduce((sum, item) => sum + item.lng, 0) / mapProperties.length,
-                  }}
-                  zoom={11}
-                />
-              </div>
-            </div>
           )}
         </div>
       </section>

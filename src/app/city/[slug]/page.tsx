@@ -195,7 +195,6 @@ export default async function CityPage({ params, searchParams }: PageProps) {
         fixed={{ city: city.slug }}
         purposeKind="mixed"
         typeOptions={[...PROPERTY_TYPES]}
-        withMap={false}
         showHero={false}
       />
 
