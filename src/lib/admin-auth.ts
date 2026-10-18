@@ -6,7 +6,7 @@ const COOKIE_NAME = "estatewx_admin";
 const SECRET = process.env.SESSION_SECRET ?? "estatewx-dev-session-secret";
 
 /** Single admin password. Set ADMIN_PASSWORD in production. */
-export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "estatewx2026";
+export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "propertiespak@2026";
 export const IS_DEFAULT_ADMIN_PASSWORD = !process.env.ADMIN_PASSWORD;
 
 function sign(value: string): string {
