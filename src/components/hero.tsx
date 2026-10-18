@@ -223,25 +223,31 @@ export function Hero({ stats }: { stats: HeroStats }) {
 
         <ul className="pkr-stats" aria-label="Properties Pak at a glance">
           <li>
-            <HomeIcon className="pkr-stat-icon" />
-            <span>
-              <b>{stats.listings}</b>
-              <small>{t("Properties Listed")}</small>
-            </span>
+            <Link href="/properties" className="pkr-stat-link">
+              <HomeIcon className="pkr-stat-icon" />
+              <span>
+                <b>{stats.listings}</b>
+                <small>{t("Properties Listed")}</small>
+              </span>
+            </Link>
           </li>
           <li>
-            <ShieldCheckIcon className="pkr-stat-icon" />
-            <span>
-              <b>{stats.verified}</b>
-              <small>{t("Verified Listings")}</small>
-            </span>
+            <Link href="/properties?verified=1" className="pkr-stat-link">
+              <ShieldCheckIcon className="pkr-stat-icon" />
+              <span>
+                <b>{stats.verified}</b>
+                <small>{t("Verified Listings")}</small>
+              </span>
+            </Link>
           </li>
           <li>
-            <PinIcon className="pkr-stat-icon" />
-            <span>
-              <b>{stats.locations}</b>
-              <small>{t("Listing Locations")}</small>
-            </span>
+            <Link href="/towns" className="pkr-stat-link">
+              <PinIcon className="pkr-stat-icon" />
+              <span>
+                <b>{stats.locations}</b>
+                <small>{t("Listing Locations")}</small>
+              </span>
+            </Link>
           </li>
           <li>
             <Link href="/maps" className="pkr-stat-link">
