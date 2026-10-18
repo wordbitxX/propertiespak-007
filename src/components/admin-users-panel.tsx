@@ -8,6 +8,7 @@ import { ResilientImage } from "@/components/resilient-image";
 import { IconCheck, IconClose, IconSearch } from "@/components/icons";
 import type { DealerProfile } from "@/lib/queries";
 import { formatDate } from "@/lib/format";
+import { AccountAvatar } from "@/components/account-avatar";
 
 type Filter = "all" | "verified" | "unverified" | "dealers" | "requested";
 
@@ -312,12 +313,8 @@ export function AdminUsersPanel() {
             <article key={user.id} className="min-w-0 rounded-panel border border-soft bg-white p-5 shadow-soft">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="flex min-w-0 items-start gap-4">
-                  <span className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-navy-900 font-sans text-[0.9375rem] font-bold text-white">
-                    {user.avatarUrl ? (
-                      <ResilientImage src={user.avatarUrl} alt="" width={96} height={96} className="h-full w-full object-cover" />
-                    ) : (
-                      initialsFor(user.name)
-                    )}
+                  <span data-testid={`admin-user-avatar-${user.id}`} className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-navy-900 font-sans text-[0.9375rem] font-bold text-white">
+                    <AccountAvatar user={user} />
                     {user.isVerified && (
                       <span className="absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full border-2 border-white bg-white">
                         <BlueTick className="h-4 w-4" />
@@ -325,6 +322,7 @@ export function AdminUsersPanel() {
                     )}
                   </span>
                   <div className="min-w-0">
+                    <p className="mb-1 text-[0.6875rem] font-semibold text-ink-muted">{user.avatarUrl ? "Profile photo" : user.companyLogo ? "Company logo" : "Default agency logo"}</p>
                     <h3 className="flex flex-wrap items-center gap-2 font-sans text-[1rem] font-semibold text-navy-900">
                       {user.name}
                       {user.isVerified ? <BlueTick className="h-4 w-4" /> : <UnverifiedChip />}

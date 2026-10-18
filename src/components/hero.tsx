@@ -77,7 +77,7 @@ function ChevronIcon({ className }: { className?: string }) {
 }
 
 /**
- * Homepage hero: night villa photograph, "Find Your Dream / Property in Pakistan."
+ * Homepage hero: tropical villa at dusk photograph, "Find Your Dream / Property in Pakistan."
  * headline, cream Buy / Rent / Sell search card and three live counters.
  * (The previous Lahore-skyline hero lives on in hero-legacy.tsx, shown on /sample.)
  */
@@ -137,10 +137,9 @@ export function Hero({ stats, photo = "night" }: { stats: HeroStats; photo?: "ni
           </>
         ) : (
           <>
-            <source type="image/avif" srcSet="/images/hero-villa-night-2400.avif" />
-            <source type="image/webp" media="(max-width: 767px)" srcSet="/images/hero-villa-night-1280.webp" />
+            <source type="image/webp" media="(max-width: 767px)" srcSet="/images/hero-tropical-villa-1280.webp" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="pkr-hero-bg" src="/images/hero-villa-night-2400.webp" alt="" fetchPriority="high" decoding="async" width={2400} height={1179} />
+            <img className="pkr-hero-bg" src="/images/hero-tropical-villa.webp" alt="" fetchPriority="high" decoding="async" width={1672} height={941} />
           </>
         )}
       </picture>
