@@ -38,7 +38,10 @@ export function parseListingFilters(raw: RawSearchParams, fixed: PropertyFilters
     featured: parsed.featured ?? fixed.featured,
     verified: parsed.verified ?? fixed.verified,
     isNewProject: parsed.isNewProject ?? fixed.isNewProject,
-    pageSize: fixed.pageSize ?? 12,
+    // Fill the grid before paginating: 48 listings render as 12 rows of four
+    // on desktop (48 stacked rows on mobile), so "Next" only appears after
+    // 10+ rows of results instead of three.
+    pageSize: fixed.pageSize ?? 48,
   };
 }
 
