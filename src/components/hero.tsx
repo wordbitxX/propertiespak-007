@@ -81,7 +81,7 @@ function ChevronIcon({ className }: { className?: string }) {
  * headline, cream Buy / Rent / Sell search card and three live counters.
  * (The previous Lahore-skyline hero lives on in hero-legacy.tsx, shown on /sample.)
  */
-export function Hero({ stats }: { stats: HeroStats }) {
+export function Hero({ stats, photo = "night" }: { stats: HeroStats; photo?: "night" | "twilight" }) {
   const { t, locale } = useLanguage();
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("buy");
@@ -128,9 +128,21 @@ export function Hero({ stats }: { stats: HeroStats }) {
   return (
     <section id="hero" className="pkr-hero pkr-hero--home" aria-labelledby="hero-heading" data-testid="home-hero">
       <picture>
-        <source type="image/avif" srcSet="/images/hero-villa-night-2400.avif" />
-        <source type="image/webp" media="(max-width: 767px)" srcSet="/images/hero-villa-night-1280.webp" />
-        <img className="pkr-hero-bg" src="/images/hero-villa-night-2400.webp" alt="" fetchPriority="high" decoding="async" width={2400} height={1179} />
+        {photo === "twilight" ? (
+          <>
+            <source type="image/avif" srcSet="/images/hero-twilight-villa.avif" />
+            <source type="image/webp" media="(max-width: 767px)" srcSet="/images/hero-twilight-villa-1280.webp" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="pkr-hero-bg" src="/images/hero-twilight-villa.webp" alt="" fetchPriority="high" decoding="async" width={1672} height={941} />
+          </>
+        ) : (
+          <>
+            <source type="image/avif" srcSet="/images/hero-villa-night-2400.avif" />
+            <source type="image/webp" media="(max-width: 767px)" srcSet="/images/hero-villa-night-1280.webp" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="pkr-hero-bg" src="/images/hero-villa-night-2400.webp" alt="" fetchPriority="high" decoding="async" width={2400} height={1179} />
+          </>
+        )}
       </picture>
       <div className="pkr-hero-shade" aria-hidden="true" />
 
