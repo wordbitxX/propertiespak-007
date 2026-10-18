@@ -268,7 +268,7 @@ export function AdminPropertyManager() {
   }
 
   return (
-    <div>
+    <div className="min-w-0" data-testid="admin-property-manager">
       {notice && (
         <p className="mb-4 flex items-center gap-2 rounded-lg border border-forest-500/40 bg-forest-50 px-4 py-3 text-[0.875rem] text-forest-700">
           <IconCheck className="h-4 w-4" /> {notice}
@@ -465,7 +465,7 @@ export function AdminPropertyManager() {
           <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search title, area, city or slug" className="field pl-9" aria-label="Search properties" />
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
           <span className="text-[0.8125rem] text-ink-muted">{total} properties</span>
           {!creating && (
             <button type="button" onClick={startCreate} className="btn btn-green px-4 py-2.5 text-[0.8125rem]">
@@ -480,23 +480,24 @@ export function AdminPropertyManager() {
       ) : items.length === 0 ? (
         <p className="mt-6 rounded-panel border border-soft bg-mist p-8 text-center text-[0.9rem] text-ink-muted">No properties match this search.</p>
       ) : (
-        <ul className="mt-5 grid gap-3">
+        <ul className="mt-5 grid min-w-0 grid-cols-1 gap-3" aria-label="Published properties">
           {items.map((property) => (
-            <li key={property.id} className="flex flex-col gap-4 rounded-panel border border-soft bg-white p-4 shadow-soft sm:flex-row sm:items-center">
-              <ResilientImage src={property.coverImage} alt="" width={200} height={150} loading="lazy" className="h-24 w-full rounded-lg object-cover sm:h-20 sm:w-28" />
-              <div className="min-w-0 flex-1">
+            <li key={property.id} className="flex min-w-0 flex-col gap-4 rounded-panel border border-soft bg-white p-4 shadow-soft sm:flex-row sm:flex-wrap sm:items-center lg:flex-nowrap">
+              <ResilientImage src={property.coverImage} alt="" width={200} height={150} loading="lazy" className="h-36 w-full min-w-0 rounded-lg object-cover sm:h-20 sm:w-28 sm:shrink-0" />
+              <div className="min-w-0 flex-1 sm:basis-60">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-sans text-[0.75rem] font-bold text-ink-muted">#{property.id}</span>
                   <span className="rounded-md bg-mist px-2 py-0.5 text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-ink-muted">{property.purpose === "rent" ? "Rent" : "Sale"} · {property.propertyType}</span>
                   {property.featured && <span className="rounded-md bg-forest-50 px-2 py-0.5 text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-forest-700">Featured</span>}
                   {property.listedByName && <span className="rounded-md bg-navy-800 px-2 py-0.5 text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-white">Owner listed</span>}
                 </div>
-                <p className="mt-1.5 truncate font-sans text-[1rem] font-semibold text-navy-900">{property.title}</p>
-                <p className="mt-0.5 flex items-center gap-1.5 truncate text-[0.8125rem] text-ink-muted">
-                  <IconPin className="h-3.5 w-3.5 text-forest-600" /> {property.locationArea}, {property.cityName} · {formatArea(property.areaValue, property.areaUnit)} · {formatPrice(property.price, property.priceUnit)}
+                <p className="mt-1.5 break-words font-sans text-[1rem] font-semibold text-navy-900">{property.title}</p>
+                <p className="mt-0.5 flex min-w-0 items-start gap-1.5 text-[0.8125rem] text-ink-muted">
+                  <IconPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-forest-600" />
+                  <span className="min-w-0 break-words">{property.locationArea}, {property.cityName} · {formatArea(property.areaValue, property.areaUnit)} · {formatPrice(property.price, property.priceUnit)}</span>
                 </p>
               </div>
-              <div className="flex shrink-0 flex-wrap gap-2">
+              <div className="flex min-w-0 flex-wrap gap-2 lg:shrink-0">
                 <Link href={`/property/${property.slug}`} target="_blank" className="btn btn-outline px-3 py-2 text-[0.75rem]">View <IconArrowRight className="h-3.5 w-3.5" /></Link>
                 <button type="button" onClick={() => startEdit(property)} className="btn btn-primary px-3 py-2 text-[0.75rem]">Edit</button>
                 <button type="button" disabled={deleting === property.id} onClick={() => remove(property)} className="btn btn-outline !border-red-200 px-3 py-2 text-[0.75rem] !text-red-700 hover:!border-red-400 disabled:opacity-60">
