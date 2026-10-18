@@ -4,6 +4,8 @@ import { getSitemapRegistry } from "@/lib/sitemap-registry";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const master = getSitemapRegistry().find((entry) => entry.path === "/sitemap.xml");
-  return xmlResponse(renderSitemapIndex(master ? [master.path] : []));
+  // The index lists every published sitemap file (master + topic + city
+  // children), so a single submission in Search Console discovers them all.
+  const entries = getSitemapRegistry().filter((entry) => entry.path !== "/sitemap-index.xml");
+  return xmlResponse(renderSitemapIndex(entries.map((entry) => entry.path)));
 }
