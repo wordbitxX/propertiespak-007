@@ -45,7 +45,6 @@ export default async function CommercialListingsPage({ searchParams }: { searchP
       fixed={{ commercialOnly: true }}
       purposeKind="mixed"
       typeOptions={COMMERCIAL_TYPES}
-      withMap
     />
   );
 }

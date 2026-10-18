@@ -11,7 +11,7 @@ import { BLOG_POSTS_2026_BY_SLUG } from "@/lib/blog-content-2026";
 export const dynamic = "force-dynamic";
 
 /** Only real, curated, indexable URLs. Filter and utility pages are excluded. */
-const STATIC_ROUTES: { path: string; priority: number; changeFrequency: "daily" | "weekly" | "monthly" }[] = [
+const STATIC_ROUTES: { path: string; priority: number; changeFrequency: "daily" | "weekly" | "monthly" | "yearly" }[] = [
   { path: "/", priority: 1, changeFrequency: "daily" },
   { path: "/properties", priority: 0.9, changeFrequency: "daily" },
   { path: "/properties/for-sale", priority: 0.9, changeFrequency: "daily" },
@@ -45,6 +45,9 @@ const STATIC_ROUTES: { path: string; priority: number; changeFrequency: "daily" 
   { path: "/tools/islamic-financing-calculator", priority: 0.75, changeFrequency: "monthly" },
   { path: "/about", priority: 0.6, changeFrequency: "monthly" },
   { path: "/contact", priority: 0.6, changeFrequency: "monthly" },
+  { path: "/verification", priority: 0.5, changeFrequency: "monthly" },
+  { path: "/privacy-policy", priority: 0.3, changeFrequency: "yearly" },
+  { path: "/terms", priority: 0.3, changeFrequency: "yearly" },
   { path: "/advertise", priority: 0.6, changeFrequency: "monthly" },
   { path: "/list-property", priority: 0.7, changeFrequency: "monthly" },
   { path: "/sitemap", priority: 0.8, changeFrequency: "daily" },

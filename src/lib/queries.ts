@@ -164,12 +164,15 @@ export function buildConditions(filters: PropertyFilters): SQL[] {
   if (filters.ids && filters.ids.length === 0) conditions.push(sql`false`);
   if (filters.q) {
     const term = `%${filters.q.trim()}%`;
+    // Only trigram-indexed columns: including a non-indexed one (e.g. the
+    // long description) would force a sequential scan of the whole table at
+    // scale, because a single OR branch without an index defeats the bitmap
+    // OR of the GIN indexes above.
     const search = or(
       ilike(properties.title, term),
       ilike(properties.locationArea, term),
       ilike(properties.cityName, term),
       ilike(properties.propertyType, term),
-      ilike(properties.description, term),
     );
     if (search) conditions.push(search);
   }

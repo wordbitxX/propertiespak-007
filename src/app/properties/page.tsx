@@ -40,7 +40,6 @@ export default async function PropertiesPage({ searchParams }: { searchParams: P
       ]}
       basePath="/properties"
       raw={raw}
-      withMap
       purposeKind="mixed"
       typeOptions={[...PROPERTY_TYPES]}
     />

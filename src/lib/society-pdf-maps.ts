@@ -703,3 +703,28 @@ export const SOCIETY_PDF_MAPS: SocietyPdfMap[] = [
     pdfUrl: "https://lahorerealestate.com/wp-content/uploads/2021/03/LRE-NEW-METRO-CITY-KHARIAN-MAP-1.pdf",
   },
 ];
+
+/** Every curated PDF lives on this host, so one proxy source covers them all. */
+export const LRE_PDF_BASE = "https://lahorerealestate.com/";
+
+/**
+ * Same-origin proxy path for a curated PDF (`/api/map-proxy/lre/…`), or null
+ * when the map lives on another host. The proxy streams the original file with
+ * proper PDF headers, so browsers can embed it and save it reliably; on
+ * deployments where the upstream is unreachable the UI falls back to
+ * `pdfEmbedUrl`.
+ */
+export function pdfProxyPath(map: Pick<SocietyPdfMap, "pdfUrl">): string | null {
+  if (!map.pdfUrl.startsWith(LRE_PDF_BASE)) return null;
+  return `/api/map-proxy/lre/${map.pdfUrl.slice(LRE_PDF_BASE.length)}`;
+}
+
+/**
+ * Lightweight document-viewer embed used when the same-origin proxy is not
+ * available (e.g. sandboxes without upstream access). Google's viewer fetches
+ * the public PDF server-side and renders it inside an embeddable frame, so the
+ * preview never depends on the source site allowing iframes.
+ */
+export function pdfEmbedUrl(map: Pick<SocietyPdfMap, "pdfUrl">): string {
+  return `https://docs.google.com/gview?url=${encodeURIComponent(map.pdfUrl)}&embedded=true`;
+}

@@ -41,3 +41,44 @@ For visitors in Pakistan, Mumbai (`ap-south-1` / `bom1`) is the closest pair.
 | Cold start, first page | 6.8 s | 0.3 s (0.9 s right after a deploy) |
 | Homepage, warm | 0.44 s | 0.08 s |
 | Listing / blog / dealer pages, warm | 0.13–0.17 s | 0.03–0.05 s |
+
+## Scaling to millions of listings
+
+Four layers keep response times flat as inventory grows; none of them requires
+changing the database vendor.
+
+1. **Edge HTML cache** (`src/proxy.ts`). Anonymous `GET` requests for public
+   pages carry `Cache-Control: public, s-maxage=60, stale-while-revalidate=600`,
+   so Vercel's CDN serves the rendered HTML from the edge POP nearest the
+   visitor and re-renders in the background. Signed-in requests, `/api`,
+   `/admin`, `/account`, `/login`, `/favorites`, `/compare` and `/list-property`
+   stay fully dynamic. Inventory changes propagate within a minute (writes also
+   purge the data cache immediately via `invalidateCatalog()`).
+2. **Data cache** (`src/lib/cache.ts`). Every public read is a `cachedQuery`
+   keyed by its arguments with a `catalog` tag, so a re-render after the edge
+   entry expires still makes **zero** database queries for warm filter
+   combinations.
+3. **Index plan** (`src/db/seed.ts` schema guard). Listing queries filter on
+   `published` + equality columns and sort by `created_at`, `price` or `views`;
+   composite indexes (`published, city_slug, purpose, created_at DESC` …) keep
+   those plans index-driven. Radius search pre-filters with a lat/lng bounding
+   box backed by `properties_lat_idx` / `properties_lng_idx`. Free-text search
+   and town matching use `pg_trgm` GIN indexes, so `ILIKE '%term%'` never
+   degenerates into a sequential scan. (Hosts without `pg_trgm` skip those
+   indexes automatically.) Keep `q` limited to the trigram-indexed columns —
+   adding a non-indexed column to the `OR` would defeat every GIN index.
+4. **Pooler + region** (above). One warm pooled connection per instance, and
+   the function region matched to the database region.
+
+### When to add more (roadmap, not needed yet)
+
+- **Read replica**: point `DATABASE_URL` at a Supabase read replica once write
+  and read traffic compete on the primary.
+- **Dedicated search**: at multi-million scale, move `q` + facets to
+  Meilisearch/Typesense (index refreshed from the `catalog` tag) for typo
+  tolerance and instant facet counts; keep Postgres as the source of truth.
+- **Deep pagination**: page 1 000+ offsets grow linearly; switch those rare
+  deep pages to keyset pagination (`created_at, id` cursor).
+- **Approximate counts**: if exact `count(*)` for wide filters ever exceeds a
+  few hundred ms, cache it with a shorter TTL or cap the counted rows.
+- **Partitioning** by `city_slug` only if a single table exceeds ~100 M rows.

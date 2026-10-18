@@ -5006,6 +5006,12 @@ html[data-header-solid] .site-header .header-account:hover {
   transform: translateY(-1px);
 }
 
+.hero-samples-jump-chip.is-twilight:hover {
+  border-color: #a78bfa;
+  background: rgba(167, 139, 250, 0.2);
+  transform: translateY(-1px);
+}
+
 .hero-samples-list {
   display: flex;
   flex-direction: column;
@@ -5063,6 +5069,11 @@ html[data-header-solid] .site-header .header-account:hover {
 .hero-sample-badge--villa {
   background: #1a2836;
   color: #dfb872;
+}
+
+.hero-sample-badge--twilight {
+  background: #241a36;
+  color: #a78bfa;
 }
 
 .hero-sample-image-tag {

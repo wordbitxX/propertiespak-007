@@ -9,6 +9,7 @@ import { hashPassword } from "@/lib/password";
 import { agentSeed, citySeed, postSeed, projectSeed, propertySeed, testimonialSeed } from "@/db/seed-data";
 import { extraPropertySeed } from "@/db/seed-data-extra";
 import { dhaPropertySeed } from "@/db/seed-data-dha";
+import { unverifiedPropertySeed } from "@/db/seed-data-unverified";
 import { EXTRA_POSTS, POST_LINKS } from "@/db/seed-content";
 import { BLOG_POSTS_2026 } from "@/lib/blog-content-2026";
 import { assignSeedGalleries } from "@/db/seed-gallery";
@@ -130,6 +131,35 @@ const SCHEMA_SQL = `
     CREATE INDEX IF NOT EXISTS properties_listed_by_user_idx ON properties (listed_by_user_id);
     CREATE INDEX IF NOT EXISTS properties_published_idx ON properties (published);
     CREATE INDEX IF NOT EXISTS properties_location_area_idx ON properties (location_area);
+
+    -- Scale indexes: every listing query filters on "published" first, then a
+    -- city/purpose/category equality, and sorts by created_at (default),
+    -- price or views. These composites keep those plans index-only even with
+    -- millions of rows, instead of sorting the whole table per request.
+    CREATE INDEX IF NOT EXISTS properties_published_created_idx ON properties (published, created_at DESC, id DESC);
+    CREATE INDEX IF NOT EXISTS properties_city_created_idx ON properties (published, city_slug, created_at DESC);
+    CREATE INDEX IF NOT EXISTS properties_city_purpose_created_idx ON properties (published, city_slug, purpose, created_at DESC);
+    CREATE INDEX IF NOT EXISTS properties_purpose_created_idx ON properties (published, purpose, created_at DESC);
+    CREATE INDEX IF NOT EXISTS properties_category_created_idx ON properties (published, category, created_at DESC);
+    CREATE INDEX IF NOT EXISTS properties_price_idx ON properties (published, price);
+    CREATE INDEX IF NOT EXISTS properties_views_idx ON properties (published, views DESC);
+    CREATE INDEX IF NOT EXISTS properties_area_sqft_idx ON properties (published, area_sqft);
+    -- Bounding-box prefilter for radius search (lat/lng between …).
+    CREATE INDEX IF NOT EXISTS properties_lat_idx ON properties (lat);
+    CREATE INDEX IF NOT EXISTS properties_lng_idx ON properties (lng);
+    CREATE INDEX IF NOT EXISTS properties_new_project_idx ON properties (published, created_at DESC) WHERE is_new_project;
+    CREATE INDEX IF NOT EXISTS properties_featured_idx ON properties (published, created_at DESC) WHERE featured;
+
+    -- Trigram GIN indexes so the free-text search (q) and town matching use
+    -- an index for ILIKE '%term%' instead of a sequential scan. Guarded: hosts
+    -- without pg_trgm (e.g. the sandbox PGlite) simply skip these.
+    DO $$ BEGIN CREATE EXTENSION IF NOT EXISTS pg_trgm; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+    DO $$ BEGIN CREATE INDEX IF NOT EXISTS properties_title_trgm_idx ON properties USING gin (title gin_trgm_ops); EXCEPTION WHEN OTHERS THEN NULL; END $$;
+    DO $$ BEGIN CREATE INDEX IF NOT EXISTS properties_area_trgm_idx ON properties USING gin (location_area gin_trgm_ops); EXCEPTION WHEN OTHERS THEN NULL; END $$;
+    DO $$ BEGIN CREATE INDEX IF NOT EXISTS properties_city_trgm_idx ON properties USING gin (city_name gin_trgm_ops); EXCEPTION WHEN OTHERS THEN NULL; END $$;
+    DO $$ BEGIN CREATE INDEX IF NOT EXISTS properties_type_trgm_idx ON properties USING gin (property_type gin_trgm_ops); EXCEPTION WHEN OTHERS THEN NULL; END $$;
+    DO $$ BEGIN CREATE INDEX IF NOT EXISTS properties_address_trgm_idx ON properties USING gin (address gin_trgm_ops); EXCEPTION WHEN OTHERS THEN NULL; END $$;
+
     CREATE TABLE IF NOT EXISTS listing_media (
       id serial PRIMARY KEY,
       file_name text NOT NULL,
@@ -497,7 +527,9 @@ async function linkDealerListings(q: Executor) {
   const cities = Array.from(new Set(dealerSeed.map((dealer) => dealer.citySlug)));
 
   for (const citySlug of cities) {
-    const cityDealers = dealerSeed.filter((dealer) => dealer.citySlug === citySlug);
+    // Only blue-tick dealers receive round-robin desk inventory; unverified
+    // accounts keep exactly the portfolio they published themselves.
+    const cityDealers = dealerSeed.filter((dealer) => dealer.citySlug === citySlug && dealer.isVerified);
     const accounts: { id: number; name: string; phone: string; email: string }[] = [];
 
     for (const dealer of cityDealers) {
@@ -588,7 +620,14 @@ const RESERVED_PHOTOS = new Set<number>([
 
 /** Every seeded listing, each with its own cover photo (see seed-gallery.ts). */
 const seedListings: SeedProperty[] = assignSeedGalleries(
-  [...propertySeed, ...extraPropertySeed, ...dhaPropertySeed, ...townPropertySeed, ...societyPropertySeed],
+  [
+    ...propertySeed,
+    ...extraPropertySeed,
+    ...dhaPropertySeed,
+    ...townPropertySeed,
+    ...societyPropertySeed,
+    ...unverifiedPropertySeed,
+  ],
   RESERVED_PHOTOS,
 );
 
@@ -664,6 +703,38 @@ async function refreshSeedGalleries(q: Executor) {
        )
        and (p.cover_image is distinct from v.cover or p.images is distinct from v.images)
   `);
+}
+
+/**
+ * Pins every unverified seed listing to its own (unverified) dealer account,
+ * after the round-robin linker, so the pre-review state — no badge on cards,
+ * "Listing reference" on the detail page — survives reseeds. Idempotent: it
+ * only ever touches slugs owned by the unverified seed itself.
+ */
+async function assignUnverifiedPortfolios(q: Executor) {
+  for (const property of unverifiedPropertySeed) {
+    const dealer = dealerSeed.find((entry) => entry.slug === property.dealerSlug);
+    if (!dealer) continue;
+    const account = (
+      await q
+        .select({ id: users.id, name: users.name, phone: users.phone })
+        .from(users)
+        .where(eq(users.email, dealer.email))
+        .limit(1)
+    )[0];
+    if (!account) continue;
+    await q
+      .update(properties)
+      .set({
+        listedByUserId: account.id,
+        listedByName: account.name,
+        listedByEmail: dealer.email,
+        listedByPhone: account.phone,
+        listedByWhatsapp: account.phone.replace(/[^0-9]/g, ""),
+        verified: false,
+      })
+      .where(eq(properties.slug, property.slug));
+  }
 }
 
 /**
@@ -763,6 +834,7 @@ async function runSeed() {
     await seedProperties(tx);
     await refreshSeedGalleries(tx);
     await linkDealerListings(tx);
+    await assignUnverifiedPortfolios(tx);
     await holdSeedListingsForReview(tx);
     await tx.execute(sql`
       insert into app_meta (key, value, updated_at) values ('seed_version', ${SEED_VERSION}, now())

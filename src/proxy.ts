@@ -38,6 +38,9 @@ const STATIC_TOP_LEVEL = new Set([
   "keywords-for-pakistan",
   "pakistan-property-price-index",
   "malls",
+  "privacy-policy",
+  "terms",
+  "verification",
 ]);
 
 const KNOWN_PREFIXES = [
@@ -98,6 +101,29 @@ a.ghost{border:1px solid #E8EEF3;color:#061C33}
 </main></div></body></html>`;
 
 export function proxy(request: NextRequest) {
+  const response = routeGuard(request);
+
+  // Edge HTML cache for anonymous visitors: the CDN serves the rendered page
+  // for a minute (and stale-while-revalidate for ten more) instead of waking a
+  // serverless function per visit. Signed-in requests and private areas stay
+  // dynamic; responses that already chose a cache policy (static assets,
+  // sitemaps, the styled 404) keep theirs.
+  const { pathname } = request.nextUrl;
+  const SKIP = ["/_next", "/images", "/icon", "/favicon", "/api", "/admin", "/account", "/login", "/favorites", "/compare", "/list-property"];
+  const anonymousGet =
+    request.method === "GET" &&
+    !request.cookies.has("estatewx_session") &&
+    !SKIP.some((prefix) => pathname.startsWith(prefix));
+  if (anonymousGet && !response.headers.has("cache-control")) {
+    response.headers.set(
+      "Cache-Control",
+      "public, max-age=0, must-revalidate, s-maxage=60, stale-while-revalidate=600",
+    );
+  }
+  return response;
+}
+
+function routeGuard(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (KNOWN_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
