@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { AgencySamplesShowcase } from "@/components/agency-samples-showcase";
 import { Hero } from "@/components/hero";
 import { LegacyHero } from "@/components/hero-legacy";
@@ -21,6 +22,22 @@ export default async function SamplePage() {
   const [dealers, heroStats] = await Promise.all([getDealerShowcase(16), getHeroStats()]);
   return (
     <>
+      <div className="bg-[#08251C] px-4 py-4 pt-[calc(var(--site-header-height)+14px)] text-white">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#dfbe78]/35 bg-white/5 px-4 py-3.5">
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#dfbe78]">New Mobile UX Lab</span>
+            <p className="mt-0.5 text-sm font-semibold text-white">
+              Looking for the Mobile &ldquo;+&rdquo; Post Property UI/UX Samples?
+            </p>
+          </div>
+          <Link
+            href="/samples"
+            className="inline-flex min-h-[40px] items-center rounded-full bg-[#0e8255] px-4 text-xs font-bold text-white shadow-sm hover:bg-[#129965]"
+          >
+            Open /samples →
+          </Link>
+        </div>
+      </div>
       <section
         id="current-hero-twilight"
         className="pkr-sample legacy-hero-sample"

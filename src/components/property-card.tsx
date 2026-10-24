@@ -50,6 +50,7 @@ export function PropertyCard({
   className = "",
   compact = false,
   variant = "default",
+  mobileFeaturedLook = false,
   dateLabel,
 }: {
   property: Property | PropertyWithDealer;
@@ -59,6 +60,8 @@ export function PropertyCard({
   dateLabel?: string;
   /** "featured": type + purpose pills on the left and a "Featured" pill on the right (homepage premium rail). */
   variant?: "default" | "featured";
+  /** Match the "Premium Properties For You" pill/card look on mobile viewports only. */
+  mobileFeaturedLook?: boolean;
 }) {
   const featuredLook = variant === "featured";
   const dealerVerified = Boolean((property as PropertyWithDealer).dealerVerified);
@@ -113,7 +116,7 @@ export function PropertyCard({
       {featuredLook ? (
         <>
           <div className="pointer-events-none absolute left-2.5 top-2.5 flex max-w-[calc(100%-112px)] flex-wrap items-center gap-1.5">
-            <span className={`rounded-full px-2.5 py-[3px] font-sans text-[0.7rem] font-semibold shadow-sm ${typePillClass(property)}`}>
+            <span className={`property-card-type-photo-pill rounded-full px-2.5 py-[3px] font-sans text-[0.7rem] font-semibold shadow-sm ${typePillClass(property)}`}>
               {property.propertyType}
             </span>
             <span
@@ -134,35 +137,54 @@ export function PropertyCard({
         </>
       ) : (
         <>
-      <div
-        className={`absolute flex flex-wrap items-center gap-1.5 ${
-          compact ? "left-2.5 top-2.5 max-w-[calc(100%-60px)]" : "left-3.5 top-3.5"
-        }`}
-      >
-        <span
-          className={`rounded-md px-2.5 py-1 font-sans text-[0.7rem] font-semibold tracking-[0.03em] shadow-sm ${badge.className}`}
-        >
-          {badge.label}
-        </span>
-        {!compact && listingVerified && (
-          <span className="inline-flex items-center gap-1 rounded-md bg-white/95 px-2 py-1 font-sans text-[0.68rem] font-bold uppercase tracking-[0.08em] text-[#0D382A] shadow-sm">
-            <BlueTick className="h-3.5 w-3.5" /> {dealerVerified ? "Verified dealer" : "Verified"}
-          </span>
-        )}
-      </div>
+          <div className="property-card-pills-mobile pointer-events-none absolute left-2.5 top-2.5 hidden max-w-[calc(100%-112px)] flex-wrap items-center gap-1.5">
+            <span
+              className={`rounded-full px-2.5 py-[3px] font-sans text-[0.7rem] font-semibold text-white shadow-sm ${
+                property.isNewProject ? "bg-[#0D382A]" : property.purpose === "rent" ? "bg-[#F26B3A]" : "bg-[#0B4A2B]"
+              }`}
+            >
+              {badge.label}
+            </span>
+          </div>
+          <div
+            className={`property-card-badges-desktop absolute flex flex-wrap items-center gap-1.5 ${
+              compact ? "left-2.5 top-2.5 max-w-[calc(100%-60px)]" : "left-3.5 top-3.5"
+            }`}
+          >
+            <span
+              className={`rounded-md px-2.5 py-1 font-sans text-[0.7rem] font-semibold tracking-[0.03em] shadow-sm ${badge.className}`}
+            >
+              {badge.label}
+            </span>
+            {!compact && listingVerified && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-white/95 px-2 py-1 font-sans text-[0.68rem] font-bold uppercase tracking-[0.08em] text-[#0D382A] shadow-sm">
+                <BlueTick className="h-3.5 w-3.5" /> {dealerVerified ? "Verified dealer" : "Verified"}
+              </span>
+            )}
+          </div>
 
-        <div className={`absolute flex flex-col gap-1.5 ${compact ? "right-2.5 top-2.5" : "right-3.5 top-3.5"}`}>
-        <FavoriteButton propertyId={property.id} title={property.title} />
-        {!compact && <CompareToggle propertyId={property.id} title={property.title} />}
-      </div>
+          <div className={`absolute flex flex-col items-end gap-1.5 ${compact ? "right-2.5 top-2.5" : "right-3.5 top-3.5"}`}>
+            {mobileFeaturedLook && Boolean(property.featured) && (
+              <span className="property-card-pills-mobile pointer-events-none hidden items-center gap-1 rounded-full bg-[#F26B3A] px-2.5 py-[3px] font-sans text-[0.7rem] font-semibold text-white shadow-sm">
+                <svg viewBox="0 0 20 20" className="h-3 w-3" fill="currentColor" aria-hidden="true"><path d="M10 1.8l2.47 5.01 5.53.8-4 3.9.94 5.5L10 14.42 5.06 17.01 6 11.5 2 7.6l5.53-.8L10 1.8z" /></svg>
+                Featured
+              </span>
+            )}
+            <FavoriteButton propertyId={property.id} title={property.title} />
+            {!compact && <CompareToggle propertyId={property.id} title={property.title} />}
+          </div>
         </>
       )}
 
       <div className={`property-card-content flex min-w-0 flex-1 flex-col ${compact ? "p-3.5" : "p-5"}`}>
-        <div className="property-card-price-block flex min-w-0 items-baseline">
-          <p className={`font-sans font-bold leading-tight tracking-[-0.02em] text-[#0D261D] ${compact ? "text-[1rem]" : "text-[1.2rem]"}`}>
+        <div className="property-card-price-block flex min-w-0 items-center justify-between gap-2">
+          <p className={`min-w-0 truncate font-sans font-bold leading-tight tracking-[-0.02em] text-[#0D261D] ${compact ? "text-[1rem]" : "text-[1.2rem]"}`}>
             {pkr.main}
           </p>
+          <span className="property-card-type-detail-pill hidden" aria-label={`Property type: ${property.propertyType}`}>
+            <span className="property-card-type-detail-dot" aria-hidden="true" />
+            <span className="truncate">{property.propertyType}</span>
+          </span>
         </div>
 
         <h3 className={`property-card-title mt-1.5 font-sans font-bold leading-snug text-[#0D261D] ${titleClass}`}>

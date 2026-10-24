@@ -13,7 +13,11 @@ function HomeGlyph() {
 }
 
 function PlusGlyph() {
-  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5v17M3.5 12h17" /></svg>;
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="mobile-bottom-nav-plus-svg">
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
 }
 
 export function MobileBottomNav() {
@@ -41,10 +45,18 @@ export function MobileBottomNav() {
           ? mapOpen || pathname.startsWith("/maps")
           : item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
         const className = `mobile-bottom-nav-item${item.prominent ? " mobile-bottom-nav-item--prominent" : ""}${active ? " is-active" : ""}`;
-        const content = (
+        const content = item.prominent ? (
+          <>
+            <span className="mobile-bottom-nav-fab-halo" aria-hidden="true" />
+            <span className="mobile-bottom-nav-fab-surface" aria-hidden="true">
+              <span className="mobile-bottom-nav-fab-sheen" />
+            </span>
+            <span className="mobile-bottom-nav-icon">{item.icon}</span>
+          </>
+        ) : (
           <>
             <span className="mobile-bottom-nav-icon">{item.icon}</span>
-            {!item.prominent && <span className="mobile-bottom-nav-label">{t(item.label)}</span>}
+            <span className="mobile-bottom-nav-label">{t(item.label)}</span>
           </>
         );
 

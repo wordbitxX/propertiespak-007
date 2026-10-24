@@ -25,12 +25,6 @@ const PinIcon = ({ className }: { className?: string }) => (
     <circle cx="12" cy="10" r="2.4" />
   </Svg>
 );
-const SearchIcon = ({ className }: { className?: string }) => (
-  <Svg className={className}>
-    <circle cx="10.8" cy="10.8" r="6.6" />
-    <path d="m16 16 4.3 4.3" />
-  </Svg>
-);
 const CityIcon = ({ className }: { className?: string }) => (
   <Svg className={className}>
     <path d="M3.5 20.5h17M5.5 20.5V9.5l5-3v14M10.5 20.5V4.5l8 3.5v12.5M13.5 10h2M13.5 13.5h2M13.5 17h2M7.5 12.5h1M7.5 16h1" />
@@ -121,7 +115,7 @@ export function HeroLocationField({
   onPick,
   purpose,
   onLocate,
-  searchPlaceholder = "Search for Houses",
+  searchPlaceholder = "Enter city or area",
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -276,7 +270,6 @@ export function HeroLocationField({
         {t("Location")}
       </label>
       <span className="pkr-field-control">
-        <span className="hs-field-leading" aria-hidden="true"><SearchIcon /></span>
         <input
           ref={inputRef}
           id={`${id}-input`}

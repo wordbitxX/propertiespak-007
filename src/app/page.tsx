@@ -129,38 +129,42 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <TrendingSocieties />
       </div>
       <CategoryGrid counts={categoryCounts} citySlug={citySlug} />
-      <VerifiedAgenciesSection dealers={showcaseDealers} />
 
-      {/* Fresh inventory and browse tools stay close to the premium listings. */}
-      <RecentlyAddedProperties properties={discovery.items} citySlug={citySlug} />
-      {/* 6. Property Discovery */}
-      <Section tone="mist" id="explore">
-        <div className="ui-container">
-          <div className="section-card-surface">
-            <SectionHeading
-              eyebrow="Property discovery"
-              title="Explore Properties"
-              description="Find spaces that match the way you live, work and invest."
-              action={{ label: "View all", href: withCityFilter("/properties", citySlug) }}
-            />
-            <div className="mt-5 flex flex-wrap gap-2">
-              {QUICK_CHIPS.map((chip) => (
-                <Link key={chip.href} href={withCityFilter(chip.href, citySlug)} className="chip">
-                  {chip.label}
+      {/* Desktop keeps Titanium Partners right below CategoryGrid; mobile places it below Recent & Explore Properties. */}
+      <div className="home-dealers-discovery-order">
+        <VerifiedAgenciesSection dealers={showcaseDealers} />
+
+        {/* Fresh inventory and browse tools stay close to the premium listings. */}
+        <RecentlyAddedProperties properties={discovery.items} citySlug={citySlug} />
+        {/* 6. Property Discovery */}
+        <Section tone="mist" id="explore">
+          <div className="ui-container">
+            <div className="section-card-surface">
+              <SectionHeading
+                eyebrow="Property discovery"
+                title="Explore Properties"
+                description="Find spaces that match the way you live, work and invest."
+                action={{ label: "View all", href: withCityFilter("/properties", citySlug) }}
+              />
+              <div className="mt-5 flex flex-wrap gap-2">
+                {QUICK_CHIPS.map((chip) => (
+                  <Link key={chip.href} href={withCityFilter(chip.href, citySlug)} className="chip">
+                    {chip.label}
+                  </Link>
+                ))}
+              </div>
+              <HomeExploreProperties properties={discovery.items} total={discovery.total} citySlug={citySlug} />
+              <div className="mt-8 flex justify-center">
+                <Link href={withCityFilter("/properties", citySlug)} className="btn btn-primary">
+                  View all {heroStats.listings} properties
                 </Link>
-              ))}
-            </div>
-            <HomeExploreProperties properties={discovery.items} total={discovery.total} citySlug={citySlug} />
-            <div className="mt-8 flex justify-center">
-              <Link href={withCityFilter("/properties", citySlug)} className="btn btn-primary">
-                View all {heroStats.listings} properties
-              </Link>
+              </div>
             </div>
           </div>
-        </div>
-      </Section>
+        </Section>
 
-      <RecentProperties citySlug={citySlug} />
+        <RecentProperties citySlug={citySlug} />
+      </div>
 
       {/* 7. Commercial and New Projects */}
       <CommercialSection properties={commercialListings.items} total={commercialListings.total} citySlug={citySlug} />

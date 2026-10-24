@@ -107,6 +107,7 @@ export async function POST(request: Request) {
     /** True when the email already has an account the caller could not prove ownership of. */
     let emailAlreadyRegistered = false;
 
+    const hadSession = Boolean(userId);
     if (!userId && wantsAccount && password.length >= 6) {
       const existing = await db
         .select({ id: users.id, passwordHash: users.passwordHash })
@@ -141,9 +142,9 @@ export async function POST(request: Request) {
       }
     }
 
-    // A freshly created owner is signed in straight away so the listing they
-    // just submitted is already waiting in their dashboard.
-    if (accountCreated && userId) {
+    // A freshly created or password-verified owner is signed in straight away
+    // so the listing they just submitted is already waiting in their dashboard.
+    if (!hadSession && userId) {
       try {
         await createSession(userId);
       } catch {
