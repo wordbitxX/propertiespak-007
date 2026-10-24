@@ -1,26 +1,25 @@
 import { ResilientImage } from "@/components/resilient-image";
 import Link from "next/link";
-import {
-  IconArrowRight,
-  IconArea,
-  IconBath,
-  IconBed,
-  IconBuilding,
-  IconCompass,
-  IconLayers,
-  IconMap,
-  IconPin,
-} from "@/components/icons";
+import { IconArrowRight, IconPin } from "@/components/icons";
 import { MobileScrollGrid } from "@/components/mobile-scroll-grid";
 import { PropertyRail } from "@/components/property-rail";
+import { PropertyCard } from "@/components/property-card";
 import { TranslatedText } from "@/components/translated-text";
 import type { MapProperty } from "@/components/map-view";
 import { ResponsiveHomeMap } from "@/components/responsive-home-map";
 import { Reveal } from "@/components/reveal";
 import { Section, SectionHeading } from "@/components/section";
 import type { City, Post, Project, Property } from "@/db/schema";
-import { compactPropertyTitle, formatArea, formatPrice } from "@/lib/format";
+import { formatPrice } from "@/lib/format";
 import { SITE } from "@/lib/constants";
+
+function withCityFilter(href: string, citySlug?: string) {
+  if (!citySlug) return href;
+  const [path, query = ""] = href.split("?");
+  const params = new URLSearchParams(query);
+  params.set("city", citySlug);
+  return `${path}?${params.toString()}`;
+}
 
 const CATEGORY_TILES = [
   {
@@ -67,7 +66,7 @@ const CATEGORY_TILES = [
   },
 ] as const;
 
-export function CategoryGrid({ counts }: { counts: Record<string, number> }) {
+export function CategoryGrid({ counts, citySlug }: { counts: Record<string, number>; citySlug?: string }) {
   return (
     <section id="property-categories" className="home-categories-section" aria-labelledby="categories-heading">
       <div className="ui-container">
@@ -76,7 +75,8 @@ export function CategoryGrid({ counts }: { counts: Record<string, number> }) {
             <div>
               <p className="category-showcase-eyebrow">BROWSE BY CATEGORY</p>
               <h2 id="categories-heading" className="category-showcase-title">
-                Explore Properties by Category
+                <span className="category-showcase-title-desktop">Explore Properties by Category</span>
+                <span className="category-showcase-title-mobile">Categories</span>
               </h2>
               <p className="category-showcase-subtitle">Find the right property, right here.</p>
             </div>
@@ -96,7 +96,7 @@ export function CategoryGrid({ counts }: { counts: Record<string, number> }) {
               const count = tile.countKeys.reduce((total, key) => total + (counts[key] ?? 0), 0);
               const jpgFallback = tile.image.replace(/\.webp$/, ".jpg");
               return (
-                <Link key={tile.label} href={tile.href} className="category-tile-card group">
+                <Link key={tile.label} href={withCityFilter(tile.href, citySlug)} className="category-tile-card group">
                   <div className="zoom-frame category-tile-media">
                     <ResilientImage
                       src={tile.image}
@@ -130,7 +130,7 @@ export function CategoryGrid({ counts }: { counts: Record<string, number> }) {
   );
 }
 
-export function FeaturedProperties({ properties, total }: { properties: Property[]; total: number }) {
+export function FeaturedProperties({ properties, total, citySlug }: { properties: Property[]; total: number; citySlug?: string }) {
   if (properties.length === 0) return null;
   return (
     <section id="featured" className="home-featured-section" aria-labelledby="featured-heading">
@@ -147,7 +147,7 @@ export function FeaturedProperties({ properties, total }: { properties: Property
               <TranslatedText text="Explore handpicked properties in the most desirable locations across Pakistan." />
             </p>
             <div className="featured-showcase-actions">
-              <Link href="/properties?featured=1&verified=1" className="featured-showcase-cta">
+              <Link href={withCityFilter("/properties?featured=1&verified=1", citySlug)} className="featured-showcase-cta">
                 <span>
                   <TranslatedText text="View All Properties" />
                 </span>
@@ -160,7 +160,7 @@ export function FeaturedProperties({ properties, total }: { properties: Property
             <PropertyRail
               initialProperties={properties}
               initialTotal={total}
-              query="featured=1&verified=1"
+              query={withCityFilter("/properties?featured=1&verified=1", citySlug).split("?")[1]}
               label="Featured properties"
               autoPlay
               cardVariant="featured"
@@ -185,76 +185,10 @@ function listedTime(createdAt: Date | string) {
 }
 
 function RecentPropertyCard({ property }: { property: Property }) {
-  const isRent = property.purpose === "rent";
-  const isLand = ["land", "agricultural_land", "industrial_land"].includes(property.category);
-  const isPlot = ["plot", "plot_file", "plot_form", "commercial_plot"].includes(property.category);
-  const isCommercial = ["office", "shop", "building", "warehouse", "commercial", "factory"].includes(property.category);
-  const TypeIcon = isLand ? IconMap : isPlot ? IconCompass : isCommercial ? IconLayers : IconBuilding;
-  const image = property.coverImage || property.images[0] || "/images/fallbacks/property-1-hd.webp";
-  const area =
-    property.areaSqft > 0
-      ? `${Math.round(property.areaSqft).toLocaleString("en-PK")} Sq Ft`
-      : formatArea(property.areaValue, property.areaUnit);
-
-  return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-[#E6EAE7] bg-white shadow-[0_5px_20px_-14px_rgba(8,34,26,.24)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#C9D6CE] hover:shadow-[0_14px_30px_-18px_rgba(8,34,26,.28)]">
-      <Link href={`/property/${property.slug}`} className="relative block aspect-[16/10] overflow-hidden bg-slate-100">
-        <ResilientImage
-          src={image}
-          alt={`${property.title} — ${property.propertyType} in ${property.locationArea}, ${property.cityName}`}
-          width={1200}
-          height={750}
-          loading="lazy"
-          decoding="async"
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-        />
-        <span className="absolute left-3 top-3 rounded-md bg-[#0D382A] px-2.5 py-1 font-sans text-[0.7rem] font-semibold tracking-[0.04em] text-white shadow-sm">
-          {isRent ? "For Rent" : "For Sale"}
-        </span>
-      </Link>
-      <div className="flex flex-1 flex-col p-3.5">
-        <h3 className="line-clamp-1 min-h-[1.35em] font-sans text-sm font-bold leading-snug text-[#0D261D] sm:text-[0.9375rem]">
-          <Link href={`/property/${property.slug}`} className="transition-colors hover:text-[#0D382A]">
-            {compactPropertyTitle(property.title)}
-          </Link>
-        </h3>
-        <p className="mt-1 flex min-w-0 items-center gap-1.5 text-[0.75rem] text-[#66776E]">
-          <IconPin className="h-3.5 w-3.5 shrink-0 text-[#0D382A]" />
-          <span className="truncate">
-            {property.locationArea}, {property.cityName}
-          </span>
-        </p>
-        <p className="mt-1.5 font-sans text-base font-bold leading-tight tracking-[-0.02em] text-[#0D261D] sm:text-[1.02rem]">
-          {formatPrice(property.price, property.priceUnit)}
-        </p>
-        <div className="mt-auto pt-2.5">
-          <div className="h-px bg-[#EBF0EC]" />
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[0.73rem] text-[#4F6158]">
-            {property.bedrooms > 0 && (
-              <span className="inline-flex items-center gap-1 whitespace-nowrap">
-                <IconBed className="h-3.5 w-3.5 text-[#687A71]" /> {property.bedrooms} Beds
-              </span>
-            )}
-            {property.bathrooms > 0 && (
-              <span className="inline-flex items-center gap-1 whitespace-nowrap">
-                <IconBath className="h-3.5 w-3.5 text-[#687A71]" /> {property.bathrooms} Baths
-              </span>
-            )}
-            <span className="inline-flex items-center gap-1 whitespace-nowrap">
-              <IconArea className="h-3.5 w-3.5 text-[#687A71]" /> {area}
-            </span>
-          </div>
-          <div className="mt-2 flex items-center justify-between gap-3 text-[0.72rem] text-[#687A71]">
-            <span>{listedTime(property.createdAt)}</span>
-            <TypeIcon className="h-4 w-4 shrink-0 text-[#0D382A]" />
-          </div>
-        </div>
-      </div>
-    </article>
-  );
+  return <PropertyCard property={property} compact dateLabel={listedTime(property.createdAt)} />;
 }
 
-export function RecentlyAddedProperties({ properties }: { properties: Property[] }) {
+export function RecentlyAddedProperties({ properties, citySlug }: { properties: Property[]; citySlug?: string }) {
   if (properties.length === 0) return null;
   return (
     <Section tone="light" id="recently-added" className="recently-added-section">
@@ -264,7 +198,7 @@ export function RecentlyAddedProperties({ properties }: { properties: Property[]
             eyebrow="Just listed"
             title="Recently Added Properties"
             description="Fresh listings from verified dealers and property owners."
-            action={{ label: "View all", href: "/properties?sort=newest" }}
+            action={{ label: "View all", href: withCityFilter("/properties?sort=newest", citySlug) }}
           />
           <MobileScrollGrid
             label="Recently added properties"
@@ -306,6 +240,7 @@ export function CityDiscovery({ cities, counts }: { cities: City[]; counts: Map<
           <SectionHeading
             eyebrow="Explore Popular Cities"
             title="Find Properties in Your Favorite City"
+            mobileTitle="Popular Cities"
             description="Find the best properties in Pakistan's top cities"
             action={{ label: "View All Cities", href: "/properties" }}
           />
@@ -461,7 +396,7 @@ export function MarketHub({
   );
 }
 
-export function NewProjectsSection({ projects }: { projects: Project[] }) {
+export function NewProjectsSection({ projects, citySlug }: { projects: Project[]; citySlug?: string }) {
   if (projects.length === 0) return null;
   return (
     <Section tone="mist" id="projects">
@@ -470,8 +405,9 @@ export function NewProjectsSection({ projects }: { projects: Project[] }) {
           <SectionHeading
             eyebrow="New developments"
             title="New Housing Projects"
+            mobileTitle="New Projects"
             description="Compare locations, payment plans and handover details."
-            action={{ label: "Explore all projects", href: "/projects" }}
+            action={{ label: "View all", href: withCityFilter("/projects", citySlug) }}
           />
           <MobileScrollGrid label="New housing projects" autoPlay testId="project-rail">
             {projects.slice(0, 8).map((project) => (
@@ -494,16 +430,16 @@ export function NewProjectsSection({ projects }: { projects: Project[] }) {
                       {project.status}
                     </span>
                   </Link>
-                  <div className="flex flex-1 flex-col p-5">
-                    <h3 className="font-sans text-[1.05rem] font-bold text-[#0D261D]">
+                  <div className="home-project-content flex flex-1 flex-col p-5">
+                    <h3 className="home-project-title font-sans text-[1.05rem] font-bold text-[#0D261D]">
                       <Link href={`/projects/${project.slug}`} className="hover:text-[#0D382A]">
                         {project.name}
                       </Link>
                     </h3>
-                    <p className="mt-1.5 flex items-center gap-1.5 text-[0.84rem] text-[#66776E]">
+                    <p className="home-project-location mt-1.5 flex items-center gap-1.5 text-[0.84rem] text-[#66776E]">
                       <IconPin className="h-4 w-4 text-[#0D382A]" /> {project.location}
                     </p>
-                    <dl className="mt-4 space-y-2 text-[0.8125rem]">
+                    <dl className="home-project-specs mt-4 space-y-2 text-[0.8125rem]">
                       <div className="flex justify-between gap-3">
                         <dt className="text-[#66776E]">Developer</dt>
                         <dd className="text-right font-medium text-[#0D261D]">{project.developer}</dd>
@@ -519,12 +455,12 @@ export function NewProjectsSection({ projects }: { projects: Project[] }) {
                     </dl>
                     <div className="mt-auto pt-5">
                       <div className="hairline pt-4">
-                        <p className="font-sans text-[1.02rem] font-bold text-[#0D261D]">
+                        <p className="home-project-price font-sans text-[1.02rem] font-bold text-[#0D261D]">
                           Starting from {formatPrice(project.startingPrice)}
                         </p>
                         <Link
                           href={`/projects/${project.slug}`}
-                          className="mt-3 inline-flex items-center gap-1.5 font-sans text-[0.84rem] font-semibold text-[#0D382A] hover:text-[#B8893D]"
+                          className="home-project-explore mt-3 inline-flex items-center gap-1.5 font-sans text-[0.84rem] font-semibold text-[#0D382A] hover:text-[#B8893D]"
                         >
                           Explore Project
                           <IconArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -542,17 +478,17 @@ export function NewProjectsSection({ projects }: { projects: Project[] }) {
   );
 }
 
-export function CommercialSection({ properties, total }: { properties: Property[]; total: number }) {
+export function CommercialSection({ properties, total, citySlug }: { properties: Property[]; total: number; citySlug?: string }) {
   return (
     <Section tone="light" id="commercial">
       <div className="ui-container">
         <div className="section-card-surface">
-          <SectionHeading title="Commercial Properties" action={{ label: "View all", href: "/properties/commercial" }} />
+          <SectionHeading title="Commercial Properties" mobileTitle="Commercial" action={{ label: "View all", href: withCityFilter("/properties/commercial", citySlug) }} />
           {properties.length ? (
             <PropertyRail
               initialProperties={properties}
               initialTotal={total}
-              query="category=commercial"
+              query={withCityFilter("/properties?category=commercial", citySlug).split("?")[1]}
               label="Commercial properties"
               autoPlay
             />

@@ -19,6 +19,7 @@ export type PropertySearchState = {
   city: string;
   town: string;
   townExact: boolean;
+  agency: string;
   originalCategory: string;
   featured: boolean;
   newProjects: boolean;
@@ -72,7 +73,7 @@ export function areaFactor(unit: SearchAreaUnit) {
 }
 export function defaultPropertySearch(purpose: SearchPurpose = "buy"): PropertySearchState {
   return {
-    purpose, city: "", town: "", townExact: false, originalCategory: "", featured: false, newProjects: false, furnishing: "", possession: "", sort: "newest", group: "all", type: "", paymentType: "", minPrice: "", maxPrice: "",
+    purpose, city: "", town: "", townExact: false, agency: "", originalCategory: "", featured: false, newProjects: false, furnishing: "", possession: "", sort: "newest", group: "all", type: "", paymentType: "", minPrice: "", maxPrice: "",
     minArea: "", maxArea: "", areaUnit: "marla", beds: "", baths: "", verified: false,
     keyword: "", withImages: false, withVideos: false, near: "", radius: "",
   };
@@ -119,6 +120,7 @@ export function propertyQueryFromParams(params: Params): PropertyFilters {
     city: params.get("city") || undefined,
     town: params.get("town") || undefined,
     townExact: params.get("townExact") === "1" || undefined,
+    agency: params.get("agency") || undefined,
     type: params.get("type") || undefined,
     category: params.get("category") || undefined,
     q: params.get("q") || undefined,
@@ -151,7 +153,7 @@ export function propertySearchFromParams(params: Params, fallbackPurpose: Search
   const category = parsed.category ?? (parsed.commercialOnly ? "commercial" : undefined);
   return {
     ...defaultPropertySearch(parsed.purpose === "rent" ? "rent" : parsed.purpose === "buy" ? "buy" : fallbackPurpose),
-    city: parsed.city ?? "", town: parsed.town ?? "", townExact: !!parsed.townExact, type: parsed.type ?? "",
+    city: parsed.city ?? "", town: parsed.town ?? "", townExact: !!parsed.townExact, agency: parsed.agency ?? "", type: parsed.type ?? "",
     originalCategory: category && !["homes", "plot", "commercial"].includes(category) ? category : "",
     featured: !!parsed.featured, newProjects: !!parsed.isNewProject, furnishing: parsed.furnishing ?? "", possession: parsed.possession ?? "", sort: parsed.sort ?? "newest",
     group: category === "plot" ? "plot" : ["commercial", "office", "shop", "building", "warehouse"].includes(category ?? "") ? "commercial" : ["homes", "house", "apartment", "farmhouse", "penthouse"].includes(category ?? "") ? "homes" : "all",
@@ -172,6 +174,7 @@ export function propertySearchParams(state: PropertySearchState) {
   const params = new URLSearchParams();
   if (state.city) params.set("city", state.city);
   if (state.town.trim()) { params.set("town", state.town.trim()); if (state.townExact) params.set("townExact", "1"); }
+  if (state.agency) params.set("agency", state.agency);
   if (state.originalCategory) params.set("category", state.originalCategory);
   else if (state.group !== "all") params.set("category", state.group);
   if (state.featured) params.set("featured", "1");
@@ -207,7 +210,7 @@ export function propertySearchHref(state: PropertySearchState) {
 }
 
 export const SEARCH_FILTER_KEYS = [
-  "purpose", "q", "city", "town", "townExact", "type", "category", "beds", "baths", "minPrice", "maxPrice",
+  "purpose", "q", "city", "town", "townExact", "agency", "type", "category", "beds", "baths", "minPrice", "maxPrice",
   "minArea", "maxArea", "areaUnit", "paymentType", "verified", "withImages", "withVideos",
   "featured", "newProjects", "commercial", "furnishing", "possession", "sort", "page", "near", "radius",
 ];

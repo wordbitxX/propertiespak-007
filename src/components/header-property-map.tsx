@@ -213,14 +213,14 @@ export function HeaderPropertyMap({
     <div className="header-map-panel">
       {/* Executive Dark Emerald & Gold Map Header */}
       <div className="header-map-heading">
-        <div className="flex min-w-0 items-center gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-[#DFB872]/45 bg-[#09281D] text-[#F3D590] shadow-sm">
+        <div className="header-map-heading-brand flex min-w-0 items-center gap-3">
+          <span className="header-map-heading-icon grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-[#DFB872]/45 bg-[#09281D] text-[#F3D590] shadow-sm">
             <IconMap className="h-5 w-5" />
           </span>
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2>{t("Interactive Property & Satellite Map")}</h2>
-              <span className="inline-flex items-center gap-1 rounded-full border border-[#DFB872]/40 bg-white/10 px-2.5 py-0.5 text-[0.65rem] font-extrabold uppercase tracking-[0.14em] text-[#F3D590]">
+          <div className="header-map-heading-copy min-w-0">
+            <div className="header-map-heading-copy-main">
+              <h2 className="header-map-title">{t("Interactive Property & Satellite Map")}</h2>
+              <span className="header-map-count inline-flex items-center gap-1 rounded-full border border-[#DFB872]/40 bg-white/10 px-2.5 py-0.5 text-[0.65rem] font-extrabold uppercase tracking-[0.14em] text-[#F3D590]">
                 <IconSpark className="h-3 w-3" />
                 {result.items.length} Plotted
               </span>
@@ -237,20 +237,20 @@ export function HeaderPropertyMap({
             type="button"
             onClick={requestLocation}
             disabled={locationLoading}
-            className="header-map-btn-ghost"
+            className="header-map-btn-ghost header-map-nearby-action"
             title="Center map near my current location"
           >
             <IconPin className="h-3.5 w-3.5 text-[#F3D590]" />
             <span>{locationLoading ? t("Locating…") : t("Near Me")}</span>
           </button>
-          <Link href="/maps" onClick={onClose} className="header-map-btn-gold">
+          <Link href="/maps" onClick={onClose} className="header-map-btn-gold header-map-pdf-action">
             <span>{t("57 PDF Maps")}</span>
             <IconArrowRight className="h-3.5 w-3.5" />
           </Link>
           <button
             type="button"
             onClick={() => onFilters(listParams.toString())}
-            className="header-map-btn-ghost"
+            className="header-map-btn-ghost header-map-filters-action"
           >
             <IconSliders className="h-3.5 w-3.5" />
             <span>{t("Filters")}</span>
@@ -258,7 +258,7 @@ export function HeaderPropertyMap({
           <Link
             href={`/properties${listParams.size ? `?${listParams}` : ""}`}
             onClick={onClose}
-            className="header-map-btn-ghost"
+            className="header-map-btn-ghost header-map-list-action"
           >
             <span>{t("List view")}</span>
           </Link>

@@ -24,6 +24,7 @@ export type PropertyFilters = {
   /** Town / society name fragment matched against `location_area`. */
   town?: string;
   townExact?: boolean;
+  agency?: string;
   type?: string;
   baths?: number;
   furnishing?: string;
@@ -129,6 +130,9 @@ export function buildConditions(filters: PropertyFilters): SQL[] {
       const townMatch = or(ilike(properties.locationArea, term), ilike(properties.address, term));
       if (townMatch) conditions.push(townMatch);
     }
+  }
+  if (filters.agency) {
+    conditions.push(sql`exists (select 1 from users where users.id = ${properties.listedByUserId} and users.agency = ${filters.agency})`);
   }
   if (filters.type) conditions.push(eq(properties.propertyType, filters.type));
   if (typeof filters.baths === "number") conditions.push(gte(properties.bathrooms, filters.baths));
@@ -420,13 +424,17 @@ async function getListingPointsUncached() {
     .where(isPublished);
 }
 
-async function getProjectsUncached(limit = 12, featuredOnly = false) {
+async function getProjectsUncached(limit = 12, featuredOnly = false, city?: string) {
   await ensureSeeded();
-  const query = db.select().from(projects);
-  const rows = featuredOnly
-    ? await query.where(eq(projects.featured, true)).orderBy(desc(projects.createdAt)).limit(limit)
-    : await query.orderBy(desc(projects.featured), desc(projects.createdAt)).limit(limit);
-  return rows;
+  const conditions: SQL[] = [];
+  if (featuredOnly) conditions.push(eq(projects.featured, true));
+  if (city) conditions.push(eq(projects.citySlug, city));
+  return db
+    .select()
+    .from(projects)
+    .where(conditions.length ? and(...conditions) : undefined)
+    .orderBy(desc(projects.featured), desc(projects.createdAt))
+    .limit(limit);
 }
 
 async function getProjectBySlugUncached(slug: string) {
@@ -696,7 +704,7 @@ async function getAgentBySlugUncached(slug: string) {
   return rows[0];
 }
 
-async function getPropertyCategoryCountsUncached() {
+async function getPropertyCategoryCountsUncached(city?: string) {
   await ensureSeeded();
   const rows = await db
     .select({
@@ -704,7 +712,7 @@ async function getPropertyCategoryCountsUncached() {
       total: sql<number>`cast(count(*) as int)`,
     })
     .from(properties)
-    .where(isPublished)
+    .where(city ? and(isPublished, eq(properties.citySlug, city)) : isPublished)
     .groupBy(properties.category);
   return Object.fromEntries(rows.map((row) => [row.category, Number(row.total)]));
 }
@@ -1220,7 +1228,7 @@ export const getAgentBySlug = cachedQuery("getAgentBySlug", getAgentBySlugUncach
 export const getPlatformStats = cachedQuery("getPlatformStats", getPlatformStatsUncached);
 
 /** Homepage hero counters: live listings, verified listings, distinct listing locations (+ members). */
-async function getHeroStatsUncached() {
+async function getHeroStatsUncached(city?: string) {
   await ensureSeeded();
   const [row] = await db
     .select({
@@ -1230,7 +1238,7 @@ async function getHeroStatsUncached() {
       members: sql<number>`(select cast(count(*) as int) from ${users})`,
     })
     .from(properties)
-    .where(isPublished);
+    .where(city ? and(isPublished, eq(properties.citySlug, city)) : isPublished);
   return {
     listings: Number(row?.listings ?? 0),
     members: Number(row?.members ?? 0),

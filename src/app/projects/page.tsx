@@ -8,6 +8,7 @@ import { LeadForm } from "@/components/lead-form";
 import { Section, SectionHeading } from "@/components/section";
 import { getProjects } from "@/lib/queries";
 import { buildMetadata } from "@/lib/seo";
+import { SEARCH_CITIES } from "@/lib/property-search";
 
 export const metadata: Metadata = buildMetadata({
   title: "New Property Projects in Pakistan | Developments & Payment Plans",
@@ -24,22 +25,25 @@ export const metadata: Metadata = buildMetadata({
   ],
 });
 
-export default async function ProjectsPage() {
-  const projects = await getProjects(12);
+export default async function ProjectsPage({ searchParams }: { searchParams: Promise<{ city?: string | string[] }> }) {
+  const params = await searchParams;
+  const rawCity = Array.isArray(params.city) ? params.city[0] : params.city;
+  const city = SEARCH_CITIES.find((item) => item.slug === rawCity);
+  const projects = await getProjects(12, false, city?.slug);
 
   return (
     <>
       <PageHero
         eyebrow="New projects"
-        title="New Developments Across Pakistan"
-        description="Compare launch prices, unit sizes, instalment schedules and handover timelines — including the total payable cost, not only the monthly payment."
+        title={city ? `New Developments in ${city.name}` : "New Developments Across Pakistan"}
+        description={`Compare launch prices, unit sizes, instalment schedules and handover timelines${city ? ` in ${city.name}` : " across Pakistan"} — including the total payable cost, not only the monthly payment.`}
         crumbs={[
-          { name: "Home", href: "/" },
-          { name: "New Projects", href: "/projects" },
+          { name: "Home", href: city ? `/?city=${city.slug}` : "/" },
+          { name: "New Projects", href: city ? `/projects?city=${city.slug}` : "/projects" },
         ]}
       >
         <div className="flex flex-wrap gap-3">
-          <Link href="/properties/new-projects" className="btn btn-green">
+          <Link href={city ? `/properties/new-projects?city=${city.slug}` : "/properties/new-projects"} className="btn btn-green">
             Browse released units
           </Link>
           <Link href="/contact?topic=projects" className="btn btn-ghost-light">

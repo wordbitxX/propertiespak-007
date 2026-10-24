@@ -7,6 +7,7 @@ import { useLanguage } from "@/components/language-provider";
 export function SectionHeading({
   eyebrow,
   title,
+  mobileTitle,
   description,
   action,
   tone = "light",
@@ -15,6 +16,7 @@ export function SectionHeading({
 }: {
   eyebrow?: string;
   title: string;
+  mobileTitle?: string;
   description?: string;
   action?: { label: string; href: string };
   tone?: "light" | "dark";
@@ -43,7 +45,12 @@ export function SectionHeading({
             isDark ? "text-white" : "text-navy-900",
           ].join(" ")}
         >
-          {t(title)}
+          {mobileTitle ? (
+            <>
+              <span className="section-heading-title-desktop">{t(title)}</span>
+              <span className="section-heading-title-mobile">{t(mobileTitle)}</span>
+            </>
+          ) : t(title)}
         </Tag>
         {description && (
           <p className={["lede mt-4", isDark ? "text-white/70" : ""].join(" ")}>{t(description)}</p>
@@ -82,7 +89,7 @@ export function Section({
     dark: "bg-navy-950 text-white",
   } as const;
   return (
-    <section id={id} className={`${tones[tone]} py-16 lg:py-24 ${className}`}>
+    <section id={id} className={`site-inner-section ${tones[tone]} py-16 lg:py-24 ${className}`}>
       {children}
     </section>
   );

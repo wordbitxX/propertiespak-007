@@ -24,6 +24,7 @@ import {
   IconUser,
   IconMap,
   IconCompass,
+  IconPin,
 } from "@/components/icons";
 import { useFavorites } from "@/components/favorites-provider";
 import { useLanguage } from "@/components/language-provider";
@@ -114,6 +115,9 @@ function LanguageSwitch({ mobile = false }: { mobile?: boolean }) {
 
 export function SiteHeader({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
   const pathname = usePathname();
+  const [selectedHomeCity, setSelectedHomeCity] = useState("Global");
+  const routeCity = CITY_LINKS.find((city) => pathname === `/city/${city.toLowerCase()}`);
+  const selectedMobileCity = routeCity ?? selectedHomeCity;
   const router = useRouter();
   const { t } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
@@ -136,6 +140,16 @@ export function SiteHeader({ isAuthenticated = false }: { isAuthenticated?: bool
     window.addEventListener("scroll", update, { passive: true });
     return () => window.removeEventListener("scroll", update);
   }, []);
+
+  useEffect(() => {
+    const syncCity = () => {
+      const slug = new URLSearchParams(window.location.search).get("city");
+      setSelectedHomeCity(CITY_LINKS.find((city) => city.toLowerCase() === slug) ?? "Global");
+    };
+    syncCity();
+    window.addEventListener("popstate", syncCity);
+    return () => window.removeEventListener("popstate", syncCity);
+  }, [pathname]);
 
   if (panelPath !== pathname) {
     setPanelPath(pathname);
@@ -237,6 +251,29 @@ export function SiteHeader({ isAuthenticated = false }: { isAuthenticated?: bool
           <Link href="/" className="header-brand" aria-label={`${SITE.name} — ${SITE.tagline}`}>
             <BrandLockup adaptive compact />
           </Link>
+
+          <details className="mobile-city-selector">
+            <summary aria-label={t("Choose a city")}>
+              <IconPin className="h-4 w-4" />
+              <span suppressHydrationWarning>{selectedMobileCity}</span>
+              <IconChevronDown className="h-3.5 w-3.5" />
+            </summary>
+            <div className="mobile-city-menu" role="menu" aria-label={t("Choose a city")}>
+              {CITY_LINKS.map((city) => (
+                <Link
+                  key={city}
+                  href={`/?city=${city.toLowerCase()}`}
+                  role="menuitem"
+                  onClick={() => setSelectedHomeCity(city)}
+                >
+                  {city}
+                </Link>
+              ))}
+              <Link href="/" role="menuitem" onClick={() => setSelectedHomeCity("Global")}>
+                Global
+              </Link>
+            </div>
+          </details>
 
           <nav className="header-desktop-nav" aria-label="Primary">
             <div

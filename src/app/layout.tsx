@@ -2,7 +2,9 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import localFont from "next/font/local";
 import "./globals.css";
+import "./mobile-marketplace.css";
 import { SiteHeader } from "@/components/site-header";
+import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { LanguageProvider } from "@/components/language-provider";
 import { FavoritesProvider } from "@/components/favorites-provider";
@@ -182,6 +184,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                 {children}
               </main>
               <SiteFooter />
+              <MobileBottomNav />
               <CompareBar />
               <WhatsAppFloat />
             </CompareProvider>
