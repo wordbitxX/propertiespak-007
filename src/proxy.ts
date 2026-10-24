@@ -26,6 +26,7 @@ const STATIC_TOP_LEVEL = new Set([
   "compare",
   "admin",
   "sample",
+  "samples",
   "maps",
   "sitemap",
   "sitemap.xml",
@@ -114,10 +115,12 @@ export function proxy(request: NextRequest) {
     request.method === "GET" &&
     !request.cookies.has("estatewx_session") &&
     !SKIP.some((prefix) => pathname.startsWith(prefix));
+  const host = (request.headers.get("host") ?? "").split(":")[0];
+  const isPreviewHost = host.endsWith(".e2b.app") || host === "localhost" || host === "127.0.0.1";
   if (anonymousGet && !response.headers.has("cache-control")) {
     response.headers.set(
       "Cache-Control",
-      "public, max-age=0, must-revalidate, s-maxage=60, stale-while-revalidate=600",
+      isPreviewHost ? "no-store" : "public, max-age=0, must-revalidate, s-maxage=60, stale-while-revalidate=600",
     );
   }
   return response;

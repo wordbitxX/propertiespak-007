@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { users } from "@/db/schema";
 import { IconArrowRight, IconCheck, IconGoogle, IconLayers, IconPin, IconShield } from "@/components/icons";
 import { ListingForm } from "@/components/listing-form";
+import { MobileListingWizard } from "@/components/mobile-listing-wizard";
 import { PageHero } from "@/components/page-hero";
 import { Section, SectionHeading } from "@/components/section";
 import { buildMetadata } from "@/lib/seo";
@@ -49,9 +53,40 @@ export default async function ListPropertyPage() {
   // offers a password at all, and if Google sign-in is configured decides
   // whether that shortcut is offered. Both are server-only facts.
   const [userId, googleEnabled] = await Promise.all([getSessionUserId(), isGoogleSignInConfigured()]);
+  let initialName = "";
+  let initialEmail = "";
+  let initialPhone = "";
+
+  if (userId) {
+    try {
+      const [account] = await db
+        .select({ name: users.name, email: users.email, phone: users.phone, whatsapp: users.whatsapp })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+      if (account) {
+        initialName = account.name ?? "";
+        initialEmail = account.email ?? "";
+        initialPhone = account.phone || account.whatsapp || "";
+      }
+    } catch {
+      // Keep graceful empty defaults if DB lookup fails
+    }
+  }
+
   return (
     <>
-      <PageHero
+      <MobileListingWizard
+        signedIn={Boolean(userId)}
+        googleEnabled={googleEnabled}
+        whatsappNumber={SITE.companyPhone}
+        initialName={initialName}
+        initialEmail={initialEmail}
+        initialPhone={initialPhone}
+      />
+
+      <div className="hidden md:block">
+        <PageHero
         eyebrow="For owners & landlords"
         title="List Your Property With Properties Pak"
         description="Reach thousands of active buyers and corporate tenants with accurate pricing, exact satellite map pinning, and direct WhatsApp enquiries."
@@ -198,6 +233,7 @@ export default async function ListPropertyPage() {
           </div>
         </div>
       </Section>
+      </div>
     </>
   );
 }

@@ -19,7 +19,7 @@ export const RAIL_AUTO_PLAY_MS = 2800;
 export const RAIL_AUTO_PLAY_MS_REVERSE = 3200;
 
 /** Native horizontal scrolling with optional, user-friendly paused auto-advancement. */
-export function PropertyRail({ initialProperties, initialTotal, query, label, autoPlay = false, autoPlayDirection = "forward", autoPlayInterval, pageSize = PAGE_SIZE, size = "compact", cardVariant = "default" }: {
+export function PropertyRail({ initialProperties, initialTotal, query, label, autoPlay = false, autoPlayDirection = "forward", autoPlayInterval, pageSize = PAGE_SIZE, size = "compact", cardVariant = "default", mobileFeaturedLook = false }: {
   initialProperties: RailProperty[]; initialTotal: number; query?: string; label: string;
   autoPlay?: boolean;
   /** Which way the idle rail drifts. "backward" enters from the right edge. */
@@ -29,6 +29,8 @@ export function PropertyRail({ initialProperties, initialTotal, query, label, au
   pageSize?: number; size?: "compact" | "roomy";
   /** Card look; "featured" adds type/purpose pills and a Featured pill. */
   cardVariant?: "default" | "featured";
+  /** Match the "Premium Properties For You" pill/card look on mobile viewports only. */
+  mobileFeaturedLook?: boolean;
 }) {
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const endRef = useRef<HTMLLIElement | null>(null);
@@ -206,7 +208,7 @@ export function PropertyRail({ initialProperties, initialTotal, query, label, au
       </div>
       <div ref={viewportRef} className="property-rail-viewport" role="region" aria-label={label} tabIndex={0} onScroll={measure}>
         <ul className="property-rail-track">
-          {items.map((property) => <li key={property.id} className="property-rail-item" data-property-featured={property.featured ? "true" : "false"} data-property-verified={property.verified ? "true" : "false"}><PropertyCard property={property} compact={size === "compact"} variant={cardVariant} /></li>)}
+          {items.map((property) => <li key={property.id} className="property-rail-item" data-property-featured={property.featured ? "true" : "false"} data-property-verified={property.verified ? "true" : "false"}><PropertyCard property={property} compact={size === "compact"} variant={cardVariant} mobileFeaturedLook={mobileFeaturedLook} /></li>)}
           <li ref={endRef} aria-hidden="true" className="property-rail-end" />
         </ul>
       </div>

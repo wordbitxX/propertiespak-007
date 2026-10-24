@@ -145,17 +145,17 @@ function SampleClassic({ agencies }: { agencies: Agency[] }) {
       <div className="agx-head">
         <div className="agx-heading-copy">
           <p className="agx-home-eyebrow">Verified Agencies in Pakistan</p>
-          <h2 id="verified-agencies-heading" className="agx-serif">Trusted Dealers &amp; Agencies</h2>
+          <h2 id="verified-agencies-heading" className="agx-serif">Titanium Partners</h2>
         </div>
         <div className="agx-head-actions">
           <Link href="/dealers" className="agx-view-all">View all <IconArrowRight className="h-4 w-4" /></Link>
           <RoundArrows move={move} />
         </div>
       </div>
-      <div className="agx-rail agx-p1-rail" {...bind} tabIndex={0} aria-label="Verified agencies">
+      <div className="agx-rail agx-p1-rail" {...bind} tabIndex={0} aria-label="Titanium Partners">
         {agencies.map((agency) => (
           <Link key={agency.id} href={agency.href} className="agx-p1-card" aria-label={`${agency.name}, ${agency.city} — view agency`}>
-            <AgencyLogo agency={agency} size={104} />
+            <AgencyLogo agency={agency} size={92} />
             <p className="agx-p1-name">
               <span className="truncate">{agency.name}</span>
               {agency.verified && <BlueTick className="h-4 w-4 shrink-0" />}

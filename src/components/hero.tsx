@@ -36,7 +36,7 @@ const SEARCH_HINTS = ["Search for Houses", "Search for Plots", "Search for Apart
 
 function PinIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width="24" height="24" viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z" />
       <circle cx="12" cy="10" r="2.4" />
     </svg>
@@ -44,7 +44,7 @@ function PinIcon({ className }: { className?: string }) {
 }
 function HomeIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width="24" height="24" viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M3.5 10.5 12 3.8l8.5 6.7" />
       <path d="M5.5 9v11h13V9" />
       <path d="M10 20v-5.5h4V20" />
@@ -53,7 +53,7 @@ function HomeIcon({ className }: { className?: string }) {
 }
 function ShieldCheckIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width="24" height="24" viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M12 3.2 5 6v5.6c0 4.3 3 7.9 7 9.2 4-1.3 7-4.9 7-9.2V6l-7-2.8Z" />
       <path d="m8.8 12.2 2.2 2.2 4.3-4.5" />
     </svg>
@@ -61,7 +61,7 @@ function ShieldCheckIcon({ className }: { className?: string }) {
 }
 function MapIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width="24" height="24" viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="m9 4.5-5.5 2v13l5.5-2 6 2 5.5-2v-13l-5.5 2-6-2Z" />
       <path d="M9 4.5v13M15 6.5v13" />
     </svg>
@@ -69,14 +69,14 @@ function MapIcon({ className }: { className?: string }) {
 }
 function ArrowIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width="19" height="19" viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M4 12h15M13.5 6.5 19 12l-5.5 5.5" />
     </svg>
   );
 }
 function ChevronIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg width="16" height="16" viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="m6.5 9.5 5.5 5.5 5.5-5.5" />
     </svg>
   );
@@ -239,19 +239,51 @@ export function Hero({ stats, photo = "night", citySlug }: { stats: HeroStats; p
               </button>
             ))}
           </div>
-          <div className="pkr-search-card">
+          <div className="pkr-search-card pkr-search-card--desktop">
+            <HeroLocationField
+              value={location}
+              onChange={(nextValue) => {
+                setLocation(nextValue);
+                setSelectedCity(nextValue.trim() ? "" : (citySlug ?? ""));
+              }}
+              onPick={(suggestion) => {
+                setPlace(suggestion);
+                if (suggestion) setSelectedCity(suggestion.city);
+              }}
+              purpose={tab === "rent" ? "rent" : "buy"}
+              onLocate={onLocate}
+              searchPlaceholder="Enter city or area"
+            />
+            <label className="pkr-field">
+              <span className="pkr-field-label">{t("Property type")}</span>
+              <span className="pkr-field-control">
+                <select value={type} onChange={(event) => setType(event.target.value)}>
+                  <option value="">{t("All Types")}</option>
+                  {TYPES.map((value) => (
+                    <option key={value} value={value}>
+                      {t(searchTypeLabel(value))}
+                    </option>
+                  ))}
+                </select>
+                <ChevronIcon className="pkr-field-chevron" />
+              </span>
+            </label>
+            <HeroBudgetField
+              presets={budgets}
+              minPrice={minPrice}
+              maxPrice={maxPrice}
+              onChange={(low, high) => {
+                setMinPrice(low);
+                setMaxPrice(high);
+              }}
+            />
+            <button type="submit" className="pkr-search-submit" aria-label={t(tab === "sell" ? "List Your Property" : "Search Properties")}>
+              {t(tab === "sell" ? "List Your Property" : "Search Properties")}
+              <ArrowIcon className="pkr-search-submit-arrow" />
+            </button>
+          </div>
+          <div className="pkr-search-card pkr-search-card--mobile">
             <div className="pkr-search-location-row">
-              <HeroLocationField
-                value={location}
-                onChange={setLocation}
-                onPick={(suggestion) => {
-                  setPlace(suggestion);
-                  if (suggestion?.city) setSelectedCity(suggestion.city);
-                }}
-                purpose={tab === "rent" ? "rent" : "buy"}
-                onLocate={onLocate}
-                searchPlaceholder={searchHint}
-              />
               <button
                 ref={filtersTriggerRef}
                 type="button"
@@ -272,7 +304,7 @@ export function Hero({ stats, photo = "night", citySlug }: { stats: HeroStats; p
                 <ChevronIcon className="pkr-search-city-chevron" />
               </label>
               <button type="submit" className="pkr-search-submit" aria-label={t(tab === "sell" ? "List Your Property" : "Search Properties")}>
-                {t(tab === "sell" ? "List Your Property" : "Search Properties")}
+                <span className="pkr-search-submit-label">{t(tab === "sell" ? "List Your Property" : "Search Properties")}</span>
                 <ArrowIcon className="pkr-search-submit-arrow" />
               </button>
             </div>

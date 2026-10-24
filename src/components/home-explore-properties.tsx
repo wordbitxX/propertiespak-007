@@ -28,6 +28,7 @@ export function HomeExploreProperties({ properties, total, citySlug }: { propert
       pageSize={16}
       autoPlay
       autoPlayDirection="backward"
+      mobileFeaturedLook
     />
   ) :
     <div className="home-explore-grid mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

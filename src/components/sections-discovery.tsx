@@ -23,103 +23,153 @@ function withCityFilter(href: string, citySlug?: string) {
 
 const CATEGORY_TILES = [
   {
+    key: "houses",
     label: "Houses",
-    subtitle: "Family living at its best",
+    subtitle: "Villas & homes",
     href: "/properties?category=house",
     image: "/images/categories/houses-hd.webp",
     countKeys: ["house", "farmhouse"],
   },
   {
+    key: "apartments",
     label: "Apartments",
-    subtitle: "Modern lifestyle",
+    subtitle: "Modern flats",
     href: "/properties?category=apartment",
     image: "/images/categories/apartments-hd.webp",
     countKeys: ["apartment", "penthouse"],
   },
   {
+    key: "plots",
     label: "Plots",
-    subtitle: "Build your future",
+    subtitle: "Files & land",
     href: "/properties?category=plot",
     image: "/images/categories/plots-hd.webp",
     countKeys: ["plot", "land", "plot_file", "plot_form", "agricultural_land", "commercial_plot", "industrial_land"],
   },
   {
+    key: "commercial",
     label: "Commercial",
-    subtitle: "Grow your business",
+    subtitle: "Shops & offices",
     href: "/properties/commercial",
     image: "/images/categories/commercial-hd.webp",
     countKeys: ["office", "shop", "building", "warehouse", "commercial", "factory", "other"],
   },
   {
+    key: "projects",
     label: "New Projects",
-    subtitle: "Invest in tomorrow",
+    subtitle: "New launches",
     href: "/projects",
     image: "/images/categories/new-projects-hd.webp",
     countKeys: [],
   },
   {
+    key: "societies",
     label: "Towns & Societies",
-    subtitle: "Secure communities",
+    subtitle: "Area guides",
     href: "/towns",
     image: "/images/categories/towns-societies-hd.webp",
     countKeys: [],
   },
 ] as const;
 
+function CategoryMiniIcon({ kind }: { kind: (typeof CATEGORY_TILES)[number]["key"] }) {
+  switch (kind) {
+    case "houses":
+      return (
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true" className="category-compact-badge-svg">
+          <path d="M3.5 11 12 4l8.5 7M5.5 9.5V19a1.2 1.2 0 0 0 1.2 1.2h10.6a1.2 1.2 0 0 0 1.2-1.2V9.5M9.8 20.2v-5.2h4.4v5.2" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "apartments":
+      return (
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true" className="category-compact-badge-svg">
+          <path d="M5 20V5a1.4 1.4 0 0 1 1.4-1.4h7.2A1.4 1.4 0 0 1 15 5v15M15 9.5h3A1.4 1.4 0 0 1 19.4 11v9M3.5 20h17M8.2 7.5h1.4M11.2 7.5h1.4M8.2 11h1.4M11.2 11h1.4M8.2 14.5h1.4M11.2 14.5h1.4" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "plots":
+      return (
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true" className="category-compact-badge-svg">
+          <path d="M4.5 6.5 10 4.5l4.5 2 5-2v13l-5 2-4.5-2-5.5 2v-13ZM10 4.5v13M14.5 6.5v13" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "commercial":
+      return (
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true" className="category-compact-badge-svg">
+          <path d="M4 9.5 5.6 4.5h12.8L20 9.5M5.2 10v9a1.3 1.3 0 0 0 1.3 1.3h11a1.3 1.3 0 0 0 1.3-1.3v-9M9.8 20.3v-5h4.4v5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "projects":
+      return (
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true" className="category-compact-badge-svg">
+          <path d="M4 20h16M7.5 20V7.5h12M7.5 4v16M4.5 7.5h15l-3-3.5h-9M16.5 7.5v4.2" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "societies":
+      return (
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true" className="category-compact-badge-svg">
+          <path d="M12 20.5s6.2-5.3 6.2-10.3a6.2 6.2 0 1 0-12.4 0c0 5 6.2 10.3 6.2 10.3Z" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="12" cy="10" r="2.2" stroke="currentColor" strokeWidth="1.9" />
+        </svg>
+      );
+  }
+}
+
 export function CategoryGrid({ counts, citySlug }: { counts: Record<string, number>; citySlug?: string }) {
   return (
     <section id="property-categories" className="home-categories-section" aria-labelledby="categories-heading">
       <div className="ui-container">
-        <div className="category-showcase-card">
+        <div className="category-showcase-card category-showcase-card--compact">
           <div className="category-showcase-header">
-            <div>
-              <p className="category-showcase-eyebrow">BROWSE BY CATEGORY</p>
+            <div className="category-showcase-heading-copy">
+              <p className="category-showcase-eyebrow">
+                <TranslatedText text="BROWSE BY CATEGORY" />
+              </p>
               <h2 id="categories-heading" className="category-showcase-title">
-                <span className="category-showcase-title-desktop">Explore Properties by Category</span>
-                <span className="category-showcase-title-mobile">Categories</span>
+                <TranslatedText text="Explore Properties by Category" />
               </h2>
-              <p className="category-showcase-subtitle">Find the right property, right here.</p>
             </div>
-            <Link href="/properties" className="category-showcase-viewall">
-              <span>View All Categories</span>
+            <Link href={withCityFilter("/properties", citySlug)} className="category-showcase-viewall">
+              <span>
+                <TranslatedText text="View All Categories" />
+              </span>
               <IconArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
 
           <div
-            className="category-showcase-grid"
+            className="category-compact-grid"
             data-testid="home-type-rail"
             role="region"
             aria-label="Property categories"
           >
             {CATEGORY_TILES.map((tile) => {
               const count = tile.countKeys.reduce((total, key) => total + (counts[key] ?? 0), 0);
-              const jpgFallback = tile.image.replace(/\.webp$/, ".jpg");
+              const fallbackSrc = tile.image.replace(/-hd\.webp$/, ".webp");
               return (
-                <Link key={tile.label} href={withCityFilter(tile.href, citySlug)} className="category-tile-card group">
-                  <div className="zoom-frame category-tile-media">
+                <Link key={tile.key} href={withCityFilter(tile.href, citySlug)} className="category-compact-box group">
+                  <span className="category-compact-thumb">
                     <ResilientImage
                       src={tile.image}
-                      fallbackSrc={jpgFallback}
+                      fallbackSrc={fallbackSrc}
                       alt={tile.label}
-                      width={1408}
-                      height={768}
+                      width={360}
+                      height={220}
                       loading="lazy"
                       decoding="async"
-                      className="h-full w-full object-cover"
+                      className="category-compact-img"
                     />
-                  </div>
-                  <div className="category-tile-body">
-                    <div className="min-w-0 flex-1">
-                      <h3 className="category-tile-title">{tile.label}</h3>
-                      <p className="category-tile-copy" title={count > 0 ? `${count} properties` : undefined}>
-                        {tile.subtitle}
-                      </p>
-                    </div>
-                    <span className="category-tile-chevron" aria-hidden="true">
-                      ›
+                    <span className="category-compact-badge" aria-hidden="true">
+                      <CategoryMiniIcon kind={tile.key} />
                     </span>
-                  </div>
+                  </span>
+                  <span className="category-compact-copy">
+                    <span className="category-compact-title">
+                      <TranslatedText text={tile.label} />
+                    </span>
+                    <span className="category-compact-sub">
+                      {count > 0 ? `${count} ${count === 1 ? "Property" : "Properties"}` : tile.subtitle}
+                    </span>
+                  </span>
                 </Link>
               );
             })}
@@ -185,7 +235,7 @@ function listedTime(createdAt: Date | string) {
 }
 
 function RecentPropertyCard({ property }: { property: Property }) {
-  return <PropertyCard property={property} compact dateLabel={listedTime(property.createdAt)} />;
+  return <PropertyCard property={property} compact mobileFeaturedLook dateLabel={listedTime(property.createdAt)} />;
 }
 
 export function RecentlyAddedProperties({ properties, citySlug }: { properties: Property[]; citySlug?: string }) {
@@ -409,10 +459,10 @@ export function NewProjectsSection({ projects, citySlug }: { projects: Project[]
             description="Compare locations, payment plans and handover details."
             action={{ label: "View all", href: withCityFilter("/projects", citySlug) }}
           />
-          <MobileScrollGrid label="New housing projects" autoPlay testId="project-rail">
+          <MobileScrollGrid label="New housing projects" autoPlay className="home-project-rail" testId="project-rail">
             {projects.slice(0, 8).map((project) => (
               <div key={project.slug} className="home-project-item">
-                <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-[#E6EAE7] bg-white shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-card">
+                <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-[#E6EAE7] bg-white shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-card">
                   <Link
                     href={`/projects/${project.slug}`}
                     className="zoom-frame relative block aspect-[16/10] overflow-hidden bg-soft"
@@ -426,10 +476,16 @@ export function NewProjectsSection({ projects, citySlug }: { projects: Project[]
                       decoding="async"
                       className="h-full w-full object-cover"
                     />
-                    <span className="absolute left-3.5 top-3.5 rounded-md bg-[#0B2A20]/90 px-2.5 py-1 font-sans text-[0.7rem] font-bold uppercase tracking-[0.12em] text-[#DFB872] backdrop-blur-sm">
+                    <span className="pointer-events-none absolute inset-0 hidden bg-gradient-to-t from-black/30 via-transparent to-transparent max-md:block" />
+                    <span className="home-project-badge-desktop absolute left-3.5 top-3.5 rounded-md bg-[#0B2A20]/90 px-2.5 py-1 font-sans text-[0.7rem] font-bold uppercase tracking-[0.12em] text-[#DFB872] backdrop-blur-sm">
                       {project.status}
                     </span>
                   </Link>
+                  <div className="home-project-pills-mobile pointer-events-none absolute left-2.5 top-2.5 hidden flex-wrap items-center gap-1.5">
+                    <span className="rounded-full bg-[#0D382A] px-2.5 py-[3px] font-sans text-[0.7rem] font-semibold text-white shadow-sm">
+                      {project.status}
+                    </span>
+                  </div>
                   <div className="home-project-content flex flex-1 flex-col p-5">
                     <h3 className="home-project-title font-sans text-[1.05rem] font-bold text-[#0D261D]">
                       <Link href={`/projects/${project.slug}`} className="hover:text-[#0D382A]">
@@ -468,6 +524,29 @@ export function NewProjectsSection({ projects, citySlug }: { projects: Project[]
                       </div>
                     </div>
                   </div>
+                  <div className="home-project-body-mobile hidden min-w-0 flex-1 flex-col">
+                    <div className="flex min-w-0 items-center justify-between gap-2">
+                      <p className="min-w-0 truncate font-sans text-[1rem] font-bold leading-tight tracking-[-0.02em] text-[#0D261D]">
+                        {formatPrice(project.startingPrice)}
+                      </p>
+                      <span className="property-card-type-detail-pill hidden" aria-label={`Project type: ${project.projectType}`}>
+                        <span className="property-card-type-detail-dot" aria-hidden="true" />
+                        <span className="truncate">{project.projectType}</span>
+                      </span>
+                    </div>
+                    <h3 className="mt-1.5 line-clamp-2 font-sans text-[0.93rem] font-bold leading-snug text-[#0D261D]">
+                      <Link href={`/projects/${project.slug}`} className="transition-colors hover:text-[#136F46]">
+                        {project.name} • {project.location}
+                      </Link>
+                    </h3>
+                    <div className="mt-auto pt-2.5">
+                      <div className="hairline border-[#EBF0EC]" />
+                      <div className="mt-2.5 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-[0.72rem] font-medium text-[#4F6158]">
+                        <span className="truncate">{project.developer}</span>
+                        <span className="whitespace-nowrap">Handover {project.completion}</span>
+                      </div>
+                    </div>
+                  </div>
                 </article>
               </div>
             ))}
@@ -491,6 +570,7 @@ export function CommercialSection({ properties, total, citySlug }: { properties:
               query={withCityFilter("/properties?category=commercial", citySlug).split("?")[1]}
               label="Commercial properties"
               autoPlay
+              mobileFeaturedLook
             />
           ) : (
             <p className="mt-4 text-sm text-ink-muted">No commercial listings available yet.</p>
