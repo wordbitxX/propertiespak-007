@@ -22,6 +22,10 @@ const TRENDING_SHORTCUTS = [
   { label: "Plots on Installments Lahore", href: "/plots-on-installments-in-lahore" },
   { label: "Houses in Islamabad", href: "/houses-for-sale-in-islamabad" },
   { label: "Apartments in Karachi", href: "/apartments-for-sale-in-karachi" },
+  { label: "Houses for Sale in Karachi", href: "/properties/for-sale?city=karachi&type=House" },
+  { label: "Plots for Sale in Islamabad", href: "/properties/for-sale?city=islamabad&type=Plot" },
+  { label: "Apartments for Rent in Lahore", href: "/properties/for-rent?city=lahore&type=Apartment" },
+  { label: "Commercial Property in Karachi", href: "/properties/commercial?city=karachi" },
   { label: "Society PDF Maps (DHA & Bahria)", href: "/maps" },
 ] as const;
 

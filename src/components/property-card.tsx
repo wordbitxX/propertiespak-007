@@ -4,7 +4,7 @@ import { IconArea, IconArrowRight, IconBath, IconBed, IconEye, IconPin } from "@
 import { FavoriteButton } from "@/components/favorite-button";
 import { CompareToggle } from "@/components/compare-toggle";
 import type { Property } from "@/db/schema";
-import { compactPropertyTitle, formatArea, formatNumber, formatPrice } from "@/lib/format";
+import { formatArea, formatNumber, formatPrice } from "@/lib/format";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { computePropertyScore, pricePerSqft } from "@/lib/score";
 import { BlueTick } from "@/components/verified-badge";
@@ -39,15 +39,9 @@ function typePillClass(property: Pick<Property, "propertyType" | "category">) {
   return TYPE_PILL[byType ?? property.category] ?? "bg-white/95 text-[#0D382A]";
 }
 
-function formatPkrNumeric(price: number | string, purpose: string): { main: string; suffix?: string } {
+function formatPkrNumeric(price: number | string, purpose: string): { main: string } {
   const num = typeof price === "number" ? price : Number(price);
-  if (!Number.isFinite(num) || num <= 0) {
-    return { main: formatPrice(num, purpose === "rent" ? "month" : "total") };
-  }
-  return {
-    main: `PKR ${Math.round(num).toLocaleString("en-US")}`,
-    suffix: purpose === "rent" ? " / Month" : undefined,
-  };
+  return { main: formatPrice(num, purpose === "rent" ? "month" : "total") };
 }
 
 export function PropertyCard({
@@ -56,11 +50,13 @@ export function PropertyCard({
   className = "",
   compact = false,
   variant = "default",
+  dateLabel,
 }: {
   property: Property | PropertyWithDealer;
   priority?: boolean;
   className?: string;
   compact?: boolean;
+  dateLabel?: string;
   /** "featured": type + purpose pills on the left and a "Featured" pill on the right (homepage premium rail). */
   variant?: "default" | "featured";
 }) {
@@ -73,11 +69,23 @@ export function PropertyCard({
   const pkr = formatPkrNumeric(property.price, property.purpose);
   const areaLabel =
     property.areaSqft > 0
-      ? `${Math.round(property.areaSqft).toLocaleString("en-US")} Sq Ft`
+      ? `${Math.round(property.areaSqft).toLocaleString("en-PK")} sq ft`
       : formatArea(property.areaValue, property.areaUnit);
+  const descriptorArea =
+    property.areaValue > 0
+      ? formatArea(property.areaValue, property.areaUnit)
+      : property.areaSqft > 0
+        ? formatArea(property.areaSqft, "sqft")
+        : "";
+  const propertyDescriptor = [
+    descriptorArea,
+    property.propertyType,
+  ]
+    .filter(Boolean)
+    .join(" ") + ` • ${property.locationArea || property.cityName}`;
   const titleClass = compact
-    ? "line-clamp-1 min-h-[1.35em] text-[0.95rem]"
-    : "line-clamp-2 text-[1.0625rem]";
+    ? "line-clamp-2 text-[0.88rem]"
+    : "line-clamp-2 text-[0.98rem]";
 
   return (
     <article
@@ -91,7 +99,7 @@ export function PropertyCard({
         className={`zoom-frame relative block overflow-hidden bg-soft ${compact ? "aspect-[16/10]" : "aspect-[4/3]"}`}
       >
         <ResilientImage
-          src={property.coverImage || property.images[0] || "/images/fallbacks/property-1-hd.webp"}
+          src={property.images[0] || property.coverImage || "/images/fallbacks/property-1-hd.webp"}
           alt={`${property.title} — ${property.propertyType} in ${property.locationArea}, ${property.cityName}`}
           width={1200}
           height={800}
@@ -150,53 +158,55 @@ export function PropertyCard({
         </>
       )}
 
-      <div className={`flex min-w-0 flex-1 flex-col ${compact ? "p-3.5" : "p-5"}`}>
-        <h3 className={`font-sans font-bold leading-snug text-[#0D261D] ${titleClass}`}>
-          <Link href={`/property/${property.slug}`} className="transition-colors hover:text-[#136F46]">
-            {compact ? compactPropertyTitle(property.title) : property.title}
+      <div className={`property-card-content flex min-w-0 flex-1 flex-col ${compact ? "p-3.5" : "p-5"}`}>
+        <div className="property-card-price-block flex min-w-0 items-baseline">
+          <p className={`font-sans font-bold leading-tight tracking-[-0.02em] text-[#0D261D] ${compact ? "text-[1rem]" : "text-[1.2rem]"}`}>
+            {pkr.main}
+          </p>
+        </div>
+
+        <h3 className={`property-card-title mt-1.5 font-sans font-bold leading-snug text-[#0D261D] ${titleClass}`}>
+          <Link
+            href={`/property/${property.slug}`}
+            title={property.title}
+            aria-label={`${property.title}. ${propertyDescriptor}`}
+            className="transition-colors hover:text-[#136F46]"
+          >
+            {propertyDescriptor}
           </Link>
         </h3>
 
-        <p className={`mt-1 flex items-center gap-1 text-[#66776E] ${compact ? "text-[0.76rem]" : "text-[0.84rem]"}`}>
-          {!compact && <IconPin className="h-3.5 w-3.5 shrink-0 text-[#0D382A]" />}
-          <span className="truncate">
-            {compact ? property.cityName : `${property.locationArea}, ${property.cityName}`}
-          </span>
-        </p>
-
-        <div className="property-card-price-block mt-2 flex min-w-0 flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
-          <p className={`font-sans font-bold leading-tight tracking-[-0.02em] text-[#0D261D] ${compact ? "text-[0.95rem]" : "text-[1.2rem]"}`}>
-            {pkr.main}
-            {pkr.suffix && <span className="text-[0.75rem] font-medium text-[#66776E]">{pkr.suffix}</span>}
-          </p>
-          <span className="sr-only">{property.propertyType}</span>
-        </div>
-
         {!compact && (
-          <p className="mt-1.5 text-[0.75rem] text-ink-muted">
+          <p className="property-card-price-details mt-1 text-[0.72rem] text-ink-muted">
             {pps > 0 ? `≈ PKR ${pps.toLocaleString("en-PK")} / sq ft` : CATEGORY_LABELS[property.category] ?? property.propertyType}
             {" · "}
             <span className="font-semibold text-[#0D382A]">Score {score.overall}/10</span>
           </p>
         )}
 
-        <div className="mt-auto pt-2.5">
+        <div className="property-card-facts mt-auto pt-2.5">
           <div className="hairline border-[#EBF0EC]" />
           <div
-            className={`flex flex-wrap items-center justify-between gap-y-1 font-medium text-[#4F6158] ${
+            className={`property-card-specs flex flex-wrap items-center justify-between gap-y-1 font-medium text-[#4F6158] ${
               compact ? "mt-2.5 gap-x-2 text-[0.72rem]" : "mt-3 gap-x-3.5 text-[0.8rem]"
             }`}
           >
-            <span className="inline-flex items-center gap-1 whitespace-nowrap">
-              <IconBed className="h-3.5 w-3.5 text-[#687A71]" /> {property.bedrooms ?? 0} Beds
-            </span>
-            <span className="inline-flex items-center gap-1 whitespace-nowrap">
-              <IconBath className="h-3.5 w-3.5 text-[#687A71]" /> {property.bathrooms ?? 0} Baths
-            </span>
+            {property.bedrooms > 0 && (
+              <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                <IconBed className="h-3.5 w-3.5 text-[#687A71]" /> {property.bedrooms} Beds
+              </span>
+            )}
+            {property.bathrooms > 0 && (
+              <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                <IconBath className="h-3.5 w-3.5 text-[#687A71]" /> {property.bathrooms} Baths
+              </span>
+            )}
             <span className="inline-flex items-center gap-1 whitespace-nowrap">
               <IconArea className="h-3.5 w-3.5 text-[#687A71]" /> {areaLabel}
             </span>
           </div>
+
+          {dateLabel && <p className="property-card-date-label mt-2 text-[0.68rem] text-[#687A71]">{dateLabel}</p>}
 
           {!compact && (
             <div className="mt-3.5 flex items-center justify-between gap-3">

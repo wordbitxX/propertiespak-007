@@ -11,7 +11,9 @@ export async function GET(request: Request) {
     const idsParam = searchParams.get("ids");
     if (idsParam) {
       const ids = [...new Set(idsParam.split(",").map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))].slice(0, 100);
-      const items = await getPropertiesByIds(ids);
+      const city = searchParams.get("city");
+      const found = await getPropertiesByIds(ids);
+      const items = city ? found.filter((item) => item.citySlug === city) : found;
       return NextResponse.json({ ok: true, total: items.length, items });
     }
 

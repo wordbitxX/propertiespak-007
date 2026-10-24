@@ -139,7 +139,7 @@ export async function ListingView({
         </div>
       )}
 
-      <section className="bg-white py-12 lg:py-16">
+      <section className="listing-results-section bg-white py-12 lg:py-16">
         <div className="ui-container">
           <FiltersBar
             basePath={basePath}
@@ -168,7 +168,7 @@ export async function ListingView({
             </div>
           ) : (
             <>
-              <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="property-results-grid mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {result.items.map((property, index) => (
                   <Reveal key={property.id} delay={index * 40}>
                     <PropertyCard property={property} priority={index < 4} />

@@ -4,13 +4,48 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { IconArrowRight } from "@/components/icons";
 
 /** A native horizontal rail with optional paused auto-advancement at every breakpoint. */
-export function MobileScrollGrid({ children, label, autoPlay = false, className = "", testId = "scroll-rail" }: { children: ReactNode; label: string; autoPlay?: boolean; className?: string; testId?: string }) {
+export function MobileScrollGrid({
+  children,
+  label,
+  autoPlay = false,
+  autoPlayMobileOnly = false,
+  autoPlayInterval = 4200,
+  autoPlayStartDelay = 0,
+  className = "",
+  trackClassName = "",
+  trackRole,
+  trackAriaLabel,
+  testId = "scroll-rail",
+}: {
+  children: ReactNode;
+  label: string;
+  autoPlay?: boolean;
+  autoPlayMobileOnly?: boolean;
+  autoPlayInterval?: number;
+  autoPlayStartDelay?: number;
+  className?: string;
+  trackClassName?: string;
+  trackRole?: "list";
+  trackAriaLabel?: string;
+  testId?: string;
+}) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const interactionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [position, setPosition] = useState({ left: 0, full: 0, width: 0 });
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const [interactionPaused, setInteractionPaused] = useState(false);
+  const [mobileViewport, setMobileViewport] = useState(false);
+  const activeAutoPlay = autoPlay && (!autoPlayMobileOnly || mobileViewport);
+
+  useEffect(() => {
+    if (!autoPlayMobileOnly) return;
+    const media = window.matchMedia("(max-width: 767px)");
+    const update = () => setMobileViewport(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, [autoPlayMobileOnly]);
 
   const measure = useCallback(() => {
     const element = viewportRef.current;
@@ -42,7 +77,7 @@ export function MobileScrollGrid({ children, label, autoPlay = false, className 
 
   useEffect(() => {
     const viewport = viewportRef.current;
-    if (!autoPlay || !viewport || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!activeAutoPlay || !viewport || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     let visible = false;
     const visibility = new IntersectionObserver((entries) => {
@@ -50,7 +85,7 @@ export function MobileScrollGrid({ children, label, autoPlay = false, className 
     }, { threshold: 0.15 });
     visibility.observe(viewport);
 
-    const timer = window.setInterval(() => {
+    const advance = () => {
       const rail = viewportRef.current;
       if (!rail || !visible || document.hidden || hovered || focused || interactionPaused) return;
       const maxScroll = rail.scrollWidth - rail.clientWidth;
@@ -62,13 +97,16 @@ export function MobileScrollGrid({ children, label, autoPlay = false, className 
       const card = rail.firstElementChild as HTMLElement | null;
       const gap = parseFloat(getComputedStyle(rail).columnGap || getComputedStyle(rail).gap) || 14;
       rail.scrollBy({ left: (card?.getBoundingClientRect().width ?? 276) + gap, behavior: "smooth" });
-    }, 4200);
+    };
+    const timer = window.setInterval(advance, autoPlayInterval);
+    const initialTimer = autoPlayStartDelay > 0 ? window.setTimeout(advance, autoPlayStartDelay) : null;
 
     return () => {
       window.clearInterval(timer);
+      if (initialTimer) window.clearTimeout(initialTimer);
       visibility.disconnect();
     };
-  }, [autoPlay, hovered, focused, interactionPaused]);
+  }, [activeAutoPlay, autoPlayInterval, autoPlayStartDelay, hovered, focused, interactionPaused]);
 
   function move(direction: -1 | 1) {
     const element = viewportRef.current;
@@ -77,22 +115,23 @@ export function MobileScrollGrid({ children, label, autoPlay = false, className 
     const gap = parseFloat(getComputedStyle(element).columnGap || getComputedStyle(element).gap) || 14;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     element.scrollBy({ left: direction * ((card?.getBoundingClientRect().width ?? 276) + gap), behavior: reducedMotion ? "instant" : "smooth" });
-    if (autoPlay) pauseForUser();
+    if (activeAutoPlay) pauseForUser();
   }
 
   return <div
-    className={`mobile-scroll-grid${autoPlay ? " mobile-scroll-grid--autoplay" : ""}${className ? ` ${className}` : ""}`}
+    className={`mobile-scroll-grid${activeAutoPlay ? " mobile-scroll-grid--autoplay" : ""}${className ? ` ${className}` : ""}`}
     data-testid={testId}
-    data-auto-play={autoPlay ? "true" : undefined}
-    onMouseEnter={() => { if (autoPlay) setHovered(true); }}
-    onMouseLeave={() => { if (autoPlay) setHovered(false); }}
-    onFocusCapture={() => { if (autoPlay) setFocused(true); }}
+    data-auto-play={activeAutoPlay ? "true" : undefined}
+    data-auto-play-interval={activeAutoPlay ? autoPlayInterval : undefined}
+    onMouseEnter={() => { if (activeAutoPlay) setHovered(true); }}
+    onMouseLeave={() => { if (activeAutoPlay) setHovered(false); }}
+    onFocusCapture={() => { if (activeAutoPlay) setFocused(true); }}
     onBlurCapture={(event) => {
-      if (autoPlay && !event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false);
+      if (activeAutoPlay && !event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false);
     }}
   >
     <div className="mobile-scroll-toolbar">
-      <span>{autoPlay ? "Auto-advances with pauses" : "Swipe to explore"}</span>
+      <span>{activeAutoPlay ? "Auto-advances with pauses" : "Swipe to explore"}</span>
       <div className="property-rail-controls">
         <button type="button" aria-label={`Previous ${label.toLowerCase()}`} disabled={position.left < 2} onClick={() => move(-1)}><IconArrowRight className="h-4 w-4 rotate-180" /></button>
         <button type="button" aria-label={`Next ${label.toLowerCase()}`} disabled={position.width > 0 && position.left + position.width >= position.full - 2} onClick={() => move(1)}><IconArrowRight className="h-4 w-4" /></button>
@@ -100,13 +139,13 @@ export function MobileScrollGrid({ children, label, autoPlay = false, className 
     </div>
     <div
       ref={viewportRef}
-      role="region"
-      aria-label={label}
+      role={trackRole ?? "region"}
+      aria-label={trackAriaLabel ?? label}
       tabIndex={0}
       onScroll={measure}
-      onPointerDown={() => { if (autoPlay) pauseForUser(); }}
-      onWheel={() => { if (autoPlay) pauseForUser(); }}
-      className="mobile-scroll-track"
+      onPointerDown={() => { if (activeAutoPlay) pauseForUser(); }}
+      onWheel={() => { if (activeAutoPlay) pauseForUser(); }}
+      className={`mobile-scroll-track${trackClassName ? ` ${trackClassName}` : ""}`}
     >{children}</div>
   </div>;
 }

@@ -1,12 +1,14 @@
 "use client";
 
-import { useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useState, type FormEvent } from "react";
+import { HeaderPropertyMap } from "@/components/header-property-map";
+import { NavigationDialog } from "@/components/navigation-dialog";
 import { useLanguage } from "@/components/language-provider";
-import { IconArrowRight, IconSearch } from "@/components/icons";
+import { IconArrowRight, IconMap, IconSearch } from "@/components/icons";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { LocationAutocomplete } from "@/components/location-autocomplete";
 import {
-  areaFactor, defaultPropertySearch, nonNegativeNumber, SEARCH_CITIES, SEARCH_GROUPS,
+  areaFactor, defaultPropertySearch, nonNegativeNumber, propertySearchFromParams, propertySearchParams, SEARCH_CITIES, SEARCH_GROUPS,
   searchTypeLabel, typesForGroup, type PropertySearchState, type SearchAreaUnit,
 } from "@/lib/property-search";
 
@@ -71,6 +73,17 @@ export function PropertySearchFilters({ initialState, onClose, onSearch, pending
   const prefix = useId();
   const [state, setState] = useState<PropertySearchState>(initialState);
   const [error, setError] = useState("");
+  const [agencies, setAgencies] = useState<string[]>([]);
+  const [mapOpen, setMapOpen] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/agencies")
+      .then((response) => response.json() as Promise<{ agencies?: string[] }>)
+      .then((result) => { if (active) setAgencies(result.agencies ?? []); })
+      .catch(() => { if (active) setAgencies([]); });
+    return () => { active = false; };
+  }, []);
   const city = SEARCH_CITIES.find((item) => item.slug === state.city);
   const id = (name: string) => `${prefix}-${name}`;
   function set<K extends keyof PropertySearchState>(key: K, value: PropertySearchState[K]) {
@@ -97,13 +110,14 @@ export function PropertySearchFilters({ initialState, onClose, onSearch, pending
   }
 
   return (
+    <>
     <form className="property-filter-panel" aria-label={t("Find a property")} onSubmit={submit} aria-busy={pending}>
       <div className="property-filter-heading">
         <button type="button" data-dialog-initial onClick={onClose} className="filter-back" aria-label={t("Close search")}>
           <IconArrowRight className="h-5 w-5 rotate-180" />
         </button>
-        <h2>{t("Search Properties")}</h2>
-        <button type="button" onClick={onClose} className="filter-done">{t("Close")}</button>
+        <h2>{t("Filters")}</h2>
+        <button type="button" onClick={onClose} className="filter-done">{t("Done")}</button>
       </div>
       <div className="property-filter-scroll">
         {(state.featured || state.newProjects || state.originalCategory || state.furnishing || state.possession) && <div className="filter-context">
@@ -136,12 +150,17 @@ export function PropertySearchFilters({ initialState, onClose, onSearch, pending
           </div>
           <div>
             <label htmlFor={id("location")} className="filter-label">{t("Select location")}</label>
-            <LocationAutocomplete id={id("location")} value={state.town} onChange={(value) => set("town", value)}
-              citySlug={state.city} cityName={city?.name} placeholder={t("Society, town or area")} onSelect={(suggestion) => {
-                const matchingCity = SEARCH_CITIES.find((item) => suggestion.label.toLowerCase() === item.name.toLowerCase());
-                if (matchingCity) setState((current) => ({ ...current, city: matchingCity.slug, town: "", townExact: false }));
-                else set("town", suggestion.label.replace(new RegExp(`,\\s*${city?.name ?? "__none__"}$`, "i"), ""));
-              }} />
+            <div className="filter-location-with-map">
+              <LocationAutocomplete id={id("location")} value={state.town} onChange={(value) => set("town", value)}
+                citySlug={state.city} cityName={city?.name} placeholder={t("Society, town or area")} onSelect={(suggestion) => {
+                  const matchingCity = SEARCH_CITIES.find((item) => suggestion.label.toLowerCase() === item.name.toLowerCase());
+                  if (matchingCity) setState((current) => ({ ...current, city: matchingCity.slug, town: "", townExact: false }));
+                  else set("town", suggestion.label.replace(new RegExp(`,\\s*${city?.name ?? "__none__"}$`, "i"), ""));
+                }} />
+              <button type="button" className="filter-map-trigger" onClick={() => setMapOpen(true)}>
+                <IconMap className="h-4 w-4" />{t("Map")}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -225,6 +244,13 @@ export function PropertySearchFilters({ initialState, onClose, onSearch, pending
           <FilterSwitch label="Show ads with videos only" checked={state.withVideos} onChange={(value) => set("withVideos", value)} />
           <FilterSwitch label="Show ads with images only" checked={state.withImages} onChange={(value) => set("withImages", value)} />
         </div>
+        <div className="filter-section">
+          <label htmlFor={id("agency")} className="filter-label">{t("Select agency")}</label>
+          <select id={id("agency")} className="field" value={state.agency} onChange={(event) => set("agency", event.target.value)}>
+            <option value="">{t("All agencies")}</option>
+            {agencies.map((agency) => <option key={agency} value={agency}>{agency}</option>)}
+          </select>
+        </div>
       </div>
       {error && <p role="alert" className="filter-error filter-error-dock">{error}</p>}
       <div className="property-filter-footer">
@@ -232,5 +258,22 @@ export function PropertySearchFilters({ initialState, onClose, onSearch, pending
         <button type="submit" disabled={pending} className="btn btn-green"><IconSearch className="h-4 w-4" />{t(pending ? "Searching…" : "Find properties")}</button>
       </div>
     </form>
+    {mapOpen && (
+      <NavigationDialog
+        label={t("Property map")}
+        className="property-map-dialog"
+        onDismiss={() => setMapOpen(false)}
+      >
+        <HeaderPropertyMap
+          initialQuery={propertySearchParams(state).toString()}
+          onClose={() => setMapOpen(false)}
+          onFilters={(query) => {
+            setState(propertySearchFromParams(new URLSearchParams(query), state.purpose));
+            setMapOpen(false);
+          }}
+        />
+      </NavigationDialog>
+    )}
+    </>
   );
 }

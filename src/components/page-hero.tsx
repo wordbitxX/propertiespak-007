@@ -18,7 +18,7 @@ export function PageHero({
   align?: "left" | "center";
 }) {
   return (
-    <section className="relative isolate overflow-hidden bg-[#061610] pb-14 pt-28 lg:pb-20 lg:pt-36">
+    <section className="page-hero relative isolate overflow-hidden bg-[#061610] pb-14 pt-28 lg:pb-20 lg:pt-36">
       {/* Same night-villa photograph as the homepage hero, graded for legible white text. */}
       <div aria-hidden="true" className="inner-hero-photo pointer-events-none absolute inset-0" />
       <div

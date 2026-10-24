@@ -34,6 +34,8 @@ import { buildMetadata } from "@/lib/seo";
 import { ClientReviewsSection } from "@/components/reviews-section";
 import { HomeExploreProperties } from "@/components/home-explore-properties";
 import { RecentProperties } from "@/components/recent-properties";
+import { TrendingSocieties } from "@/components/trending-societies";
+import { SEARCH_CITIES } from "@/lib/property-search";
 
 export const metadata: Metadata = buildMetadata({
   title: "Properties Pak — Property for Sale & Rent in Pakistan | Pakistan Real Estate",
@@ -60,7 +62,20 @@ const QUICK_CHIPS = [
   { label: "Plots & files", href: "/properties?category=plot" },
 ];
 
-export default async function HomePage() {
+function withCityFilter(href: string, city?: string) {
+  if (!city) return href;
+  const [path, query = ""] = href.split("?");
+  const params = new URLSearchParams(query);
+  params.set("city", city);
+  return `${path}?${params.toString()}`;
+}
+
+type HomePageProps = { searchParams: Promise<{ city?: string | string[] }> };
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const params = await searchParams;
+  const rawCity = Array.isArray(params.city) ? params.city[0] : params.city;
+  const citySlug = SEARCH_CITIES.some((city) => city.slug === rawCity) ? rawCity : undefined;
   const [
     stats,
     featured,
@@ -80,21 +95,21 @@ export default async function HomePage() {
     heroStats,
   ] = await Promise.all([
     getPlatformStats(),
-    searchProperties({ featured: true, verified: true, pageSize: 8 }),
-    searchProperties({ sort: "newest", pageSize: 16 }),
-    getPropertyCategoryCounts(),
+    searchProperties({ featured: true, verified: true, pageSize: 8, city: citySlug }),
+    searchProperties({ sort: "newest", pageSize: 16, city: citySlug }),
+    getPropertyCategoryCounts(citySlug),
     getCities(),
     getCityListingCounts(),
-    getProjects(8),
-    searchProperties({ category: "commercial", pageSize: 8 }),
-    searchProperties({ category: "commercial", pageSize: 1 }),
-    searchProperties({ purpose: "rent", pageSize: 1 }),
+    getProjects(8, false, citySlug),
+    searchProperties({ category: "commercial", pageSize: 8, city: citySlug }),
+    searchProperties({ category: "commercial", pageSize: 1, city: citySlug }),
+    searchProperties({ purpose: "rent", pageSize: 1, city: citySlug }),
     getPosts(3),
     getDealerShowcase(48),
     getPopularSearches(),
     getApprovedReviews({ limit: 6 }),
     getReviewSummary(),
-    getHeroStats(),
+    getHeroStats(citySlug),
   ]);
 
   // "Premium Properties For You" is an admin-verified rail: only listings the
@@ -106,25 +121,18 @@ export default async function HomePage() {
 
   return (
     <div className="home-page">
-      <Hero stats={{ ...heroStats, maps: DHA_SOCIETY_MAPS.length + DEEP_ZOOM_MAPS.length }} />
+      <Hero key={citySlug ?? "global"} stats={{ ...heroStats, maps: DHA_SOCIETY_MAPS.length + DEEP_ZOOM_MAPS.length }} citySlug={citySlug} />
 
-      {/* 1. Featured Properties ("Premium Properties For You") */}
-      <FeaturedProperties properties={featuredItems} total={featuredTotal} />
-
-      {/* Explore more on Properties Pak — above the cities section */}
-      <ExploreMoreSection />
-
-      {/* 2. Explore Popular Cities */}
-      <CityDiscovery cities={cities} counts={cityCounts} />
-
-      {/* 5. Recently Added & Locally Viewed Properties */}
-      <RecentlyAddedProperties properties={discovery.items} />
-
-      {/* Verified Agencies (dhaplus "Registered Agencies" style) — right below Recently Added */}
+      {/* Desktop keeps its original premium-first order; mobile reorders these two rails. */}
+      <div className="home-featured-societies-order">
+        <FeaturedProperties properties={featuredItems} total={featuredTotal} citySlug={citySlug} />
+        <TrendingSocieties />
+      </div>
+      <CategoryGrid counts={categoryCounts} citySlug={citySlug} />
       <VerifiedAgenciesSection dealers={showcaseDealers} />
 
-      <RecentProperties />
-
+      {/* Fresh inventory and browse tools stay close to the premium listings. */}
+      <RecentlyAddedProperties properties={discovery.items} citySlug={citySlug} />
       {/* 6. Property Discovery */}
       <Section tone="mist" id="explore">
         <div className="ui-container">
@@ -133,31 +141,34 @@ export default async function HomePage() {
               eyebrow="Property discovery"
               title="Explore Properties"
               description="Find spaces that match the way you live, work and invest."
-              action={{ label: "Advanced search", href: "/properties" }}
+              action={{ label: "View all", href: withCityFilter("/properties", citySlug) }}
             />
             <div className="mt-5 flex flex-wrap gap-2">
               {QUICK_CHIPS.map((chip) => (
-                <Link key={chip.href} href={chip.href} className="chip">
+                <Link key={chip.href} href={withCityFilter(chip.href, citySlug)} className="chip">
                   {chip.label}
                 </Link>
               ))}
             </div>
-            <HomeExploreProperties properties={discovery.items} total={discovery.total} />
+            <HomeExploreProperties properties={discovery.items} total={discovery.total} citySlug={citySlug} />
             <div className="mt-8 flex justify-center">
-              <Link href="/properties" className="btn btn-primary">
-                View all {stats.listings} properties
+              <Link href={withCityFilter("/properties", citySlug)} className="btn btn-primary">
+                View all {heroStats.listings} properties
               </Link>
             </div>
           </div>
         </div>
       </Section>
 
-      {/* Browse By Category ("Explore Properties by Category") — right above Commercial */}
-      <CategoryGrid counts={categoryCounts} />
+      <RecentProperties citySlug={citySlug} />
 
-      {/* 7. Commercial, New Projects, Popular Searches & Tools */}
-      <CommercialSection properties={commercialListings.items} total={commercialListings.total} />
-      <NewProjectsSection projects={projects} />
+      {/* 7. Commercial and New Projects */}
+      <CommercialSection properties={commercialListings.items} total={commercialListings.total} citySlug={citySlug} />
+      <NewProjectsSection projects={projects} citySlug={citySlug} />
+
+      {/* Additional area discovery follows the project rail. */}
+      <ExploreMoreSection />
+      <CityDiscovery cities={cities} counts={cityCounts} />
       <PopularSearches groups={popularSearches} />
 
       {/* 8. Editorial, Investment Snapshot, Guides & Closing CTA */}
@@ -165,7 +176,7 @@ export default async function HomePage() {
 
       <InvestmentSection
         snapshot={{
-          projects: stats.projects,
+          projects: citySlug ? projects.length : stats.projects,
           commercial: commercialCount.total,
           cities: stats.cities,
           rentals: rentalCount.total,

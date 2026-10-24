@@ -1066,6 +1066,9 @@ html { scroll-padding-top: calc(var(--site-header-height) + 20px); }
 .filter-label { display: block; margin-bottom: 7px; font-size: .875rem; font-weight: 600; color: var(--color-navy-900); }
 .filter-location-grid { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0,1.5fr); gap: 14px; }
 .filter-location-grid > * { min-width: 0; }
+.filter-location-with-map { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 8px; }
+.filter-map-trigger { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; gap: 6px; padding: 0 13px; border: 1px solid #d7e4dc; border-radius: 9px; background: #fff; color: var(--color-forest-700); font-size: .8125rem; font-weight: 650; white-space: nowrap; }
+.filter-map-trigger:hover { background: var(--color-forest-50); }
 .filter-pills { display: flex; flex-wrap: wrap; gap: 7px; }
 .filter-pills button { min-height: 34px; padding: 6px 13px; border: 1px solid var(--color-soft); border-radius: 7px; font-size: .8125rem; color: var(--color-ink-muted); }
 .filter-pills button[aria-pressed="true"] { border-color: #9bccb0; background: var(--color-forest-50); color: var(--color-forest-700); font-weight: 600; }
@@ -1326,13 +1329,14 @@ html { scroll-padding-top: calc(var(--site-header-height) + 20px); }
   border: 1px solid rgba(11, 50, 36, 0.22);
   box-shadow: 0 18px 40px -22px rgba(6, 28, 20, 0.35);
 }
+.map-view-scroll-prev-icon { transform: rotate(180deg); }
 
 @media (max-width: 1023px) {
   .map-view-fullscreen .map-view-list--horizontal {
     display: flex;
     flex: 1 1 auto;
     height: auto;
-    min-height: 0;
+    min-height: 210px;
     max-height: none;
     flex-direction: column;
     overflow: hidden;
@@ -1388,14 +1392,27 @@ html { scroll-padding-top: calc(var(--site-header-height) + 20px); }
 .header-map-disclaimer { flex-shrink: 0; padding: 7px 18px max(8px, env(safe-area-inset-bottom, 0px)); border-top: 1px solid #dce4df; background: #ffffff; font-size: .73rem; line-height: 1.5; color: #54665d; }
 .leaflet-container { touch-action: none; }
 
-@media (max-width: 639px) {
-  .header-map-heading { padding-inline: 12px; }
-  .header-map-heading h2 { font-size: 0.92rem; }
-  .header-map-heading-actions { gap: 6px; }
-  .header-map-btn-ghost span,
-  .header-map-btn-gold span { display: none; }
-  .header-map-btn-ghost,
-  .header-map-btn-gold { padding: 0 9px; min-height: 34px; }
+@media (max-width: 1023px) {
+  .header-map-heading {
+    min-height: 70px;
+    gap: 8px;
+    padding: max(8px, env(safe-area-inset-top, 0px)) 12px 8px;
+  }
+  .header-map-heading-brand { flex: 1 1 auto; gap: 9px; }
+  .header-map-heading-icon { width: 36px; height: 36px; border-radius: 10px; }
+  .header-map-heading-icon svg { width: 18px; height: 18px; }
+  .header-map-heading-copy { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 4px; }
+  .header-map-heading-copy-main { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+  .header-map-heading .header-map-title { font-size: 0.82rem; line-height: 1.16; letter-spacing: -0.01em; }
+  .header-map-heading .header-map-count { gap: 4px; padding: 2px 7px; font-size: 0.56rem; letter-spacing: 0.1em; }
+  .header-map-heading .header-map-count svg { display: none; }
+  .header-map-heading-copy > p { display: none; }
+  .header-map-heading-actions { flex: 0 0 auto; gap: 6px; }
+  .header-map-pdf-action,
+  .header-map-filters-action,
+  .header-map-list-action { display: none; }
+  .header-map-nearby-action { display: none; }
+  .header-map-close { width: 36px; min-width: 36px; height: 36px; min-height: 36px; padding: 0; }
   .header-map-toolbar { padding: 8px 12px 10px; }
   .header-map-content { padding: 8px 10px; }
 }
@@ -7048,4 +7065,344 @@ body.lux-theme footer a:hover { color: var(--lux-gold-soft); }
 @media (max-width: 767px) {
   .home-explore-more .explore-more-icon { width: 56px; height: 56px; flex-basis: 56px; border-radius: 15px; }
   .explore-more-glyph { width: 30px; height: 30px; }
+}
+
+/* --------------------------------------------------------------------------
+   Mobile-first marketplace refresh (homepage + persistent bottom navigation)
+   Desktop rules above remain the source of truth at tablet/desktop widths.
+   -------------------------------------------------------------------------- */
+.mobile-city-selector { display: none; }
+.mobile-bottom-nav { display: none; }
+.pkr-search-advanced { display: none; }
+
+@media (max-width: 767px) {
+  :root { --site-header-height: calc(64px + env(safe-area-inset-top, 0px)); }
+
+  body { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
+
+  /* A calm, solid mobile header keeps the logo legible without a hero photograph. */
+  html:has(.pkr-hero--home) .site-header.site-header--overlay {
+    background: linear-gradient(112deg, #061a13 0%, #0a2d20 56%, #103a2a 100%);
+    color: #fff;
+    box-shadow: 0 8px 22px -15px rgba(3,22,15,.78);
+    --brand-name: #fff;
+    --brand-accent: #dfbe78;
+    --brand-tagline: rgba(255,255,255,.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .header-inner { height: 64px; gap: 8px; padding-inline: max(12px, env(safe-area-inset-left, 0px)); }
+  .header-brand { max-width: 48%; }
+  .brand-lockup--compact { gap: 7px; }
+  .brand-lockup--compact .brand-lockup-mark { width: 34px; height: 34px; }
+  .brand-lockup--compact .brand-lockup-name { font-size: 1rem; }
+  .brand-lockup--compact .brand-lockup-tagline { margin-top: 3px; font-size: .52rem; }
+  .mobile-city-selector { position: relative; display: block; flex: 0 0 auto; margin-inline-start: auto; color: #fff; }
+  .mobile-city-selector summary { display: inline-flex; min-height: 42px; align-items: center; gap: 5px; padding: 0 5px; border-radius: 9px; font-size: .75rem; font-weight: 650; list-style: none; cursor: pointer; }
+  .mobile-city-selector summary::-webkit-details-marker { display: none; }
+  .mobile-city-selector[open] summary { background: rgba(255,255,255,.12); }
+  .mobile-city-menu { position: absolute; top: calc(100% + 8px); right: 0; z-index: 90; display: grid; width: 190px; padding: 7px; border: 1px solid #e1e9e3; border-radius: 13px; background: #fff; box-shadow: 0 18px 40px -22px rgba(7,35,25,.42); }
+  .mobile-city-menu a { display: flex; min-height: 42px; align-items: center; padding: 0 11px; border-radius: 8px; color: #173c2d; font-size: .82rem; font-weight: 600; }
+  .mobile-city-menu a:hover, .mobile-city-menu a:focus-visible { background: #f0f5f1; }
+  .header-map-action, .header-map-external-link, .header-saved-action, .header-language-mobile { display: none !important; }
+  .header-search-action { display: inline-flex; min-width: 40px; min-height: 42px; }
+  .header-menu-action { min-width: 40px; min-height: 42px; }
+  .header-actions { gap: 2px; }
+  .header-search-action svg, .header-menu-action svg { width: 19px; height: 19px; }
+
+  /* Keep the real H1 and market description visible, but make search the first
+     thing a phone user sees. The desktop image is not requested on mobile. */
+  .pkr-hero--home { min-height: 0; overflow: visible; border-radius: 0; background: #f5f8f5; color: #132f24; }
+  .pkr-hero--home .pkr-hero-picture, .pkr-hero--home .pkr-hero-shade { display: none; }
+  .pkr-hero--home .pkr-hero-inner { display: flex; max-width: 760px; flex-direction: column; gap: 0; padding: calc(var(--site-header-height) + 7px) 16px 14px; }
+  .pkr-hero--home .pkr-hero-eyebrow { display: none; }
+  .pkr-hero--home .pkr-search { order: 0; width: 100%; margin: 0; }
+  .pkr-search-tabs { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 7px; padding: 0; border-radius: 0; background: transparent; }
+  .pkr-search-tab { min-width: 0; height: 42px; border: 1px solid #e1e9e3; border-radius: 9px; background: #fff; color: #627269; font-size: .88rem; }
+  .pkr-search-tab.is-active { border-color: #116b48; background: #116b48; color: #fff; box-shadow: 0 5px 12px -8px rgba(12,93,60,.7); }
+  .pkr-search-card { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px 10px; padding: 13px; border: 1px solid #e5ebe6; border-radius: 0 0 14px 14px; background: #fff; box-shadow: 0 14px 30px -24px rgba(14,48,33,.38); }
+  .pkr-search-card > .pkr-field:first-child { grid-column: 1 / -1; }
+  .pkr-search-card > .pkr-field:nth-child(2), .pkr-search-card > .pkr-field:nth-child(3) { min-width: 0; }
+  .pkr-field { gap: 5px; }
+  .pkr-field-label { font-size: .65rem; letter-spacing: .1em; }
+  .pkr-field-control { min-height: 42px; padding-inline: 9px; border: 1px solid #e3eae5; border-radius: 9px; background: #fbfcfb; }
+  .pkr-field-control input, .pkr-field-control select, .hs-budget-trigger { height: 40px; padding-inline: 0 23px; font-size: 16px; letter-spacing: 0; }
+  .pkr-field-control input::placeholder { font-size: .82rem; }
+  .pkr-search-submit { grid-column: 1 / -1; width: 100%; min-width: 0; height: 46px; gap: 10px; border-radius: 9px; background: #0b7650; font-size: .92rem; }
+  .pkr-search-submit-arrow { color: #fff; }
+  .pkr-search-advanced { order: 1; display: inline-flex; width: fit-content; min-height: 38px; align-items: center; gap: 7px; margin: 2px 0 5px auto; color: #0c6947; font-size: .78rem; font-weight: 700; }
+  .pkr-search-advanced svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .pkr-hero--home .pkr-hero-title { order: 2; margin: 7px 0 0; color: #173b2c; font-family: var(--font-sans); font-size: 1rem; font-weight: 700; line-height: 1.35; letter-spacing: -.02em; }
+  .pkr-hero--home .pkr-hero-title em { display: inline; color: inherit; font-family: inherit; font-size: inherit; font-style: normal; font-weight: inherit; letter-spacing: inherit; white-space: normal; }
+  .pkr-hero--home .pkr-hero-sub { order: 3; max-width: 100%; margin: 3px 0 0; color: #5e7066; font-size: .74rem; line-height: 1.45; }
+  .pkr-hero--home .pkr-hero-links, .pkr-hero--home .pkr-stats { display: none; }
+
+  .home-page > section:not(.home-hero):not(.closing-cta-section) { padding-block: 10px; }
+  .home-page .ui-container { padding-inline: 16px; }
+  .home-featured-section { padding-top: 4px !important; }
+  .home-featured-section .ui-container { padding-inline: 14px; }
+  .featured-showcase-card { display: block; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+  .featured-showcase-intro { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 3px 8px; padding: 0 2px 10px; }
+  .featured-showcase-eyebrow { display: none; }
+  .featured-showcase-title { grid-column: 1; margin: 0; font-size: 1.08rem !important; line-height: 1.25 !important; }
+  .featured-showcase-copy { grid-column: 1; margin: 2px 0 0; color: #66766d; font-size: .72rem; line-height: 1.4; }
+  .featured-showcase-actions { grid-column: 2; grid-row: 1 / span 2; margin: 0; }
+  .featured-showcase-cta { min-height: 38px; gap: 3px; padding-inline: 4px; border: 0; background: transparent; color: #0b7650; font-size: .75rem; }
+  .featured-showcase-rail .property-rail-item { width: min(82vw, 306px); }
+  .featured-showcase-rail .property-rail { margin: 0; }
+  .featured-showcase-rail .property-rail-toolbar { min-height: 30px; margin-bottom: 8px; }
+  .featured-showcase-rail .property-rail-toolbar p { font-size: .68rem; }
+  .featured-showcase-rail .property-rail-toolbar p span { display: none; }
+  .featured-showcase-rail .property-rail-controls button { width: 32px; height: 32px; }
+  .property-rail-viewport { padding-bottom: 8px; scroll-padding-inline: 2px; scroll-snap-type: x mandatory; }
+  .property-rail-track { gap: 12px; }
+  .featured-showcase-rail .property-rail-item article { border-radius: 13px; }
+
+  /* Society guides intentionally use exact, source-backed society map thumbnails. */
+  .home-societies-section { padding-block: 10px 12px; background: #f5f8f5; }
+  .home-mobile-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  .home-mobile-section-heading h2 { margin: 0; color: #173b2c; font-family: var(--font-sans); font-size: 1.05rem; font-weight: 720; line-height: 1.25; letter-spacing: -.02em; }
+  .home-mobile-eyebrow { margin: 0 0 3px; color: #738178; font-size: .64rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
+  .home-mobile-view-all { display: inline-flex; min-height: 38px; align-items: center; gap: 3px; color: #0b7650; font-size: .75rem; font-weight: 700; white-space: nowrap; }
+  .home-societies-rail { display: flex; gap: 11px; overflow-x: auto; padding: 1px 1px 8px; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .home-societies-rail::-webkit-scrollbar { display: none; }
+  .home-society-card { flex: 0 0 108px; min-width: 0; scroll-snap-align: start; }
+  .home-society-image { position: relative; display: block; width: 108px; height: 108px; overflow: hidden; border: 1px solid #e1e9e3; border-radius: 15px; background: #e9f0eb; }
+  .home-society-image img { width: 100%; height: 100%; object-fit: cover; }
+  .home-society-map-label { position: absolute; right: 5px; bottom: 5px; padding: 3px 6px; border-radius: 6px; background: rgba(12,54,38,.84); color: #fff; font-size: .55rem; font-weight: 700; }
+  .home-society-copy { display: block; padding: 6px 1px 0; }
+  .home-society-name { display: -webkit-box; min-height: 2.4em; overflow: hidden; color: #203c2e; font-size: .69rem; font-weight: 700; line-height: 1.2; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+  .home-society-city { display: flex; align-items: center; gap: 3px; margin-top: 4px; color: #78857c; font-size: .64rem; }
+  .home-society-attribution { margin: 0; color: #87928b; font-size: .59rem; line-height: 1.35; }
+  .home-society-attribution a { text-decoration: underline; text-underline-offset: 2px; }
+
+  /* Compact, circular real agency marks with links to their existing profiles. */
+  .home-page > section.home-verified-agencies { padding-block: 8px 14px; }
+  .home-verified-agencies .ui-container { padding-inline: 16px; }
+  .home-verified-agencies .agx-p1 { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+  .home-verified-agencies .agx-head { align-items: center; gap: 8px; margin-bottom: 9px; }
+  .home-verified-agencies .agx-serif { margin: 0; color: #173b2c; font-family: var(--font-sans); font-size: 1.02rem; font-weight: 720; line-height: 1.25; }
+  .home-verified-agencies .agx-arrows { display: none; }
+  .home-verified-agencies .agx-rail { gap: 11px; padding: 0 1px 7px; scrollbar-width: none; }
+  .home-verified-agencies .agx-rail::-webkit-scrollbar { display: none; }
+  .home-verified-agencies .agx-p1-rail > .agx-p1-card { flex: 0 0 78px; width: 78px; gap: 0; padding: 0; border: 0; background: transparent; box-shadow: none; }
+  .home-verified-agencies .agx-p1-card:hover { transform: none; }
+  .home-verified-agencies .agx-p1-card .agx-logo { width: 58px !important; height: 58px !important; margin: 0 auto 5px; }
+  .home-verified-agencies .agx-p1-name { width: 100%; justify-content: center; gap: 2px; color: #31463a; font-size: .62rem; line-height: 1.2; }
+  .home-verified-agencies .agx-p1-name .truncate { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+  .home-verified-agencies .agx-p1-city, .home-verified-agencies .agx-p1-stats { display: none; }
+
+  /* Remaining modules keep their original data and routes, in compact rails. */
+  .home-page .home-section-topline { margin-bottom: 9px; }
+  .home-page .home-section-topline h2, .home-page .section-heading .display-2 { font-size: 1.02rem !important; }
+  .home-page .section-heading { margin-bottom: 10px; }
+  .home-page .section-heading .lede, .home-page .lede { font-size: .75rem; }
+  .home-page #markets .section-card-surface, .home-page #explore .section-card-surface { padding: 14px 12px; border-radius: 14px; }
+  .home-page #markets { display: block !important; }
+  .home-page .home-city-rail .mobile-scroll-toolbar { display: flex; }
+  .home-page .home-city-rail .mobile-scroll-track > .city-discovery-item { flex-basis: 74%; }
+  .home-page .home-categories-section .category-showcase-card { padding: 14px 12px; border-radius: 14px; }
+  .home-page .home-categories-section .category-showcase-title { font-size: 1rem !important; }
+  .home-page #explore .property-rail-item { width: min(78vw, 294px); }
+  .home-page .closing-cta-section { margin-bottom: 8px; }
+
+  /* Five equal touch targets; the center listing action floats above the bar. */
+  .mobile-bottom-nav { position: fixed; right: 0; bottom: 0; left: 0; z-index: 55; display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); align-items: end; min-height: 62px; padding: 5px max(10px, env(safe-area-inset-right, 0px)) calc(5px + env(safe-area-inset-bottom, 0px)) max(10px, env(safe-area-inset-left, 0px)); border-top: 1px solid #e4ebe6; background: rgba(255,255,255,.97); box-shadow: 0 -8px 24px -22px rgba(8,36,25,.42); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+  .mobile-bottom-nav-item { position: relative; display: flex; min-width: 0; min-height: 46px; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 10px; color: #748178; -webkit-tap-highlight-color: transparent; }
+  .mobile-bottom-nav-item.is-active { color: #0b7650; }
+  .mobile-bottom-nav-icon { display: grid; width: 25px; height: 22px; place-items: center; }
+  .mobile-bottom-nav-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .mobile-bottom-nav-label { max-width: 100%; overflow: hidden; font-size: .61rem; font-weight: 650; line-height: 1; text-overflow: ellipsis; white-space: nowrap; }
+  .mobile-bottom-nav-item--prominent { width: 60px; height: 60px; min-height: 60px; justify-self: center; margin-top: -29px; border: 3px solid rgba(255,255,255,.98); border-radius: 15px; background: linear-gradient(145deg,#159364 0%,#0c6848 54%,#084b36 100%); color: #fff; box-shadow: 0 11px 24px -8px rgba(5,65,43,.68), 0 3px 8px rgba(13,44,30,.2), inset 0 1px 0 rgba(255,255,255,.24); }
+  .mobile-bottom-nav-item--prominent .mobile-bottom-nav-icon { width: 100%; height: 100%; }
+  .mobile-bottom-nav-item--prominent .mobile-bottom-nav-icon svg { width: 30px; height: 30px; stroke-width: 2.2; }
+  .mobile-bottom-nav-item--prominent:active { transform: translateY(1px) scale(.97); }
+}
+
+@media (max-width: 359px) {
+  .header-inner { gap: 4px; }
+  .header-brand { max-width: 44%; overflow: hidden; }
+  .mobile-city-selector summary { gap: 3px; padding-inline: 3px; font-size: .7rem; }
+  .mobile-city-selector summary svg:last-child { display: none; }
+  .brand-lockup--compact .brand-lockup-mark { width: 31px; height: 31px; }
+  .brand-lockup--compact .brand-lockup-name { font-size: .91rem; }
+  .brand-lockup--compact .brand-lockup-tagline { display: none; }
+  .mobile-bottom-nav { padding-inline: 7px; }
+  .mobile-bottom-nav-label { font-size: .57rem; }
+  .home-society-card { flex-basis: 96px; }
+  .home-society-image { width: 96px; height: 96px; }
+}
+
+@media (min-width: 768px) {
+  .mobile-bottom-nav { display: none !important; }
+  .mobile-city-selector { display: none !important; }
+  body { padding-bottom: 0; }
+}
+
+/* Responsive polish shared across the established marketplace routes. */
+@media (max-width: 767px) {
+  /* On phones the brand stays legible over every page, including photo heroes. */
+  html body.lux-theme .site-header.site-header--overlay,
+  html body.lux-theme .site-header {
+    border-bottom: 1px solid rgba(220, 187, 121, .42) !important;
+    background: linear-gradient(112deg, #061a13 0%, #0a2d20 56%, #103a2a 100%) !important;
+    color: #fff !important;
+    box-shadow: 0 8px 22px -15px rgba(3, 22, 15, .78) !important;
+    --brand-name: #fff;
+    --brand-accent: #dfbe78;
+    --brand-tagline: rgba(255,255,255,.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  html body.lux-theme .header-brand .brand-lockup-name { color: #fff !important; }
+  html body.lux-theme .header-brand .brand-lockup-accent { color: #dfbe78 !important; }
+  html body.lux-theme .header-brand .brand-lockup-tagline { color: rgba(255,255,255,.72) !important; }
+  html body.lux-theme .site-header .header-action { color: #fff !important; }
+  .site-header .header-inner { padding-right: max(12px, env(safe-area-inset-right, 0px)); }
+
+  /* Inner routes get a compact title band, leaving room for actual listings and tools. */
+  .page-hero { padding-top: calc(var(--site-header-height) + 13px) !important; padding-bottom: 25px !important; }
+  .page-hero .ui-container { padding-inline: 16px; }
+  .page-hero .eyebrow { margin-top: 13px; font-size: .68rem; }
+  .page-hero .display-2 { margin-top: 8px; font-size: clamp(1.48rem, 6.1vw, 1.9rem); line-height: 1.16; letter-spacing: -.035em; }
+  .page-hero .lede { margin-top: 8px; font-size: .82rem; line-height: 1.48; }
+  .page-hero .mt-8 { margin-top: 16px; }
+  .page-hero .btn { min-height: 42px; padding-inline: 13px; font-size: .78rem; }
+  .breadcrumbs { max-width: 100%; overflow: hidden; font-size: .69rem; white-space: nowrap; }
+  .site-inner-section { padding-top: 34px !important; padding-bottom: 34px !important; }
+  .site-inner-section .ui-container { padding-inline: 16px; }
+  .site-inner-section .section-heading { gap: 9px; }
+  .site-inner-section .section-heading .display-2 { margin-top: 8px; font-size: clamp(1.35rem, 5.5vw, 1.7rem); line-height: 1.2; }
+  .site-inner-section .section-heading .lede { margin-top: 8px; font-size: .82rem; line-height: 1.5; }
+  .site-inner-section .mt-10 { margin-top: 22px; }
+  .site-inner-section .mt-9 { margin-top: 20px; }
+
+  /* Keep listing/detail contact controls reachable without stacking two bottom bars. */
+  body:has(.property-detail-page) { padding-bottom: 0; }
+  .property-detail-mobile-cta { padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .mobile-bottom-nav-item--prominent { top: -17px; z-index: 1; }
+  .wa-float { display: none !important; }
+
+  /* Directory header actions follow the compact reference rails. */
+  .agx-head-actions { display: flex; align-items: center; gap: 10px; }
+  .agx-view-all { display: inline-flex; min-height: 38px; align-items: center; gap: 3px; color: #0b7650; font-size: .75rem; font-weight: 700; white-space: nowrap; }
+  .home-verified-agencies .agx-head { justify-content: space-between; }
+  .home-verified-agencies .agx-head-actions .agx-arrows { display: none; }
+}
+
+@media (max-width: 767px) {
+  /* Search results use compact, scannable rows; featured/home rails keep their image-first cards. */
+  .listing-results-section { padding-top: 18px !important; }
+  .listing-results-section > .ui-container { padding-inline: 12px; }
+  .property-results-grid { grid-template-columns: minmax(0, 1fr); gap: 11px; margin-top: 17px; }
+  .property-results-grid > .reveal { min-width: 0; }
+  .property-results-grid article {
+    min-height: 142px;
+    flex-direction: row;
+    border-radius: 12px;
+    box-shadow: 0 5px 18px -14px rgba(8, 34, 26, .35);
+  }
+  .property-results-grid article > .zoom-frame {
+    width: 37%;
+    max-width: 145px;
+    min-height: 142px;
+    flex: 0 0 37%;
+    aspect-ratio: auto;
+  }
+  .property-results-grid article > .flex.min-w-0.flex-1.flex-col { padding: 10px 11px; }
+  .property-results-grid article h3 { font-size: .88rem; line-height: 1.25; }
+  .property-results-grid article .mt-1.flex.items-center.gap-1 { margin-top: 3px; font-size: .68rem; }
+  .property-results-grid article .property-card-price-block { margin-top: 6px; }
+  .property-results-grid article .property-card-price-block > p { font-size: .91rem; }
+  .property-results-grid article .property-card-price-block + p { display: none; }
+  .property-results-grid article .hairline { display: none; }
+  .property-results-grid article [class~="pt-2.5"] { padding-top: 5px; }
+  .property-results-grid article [class~="mt-3.5"] { margin-top: 4px; }
+  .property-results-grid article [class~="mt-3.5"] a { font-size: .72rem; }
+  .property-results-grid article [class~="mt-3.5"] > span { font-size: .66rem; }
+}
+
+.agx-heading-copy { min-width: 0; }
+.agx-home-eyebrow { margin: 0 0 5px; color: #738178; font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.agx-head-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 12px; }
+.agx-view-all { display: inline-flex; min-height: 40px; align-items: center; gap: 4px; color: #0b7650; font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.agx-view-all:hover { color: #07573a; }
+
+/* Final mobile pass against the supplied compact marketplace mockup. */
+@media (max-width: 767px) {
+  .pkr-hero--home .pkr-hero-inner { padding-top: calc(var(--site-header-height) + 5px); padding-bottom: 8px; }
+  .pkr-search-tabs { margin-bottom: 7px; }
+  .pkr-search-card {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px;
+    grid-template-rows: auto auto;
+    gap: 7px 8px;
+    padding: 9px;
+    border-radius: 12px;
+    box-shadow: 0 8px 22px -19px rgba(14, 48, 33, .42);
+  }
+  .pkr-search-card > .pkr-field:first-child { grid-column: 1 / -1; grid-row: 1; }
+  .pkr-search-card > .pkr-field:nth-child(2) { grid-column: 1; grid-row: 2; }
+  .pkr-search-card > .pkr-field:nth-child(3) { grid-column: 2; grid-row: 2; }
+  .pkr-field--location .pkr-field-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+  .pkr-search-card .pkr-field-label { font-size: .59rem; letter-spacing: .07em; }
+  .pkr-search-card .pkr-field-control { min-height: 40px; padding-inline: 8px; }
+  .pkr-search-card .pkr-field-control input,
+  .pkr-search-card .pkr-field-control select,
+  .pkr-search-card .hs-budget-trigger { height: 38px; padding-right: 19px; font-size: 15px; }
+  .pkr-search-submit {
+    grid-column: 3;
+    grid-row: 2;
+    align-self: end;
+    width: 44px;
+    min-width: 44px;
+    height: 40px;
+    padding: 0;
+    overflow: hidden;
+    border-radius: 10px;
+    font-size: 0;
+  }
+  .pkr-search-submit-arrow { width: 19px; height: 19px; color: #fff; }
+  .pkr-search-advanced { min-height: 32px; margin: 2px 0 0 auto; font-size: .72rem; }
+  /* Keep the real H1 visible but understated after search, as in the compact reference. */
+  .pkr-hero--home .pkr-hero-title {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    clip-path: none;
+    margin: 3px 0 0;
+    color: #748278;
+    font-family: var(--font-sans);
+    font-size: .72rem;
+    font-weight: 500;
+    line-height: 1.25;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+  .pkr-hero--home .pkr-hero-sub { display: none; }
+
+  .featured-showcase-copy { display: none; }
+  .featured-showcase-actions { grid-row: 1; }
+  .featured-showcase-rail .property-rail-toolbar { display: none; }
+  .featured-showcase-rail .property-rail-item article > .zoom-frame { aspect-ratio: 16 / 9; }
+  .featured-showcase-rail .property-rail-item article > .flex.min-w-0.flex-1.flex-col { padding: 11px 12px; }
+  .featured-showcase-rail .property-rail-item article h3 { font-size: .93rem; }
+
+  /* The reference uses small circular society marks rather than square map tiles. */
+  .home-societies-section { padding-block: 8px 9px; }
+  .home-societies-section .home-mobile-eyebrow { display: none; }
+  .home-societies-section .home-mobile-section-heading { margin-bottom: 7px; }
+  .home-societies-rail { gap: 9px; padding: 0 1px 4px; }
+  .home-society-card { flex: 0 0 72px; text-align: center; }
+  .home-society-image { width: 46px; height: 46px; margin-inline: auto; border-radius: 50%; }
+  .home-society-map-label { display: none; }
+  .home-society-copy { padding: 5px 0 0; }
+  .home-society-name { min-height: 2.3em; font-size: .64rem; line-height: 1.15; }
+  .home-society-city { display: none; }
+  .home-society-attribution { margin-top: 2px; font-size: .55rem; }
+
+  .home-verified-agencies .agx-home-eyebrow { display: none; }
+  .home-verified-agencies .agx-p1-rail > .agx-p1-card { flex-basis: 72px; width: 72px; }
+  .home-verified-agencies .agx-p1-card .agx-logo { width: 50px !important; height: 50px !important; }
 }

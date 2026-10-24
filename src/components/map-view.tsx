@@ -127,6 +127,14 @@ export function MapView({
     [properties, selected],
   );
 
+  function scrollPropertyList(direction: -1 | 1) {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    listRef.current?.scrollBy({
+      left: direction * 300,
+      behavior: reducedMotion ? "auto" : "smooth",
+    });
+  }
+
   return (
     <div
       className={`grid min-w-0 gap-4 lg:grid-cols-[minmax(0,2.25fr)_minmax(340px,1fr)] ${fullScreen ? "map-view-fullscreen" : ""} ${className}`}
@@ -213,31 +221,17 @@ export function MapView({
                     type="button"
                     aria-label={t("Previous properties on map")}
                     title={t("Scroll properties left")}
-                    onClick={() =>
-                      listRef.current?.scrollBy({
-                        left: -300,
-                        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-                          ? "auto"
-                          : "smooth",
-                      })
-                    }
+                    onClick={() => scrollPropertyList(-1)}
                   >
-                    <IconArrowRight className="h-4 w-4 rotate-180" />
+                    <IconArrowRight className="h-4 w-4 map-view-scroll-prev-icon" />
                   </button>
                   <button
                     type="button"
                     aria-label={t("Next properties on map")}
                     title={t("Scroll properties right")}
-                    onClick={() =>
-                      listRef.current?.scrollBy({
-                        left: 300,
-                        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-                          ? "auto"
-                          : "smooth",
-                      })
-                    }
+                    onClick={() => scrollPropertyList(1)}
                   >
-                    <IconArrowRight className="h-4 w-4" />
+                    <IconArrowRight className="h-4 w-4 map-view-scroll-next-icon" />
                   </button>
                 </>
               )}

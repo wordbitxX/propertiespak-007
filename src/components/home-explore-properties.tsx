@@ -14,7 +14,7 @@ function subscribe(listener: () => void) {
 }
 
 /** Show two rows (8 cards) of desktop discovery cards with a "View all" link, and a paginated swipe rail on phones. */
-export function HomeExploreProperties({ properties, total }: { properties: PropertyWithDealer[]; total: number }) {
+export function HomeExploreProperties({ properties, total, citySlug }: { properties: PropertyWithDealer[]; total: number; citySlug?: string }) {
   const mobile = useSyncExternalStore(subscribe, () => window.matchMedia(PHONE).matches, () => false);
   // On phones this becomes a swipe rail that drifts the opposite way to Featured
   // Properties, and on a slower cadence, so the two home rails read as
@@ -23,7 +23,7 @@ export function HomeExploreProperties({ properties, total }: { properties: Prope
     <PropertyRail
       initialProperties={properties}
       initialTotal={total}
-      query="sort=newest"
+      query={citySlug ? `sort=newest&city=${citySlug}` : "sort=newest"}
       label="Explore properties"
       pageSize={16}
       autoPlay

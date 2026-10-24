@@ -188,7 +188,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
     <>
       <RecentPropertyTracker id={property.id} path={`/property/${property.slug}`} />
       {/* Detail header band */}
-      <section className="relative isolate overflow-hidden bg-navy-950 pb-40 pt-28 lg:pb-48 lg:pt-36">
+      <section className="property-detail-page relative isolate overflow-hidden bg-navy-950 pb-40 pt-28 lg:pb-48 lg:pt-36">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 opacity-60"
@@ -612,7 +612,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
       )}
 
       {/* Mobile sticky CTA */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-soft bg-white/97 px-4 py-3 backdrop-blur lg:hidden">
+      <div className="property-detail-mobile-cta fixed inset-x-0 bottom-0 z-40 border-t border-soft bg-white/97 px-4 py-3 backdrop-blur lg:hidden">
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
             <p className="font-sans text-[0.9375rem] font-bold leading-none text-navy-900">
