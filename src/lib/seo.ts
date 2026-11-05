@@ -56,7 +56,10 @@ export function buildMetadata({
     description,
     keywords,
     robots: robots ?? { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } },
-    alternates: { canonical: url },
+    alternates: {
+      canonical: url,
+      languages: { "en-PK": url, "x-default": url },
+    },
     openGraph: {
       title,
       description,
@@ -150,7 +153,7 @@ export function organizationJsonLd() {
       description:
         "WordbitX Software Company is a full-service technology company engineering web platforms, PropTech solutions, custom software & mobile apps in Pakistan and globally.",
       url: SITE.companyUrl,
-      email: "info@wordbitxtech.com",
+      email: "info@wordbitx.com",
       telephone: SITE.companyPhone,
       sameAs: COMPANY_SOCIAL_LINKS,
       address: {
@@ -163,7 +166,7 @@ export function organizationJsonLd() {
     slogan: SITE.tagline,
     isAccessibleForFree: true,
     disambiguatingDescription:
-      "Properties Pak (propertiespak.com) is Pakistan's property marketplace, engineered by WordbitX Software Company (https://wordbitxtech.com/).",
+      "Properties Pak (propertiespak.com) is Pakistan's property marketplace, engineered by WordbitX Software Company (https://wordbitx.com/).",
   };
 }
 

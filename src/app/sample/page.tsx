@@ -12,6 +12,11 @@ export const metadata: Metadata = {
   title: `Design Samples — Platinum Agency & Hero — ${SITE.name}`,
   description:
     "Compare Platinum Agency section samples (dhaplus-style registered agencies and premium variations) and the Hero Section design samples.",
+  alternates: {
+    canonical: `${SITE.url}/sample`,
+    languages: { "en-PK": `${SITE.url}/sample`, "x-default": `${SITE.url}/sample` },
+  },
+  openGraph: { url: `${SITE.url}/sample` },
   robots: {
     index: false,
     follow: false,

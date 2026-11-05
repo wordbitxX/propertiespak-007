@@ -98,7 +98,7 @@ a.ghost{border:1px solid #E8EEF3;color:#061C33}
 <a class="btn ghost" href="/">Back to home</a>
 </div>
 <p class="credit">Properties Pak &mdash; Pakistan Real Estate. Official platform developed by
-<a href="https://wordbitxtech.com/" rel="noopener">WordbitX Software Company</a>.</p>
+<a href="https://wordbitx.com/" rel="noopener">WordbitX Software Company</a>.</p>
 </main></div></body></html>`;
 
 export function proxy(request: NextRequest) {

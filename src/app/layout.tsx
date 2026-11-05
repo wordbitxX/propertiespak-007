@@ -99,10 +99,6 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
-  alternates: {
-    canonical: SITE.url,
-    languages: { "en-PK": SITE.url, "x-default": SITE.url },
-  },
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
@@ -116,7 +112,6 @@ export const metadata: Metadata = {
     type: "website",
     siteName: SITE.name,
     locale: SITE.locale,
-    url: SITE.url,
     title: "Properties Pak — Pakistan Real Estate Marketplace",
     description: SITE.description,
     images: [{ url: ogImage, width: 1200, height: 630, alt: "Properties Pak — property marketplace for Pakistan" }],

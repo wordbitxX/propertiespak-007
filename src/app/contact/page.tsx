@@ -290,7 +290,7 @@ export default async function ContactPage() {
                 { label: "Pakistan · Sales & support", value: SITE.companyPhone, note: "Company enquiries, Pakistan market" },
                 { label: "USA / International", value: SITE.companyPhoneUs, note: "WordbitX international contact number" },
                 { label: "Email", value: SITE.companyEmail, note: "Platform, licensing and partnerships" },
-                { label: "Website", value: "wordbitxtech.com", note: "Company profile and services" },
+                { label: "Website", value: "wordbitx.com", note: "Company profile and services" },
               ].map((item) => (
                 <div key={item.label} className="rounded-xl border border-soft bg-white p-4">
                   <p className="text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-ink-muted">{item.label}</p>
@@ -309,7 +309,7 @@ export default async function ContactPage() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 font-semibold text-forest-700 hover:text-forest-600"
               >
-                Visit wordbitxtech.com <IconArrowRight className="h-3.5 w-3.5" />
+                Visit wordbitx.com <IconArrowRight className="h-3.5 w-3.5" />
               </a>
             </div>
             <p className="mt-5 text-[0.75rem] leading-relaxed text-ink-muted">

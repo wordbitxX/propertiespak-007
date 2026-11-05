@@ -21,7 +21,7 @@ export const metadata: Metadata = buildMetadata({
   keywords: ["Properties Pak", "real estate platform Pakistan", "WordbitX Software Company", "property marketplace Pakistan"],
 });
 
-/** Live portals in the WordbitX group (listed on wordbitxtech.com). */
+/** Live portals in the WordbitX group (listed on wordbitx.com). */
 type Portal = { name: string; sector: string; domain: string; url: string; copy: string; current?: boolean };
 
 const WORDBITX_PORTALS: Portal[] = [
@@ -36,43 +36,43 @@ const WORDBITX_PORTALS: Portal[] = [
   {
     name: "Motor & Automotive",
     sector: "Automotive",
-    domain: "motor.wordbitxtech.com",
-    url: "https://motor.wordbitxtech.com/",
+    domain: "wordbitx.com",
+    url: "https://wordbitx.com/",
     copy: "Vehicle listings, showroom-style layouts and enquiry-first design.",
   },
   {
     name: "Medicare",
     sector: "Healthcare",
-    domain: "medicare.wordbitxtech.com",
-    url: "https://medicare.wordbitxtech.com/",
+    domain: "wordbitx.com",
+    url: "https://wordbitx.com/",
     copy: "Healthcare services, appointment booking and professional medical presentation.",
   },
   {
     name: "Education",
     sector: "Education",
-    domain: "education.wordbitxtech.com",
-    url: "https://education.wordbitxtech.com/",
+    domain: "wordbitx.com",
+    url: "https://wordbitx.com/",
     copy: "Courses, programmes, admissions and education content.",
   },
   {
     name: "E-commerce",
     sector: "Retail & commerce",
-    domain: "ecom.wordbitxtech.com",
-    url: "https://ecom.wordbitxtech.com/",
+    domain: "wordbitx.com",
+    url: "https://wordbitx.com/",
     copy: "Product catalogues, categories and a checkout built to convert.",
   },
   {
     name: "Luxury Dining",
     sector: "Hospitality",
-    domain: "luxury.wordbitxtech.com",
-    url: "https://luxury.wordbitxtech.com/",
+    domain: "wordbitx.com",
+    url: "https://wordbitx.com/",
     copy: "Premium restaurant presentation with menus and reservations.",
   },
   {
     name: "Salon & Beauty",
     sector: "Beauty",
-    domain: "saloon.wordbitxtech.com",
-    url: "https://saloon.wordbitxtech.com/",
+    domain: "wordbitx.com",
+    url: "https://wordbitx.com/",
     copy: "Services, packages and appointment booking for salons.",
   },
 ];
@@ -417,7 +417,7 @@ export default async function AboutPage() {
                     >
                       {SITE.company}
                     </a>
-                    <span className="block text-ink-muted">wordbitxtech.com</span>
+                    <span className="block text-ink-muted">wordbitx.com</span>
                   </dd>
                 </div>
               </div>
@@ -482,11 +482,11 @@ export default async function AboutPage() {
             eyebrow="The WordbitX group"
             title="Properties Pak is run by WordbitX"
             description="WordbitX Software Company builds and runs Properties Pak. It also runs a group of companies and live digital portals across real estate, automotive, healthcare, education, commerce and hospitality — the same team, standards and engineering behind every one of them."
-            action={{ label: "Visit wordbitxtech.com", href: SITE.companyUrl }}
+            action={{ label: "Visit wordbitx.com", href: SITE.companyUrl }}
           />
           <ul className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {WORDBITX_PORTALS.map((portal) => (
-              <li key={portal.domain}>
+              <li key={portal.name}>
                 <a
                   href={portal.url}
                   target={portal.current ? undefined : "_blank"}

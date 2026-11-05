@@ -26,7 +26,7 @@ test("hero is photographic, borderless and has no featured listing card", async 
   await page.screenshot({ path: testInfo.outputPath("after-hero-desktop.png") });
   await expect(page.locator("#wordbitx")).toHaveCount(0);
   await expect(page.getByTestId("closing-cta")).toBeVisible();
-  await expect(page.getByRole("contentinfo").getByRole("link", { name: "WordbitX | Group of Companies", exact: true })).toHaveAttribute("href", "https://wordbitxtech.com/");
+  await expect(page.getByRole("contentinfo").getByRole("link", { name: "WordbitX | Group of Companies", exact: true })).toHaveAttribute("href", "https://wordbitx.com/");
   await expect(page.getByRole("heading", { name: "Explore Properties", exact: true })).toBeVisible();
   expect(errors).toEqual([]);
 });
