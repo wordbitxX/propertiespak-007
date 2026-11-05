@@ -231,7 +231,7 @@ test("footer branding keeps the transparent mark and the AI assistant stays a co
     await expect(footerLogo).toHaveAttribute("viewBox", "553.5 48 460 460");
     await expect(footerLogo.locator('rect[width="48"][height="48"]')).toHaveCount(0);
     const credit = footer.getByRole("link", { name: "WordbitX | Group of Companies", exact: true });
-    await expect(credit).toHaveAttribute("href", "https://wordbitxtech.com/");
+    await expect(credit).toHaveAttribute("href", "https://wordbitx.com/");
     const brand = credit.locator(".footer-wordbitx-x");
     const colors = await credit.evaluate((element) => ({
       name: getComputedStyle(element).color,

@@ -9,7 +9,7 @@ export const SITE = {
   description:
     "Properties Pak is Pakistan's property marketplace for verified listings — search houses, apartments, plots, luxury villas, commercial property and new housing projects for sale and rent in Lahore, Islamabad, Karachi, Rawalpindi, Faisalabad, Multan, Gujranwala and Peshawar.",
   company: "WordbitX Software Company",
-  companyUrl: "https://wordbitxtech.com/",
+  companyUrl: "https://wordbitx.com/",
   companyEmail: "info@propertiespak.com",
   companyPhone: "+92 325 1888841",
   companyPhoneUs: "+1 (929) 619-7699",
@@ -49,9 +49,9 @@ export const SITE = {
     tiktok: "https://www.tiktok.com/@wordbitx",
   },
   backlinks: {
-    wordbitxHome: "https://wordbitxtech.com/",
-    wordbitxServices: "https://wordbitxtech.com/",
-    wordbitxContact: "https://wordbitxtech.com/",
+    wordbitxHome: "https://wordbitx.com/",
+    wordbitxServices: "https://wordbitx.com/",
+    wordbitxContact: "https://wordbitx.com/",
     officialPlatform: "https://propertiespak.com",
   },
 };

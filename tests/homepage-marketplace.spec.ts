@@ -83,7 +83,7 @@ test("homepage is compact, retains Explore, removes duplicate dealers and never 
   await expect(hero.getByRole("link", { name: "Need help selling or renting? Contact us", exact: true })).toHaveAttribute("href", "/contact");
   expect(await hero.locator(".hero-owner-actions").evaluate((actions) => getComputedStyle(actions).flexDirection)).toBe("column");
   await expect(hero.getByText("Better Homes. Bigger Dreams.", { exact: true })).toBeVisible();
-  await expect(hero.getByRole("link", { name: "Official platform by WordbitX Software Company", exact: true })).toHaveAttribute("href", "https://wordbitxtech.com/");
+  await expect(hero.getByRole("link", { name: "Official platform by WordbitX Software Company", exact: true })).toHaveAttribute("href", "https://wordbitx.com/");
   await expect(page.getByRole("heading", { name: "Recently Added Properties", exact: true })).toHaveCount(1);
   await expect(page.getByRole("heading", { name: "Find Properties by Type", exact: true })).toHaveCount(1);
   await expect(page.locator("#property-categories .home-type-rail-item")).toHaveCount(5);

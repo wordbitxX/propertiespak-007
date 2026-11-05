@@ -1,7 +1,7 @@
 # Properties Pak — SEO & launch checklist
 
 Domain: **https://propertiespak.com** (canonical apex host; `www` and the old
-`property.wordbitxtech.com` 301 to it in production — see `next.config.ts`).
+legacy property hosts 301 to it in production — see `next.config.ts`).
 
 Everything in **Part 1** is already implemented in this repository. **Part 2** is
 the work that must happen outside the codebase (Search Console, Google Business
@@ -13,7 +13,7 @@ Profile, content, backlinks) — that is where the ranking actually comes from.
 
 | Area | What is in place | Where |
 | --- | --- | --- |
-| Canonical host | Apex `propertiespak.com` is the canonical; `www`, `property.wordbitxtech.com` redirect with 301 (production only) | `next.config.ts` → `redirects()` |
+| Canonical host | Apex `propertiespak.com` is the canonical; `www` and the legacy property hosts redirect with 301 (production only) | `next.config.ts` → `redirects()` |
 | Canonical tags | Self-referencing `<link rel="canonical">` on every page, absolute and https | `src/lib/seo.ts` → `buildMetadata()` |
 | Titles | Explicit, keyword-first titles; template `%s \| Properties Pak` | `src/app/layout.tsx`, page `metadata` exports |
 | Meta description | Unique per page, written for click-through, 150–160 chars | every page's `buildMetadata({ description })` |
@@ -106,7 +106,7 @@ Guidelines:
 
 ## Part 4 — Off-page / authority (months 1–6)
 
-- Link from `wordbitxtech.com` (already referenced in structured data) plus a
+- Link from `wordbitx.com` (referenced in structured data) plus a
   portfolio/case-study page: a relevant, contextual first backlink.
 - Local citations with identical NAP: Google Business Profile, Bing Places,
   Apple Maps, Facebook, LinkedIn, Pakistan business directories (Yellow Pages
